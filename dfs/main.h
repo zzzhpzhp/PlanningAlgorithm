@@ -6,8 +6,13 @@
 #include <chrono>
 #include <thread>
 
+#include <boost/unordered_map.hpp>
+
 #include<opencv2/core/core.hpp>
 #include<opencv2/imgproc/imgproc.hpp>
 #include<opencv2/highgui/highgui.hpp>
+
+#include "environment.h"
+
 
 #endif //DFS_MAIN_H
