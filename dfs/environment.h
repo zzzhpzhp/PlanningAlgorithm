@@ -26,6 +26,12 @@ namespace planner
         display() override;
 
         uint8_t
+        getGridValueFromDisp(int x, int y) override;
+
+        bool
+        setGridValueFromDisp(int x, int y, uint8_t value) override;
+
+        uint8_t
         getGridValue(int x, int y) override;
 
         bool
@@ -40,13 +46,20 @@ namespace planner
         bool
         insideGrid(int x, int y) override;
 
+        bool
+        insideGridFromDisp(int x, int y) override;
+
         int
         getScale() override;
 
+        bool
+        displayXY2PlanningXY(int raw_x, int raw_y, int &x, int &y) override;
+
     private:
+        bool initialized_{false};
         cv::Mat display_img_, planning_grid_;
-        int rect_size_ = 5;
-        int length_ = 200, width_ = 200;
+        int rect_size_{5};
+        int length_{200}, width_{200};
         int img_length_ = length_ * rect_size_, img_width_ = width_ * rect_size_;
 
     };

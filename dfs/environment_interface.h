@@ -19,6 +19,12 @@ public:
     initialize(int length, int width, int display_scale) = 0;
 
     virtual uint8_t
+    getGridValueFromDisp(int x, int y) = 0;
+
+    virtual bool
+    setGridValueFromDisp(int x, int y, uint8_t value) = 0;
+
+    virtual uint8_t
     getGridValue(int x, int y) = 0;
 
     virtual bool
@@ -33,12 +39,20 @@ public:
     virtual bool
     insideGrid(int x, int y) = 0;
 
+    virtual bool
+    insideGridFromDisp(int x, int y) = 0;
+
     virtual int
     getScale() = 0;
 
     virtual void
     display() = 0;
 
+    virtual bool
+    displayXY2PlanningXY(int raw_x, int raw_y, int &x, int &y) = 0;
+
 };
+
+using EnvironmentInterfacePtr = std::shared_ptr<EnvironmentInterface>;
 
 #endif //DFS_ENVIRONMENT_INTERFACE_H

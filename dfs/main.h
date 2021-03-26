@@ -13,6 +13,7 @@
 #include<opencv2/highgui/highgui.hpp>
 
 #include "environment.h"
+#include "dfs.h"
 
 
 #endif //DFS_MAIN_H
