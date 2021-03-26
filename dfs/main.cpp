@@ -1,17 +1,26 @@
 #include "main.h"
 
-planner::Environment env;
+std::shared_ptr<EnvironmentInterface> env_ptr;
 
 void
 eventCallback(int event, int x, int y, int flags, void *param)
 {
-    env.eventCallback(event, x, y, flags, param);
+    if ((event == CV_EVENT_LBUTTONDOWN) || (flags & CV_EVENT_FLAG_LBUTTON))
+    {
+        if (!env_ptr->insideGrid(x, y))
+        {
+            return;
+        }
+        env_ptr->setGridValue(x, y, 0);
+        env_ptr->getGridValue(x, y);
+    }
 }
 
 int
 main(int argc, char* argv[])
 {
-    env.initialize(100, 200, 5);
+    env_ptr = std::make_shared<planner::Environment>();
+    env_ptr->initialize(100, 200, 10);
 
     cv::namedWindow("disp_img");
     cv::namedWindow("planning_grid");
@@ -19,9 +28,8 @@ main(int argc, char* argv[])
 
     while (true)
     {
-        imshow("disp_img", env.getDisplayObj());
-        imshow("planning_grid", env.getPlanningObj());
-        cv::waitKey(30);
+        env_ptr->display();
+//        std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
     return 0;
 }
