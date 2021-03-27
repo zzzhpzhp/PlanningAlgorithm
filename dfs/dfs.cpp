@@ -7,13 +7,13 @@ namespace planner
         env_ptr_ = env;
 
         side_points_.emplace_back(boost::bind(&Dfs::_get_right, this, _1, _2, _3, _4));
-//        side_points_.emplace_back(boost::bind(&Dfs::_get_higher_right, this, _1, _2, _3, _4));
+        side_points_.emplace_back(boost::bind(&Dfs::_get_higher_right, this, _1, _2, _3, _4));
         side_points_.emplace_back(boost::bind(&Dfs::_get_middle_higher, this, _1, _2, _3, _4));
-//        side_points_.emplace_back(boost::bind(&Dfs::_get_higher_left, this, _1, _2, _3, _4));
+        side_points_.emplace_back(boost::bind(&Dfs::_get_higher_left, this, _1, _2, _3, _4));
         side_points_.emplace_back(boost::bind(&Dfs::_get_left, this, _1, _2, _3, _4));
-//        side_points_.emplace_back(boost::bind(&Dfs::_get_lower_left, this, _1, _2, _3, _4));
+        side_points_.emplace_back(boost::bind(&Dfs::_get_lower_left, this, _1, _2, _3, _4));
         side_points_.emplace_back(boost::bind(&Dfs::_get_middle_lower, this, _1, _2, _3, _4));
-//        side_points_.emplace_back(boost::bind(&Dfs::_get_lower_right, this, _1, _2, _3, _4));
+        side_points_.emplace_back(boost::bind(&Dfs::_get_lower_right, this, _1, _2, _3, _4));
 
         initialized_ = true;
     }
@@ -21,12 +21,16 @@ namespace planner
     void Dfs::setGoal(int x, int y)
     {
         int tx, ty;
+//        env_ptr_->setGridValueFromDisp(goal_x_ * env_ptr_->getScale(), goal_y_ * env_ptr_->getScale(),
+//                                       255, 255, 255, 255);
         if (!env_ptr_->displayXY2PlanningXY(x, y, tx, ty))
         {
             throw std::runtime_error("Coordinate transform failed.");
         }
         goal_x_ = tx;
         goal_y_ = ty;
+//        env_ptr_->setGridValueFromDisp(x, y, 255, 255, 0, 0);
+        std::cout << "Set goal to ["<< goal_x_ << ", " << goal_y_ << "]" << std::endl;
     }
 
     void Dfs::setStart(int x, int y)
@@ -36,12 +40,18 @@ namespace planner
         {
             throw std::runtime_error("Coordinate transform failed.");
         }
+
+//        env_ptr_->setGridValueFromDisp(start_x_ * env_ptr_->getScale(), start_y_ * env_ptr_->getScale(),
+//                                       255, 255, 255, 255);
         start_x_ = tx;
         start_y_ = ty;
+//        env_ptr_->setGridValueFromDisp(x, y, 255, 0, 255, 0);
+        std::cout << "Set start to ["<< start_x_ << ", " << start_y_ << "]" << std::endl;
     }
 
     bool Dfs::planning()
     {
+        DEBUG_PRINT
         if (!initialized_)
         {
             std::cerr << "Should initialize first." << std::endl;
@@ -57,47 +67,44 @@ namespace planner
         std::cout << "Start pose: [" << start_x_ << ", " << start_y_ << "]" << std::endl;
         std::cout << "Goal pose: [" << goal_x_ << ", " << goal_y_ << "]" << std::endl;
 
-
-//        struct node
-//        {
-//            int x, y;
-//            int id;
-//        };
-//        std::stack<node> nodes_stack;
-//        node start;
-//        start.x = start_x_;
-//        start.y = start_y_;
-//        start.id = start.y * env_ptr_->getGridXSizeInCells() + start.x;
-        boost::unordered_map<int,boost::unordered_map<int, bool>> checked;
+        boost::unordered_map<int,boost::unordered_map<int, bool>> visited;
         std::function<bool(int, int)> dfs = [&](int x, int y)->bool
         {
-//            auto &cur = nodes_stack.top();
-//            nodes_stack.pop();
             if (x == goal_x_ && y == goal_y_)
             {
                 return true;
             }
+            if (x != start_x_ || y != start_y_)
+            {
+                env_ptr_->setIntGridValByPlanXY(x, y, 100, 100, 100);
+                env_ptr_->display();
+            }
 
-            checked[x][y] = true;
+            visited[x][y] = true;
             int side_x, side_y;
+            uint8_t side_val;
             for (auto &side_node : side_points_)
             {
                 if (!side_node(x, y, side_x, side_y))
                 {
                     continue;
                 }
-                if (checked[side_x][side_y])
+                side_val = env_ptr_->getGridValue(side_x, side_y);
+                if (visited[side_x][side_y] || side_val == 0)
                 {
                     continue;
                 }
-//                std::cout << side_x << " " << side_y << "\n";
-                env_ptr_->setGridValue(side_x, side_y, 0);
-                return dfs(side_x, side_y);
+
+                if (dfs(side_x, side_y))
+                {
+                    return true;
+                }
             }
 
             return false;
         };
 
-        return dfs(start_x_, start_y_);
+        auto result = dfs(start_x_, start_y_);
+        return result;
     }
 }

@@ -8,4 +8,4 @@ INCLUDE_DIRECTORIES(${OpenCV_INCLUDE_DIRS})
 
 add_executable(${PROJECT_NAME}  main.cpp environment.cpp environment.h dfs.cpp dfs.h)
 
-target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS})
+target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS} -lpthread -lm)

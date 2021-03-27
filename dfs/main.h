@@ -5,6 +5,9 @@
 #include <iostream>
 #include <chrono>
 #include <thread>
+#include <future>
+#include <tuple>
+#include <set>
 
 #include <boost/unordered_map.hpp>
 
