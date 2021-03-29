@@ -77,6 +77,7 @@ public:
 
     virtual void
     showStartGoalPose() = 0;
+
 };
 
 using EnvironmentInterfacePtr = std::shared_ptr<EnvironmentInterface>;

@@ -2,7 +2,7 @@
 
 bool planning = false;
 std::shared_ptr<EnvironmentInterface> env_ptr;
-std::shared_ptr<planner::Dfs> dfs;
+std::shared_ptr<AlgorithmInterface> alg_ptr;
 
 void
 eventCallback(int event, int x, int y, int flags, void *param)
@@ -18,7 +18,7 @@ eventCallback(int event, int x, int y, int flags, void *param)
         {
             return;
         }
-        dfs->setStart(x, y);
+        alg_ptr->setStart(x, y);
         env_ptr->markStart(x, y, 0, 255, 0);
     }
     else if (event == CV_EVENT_RBUTTONDBLCLK || (flags & CV_EVENT_FLAG_RBUTTON))
@@ -28,7 +28,7 @@ eventCallback(int event, int x, int y, int flags, void *param)
         {
             return;
         }
-        dfs->setGoal(x, y);
+        alg_ptr->setGoal(x, y);
         env_ptr->markGoal(x, y, 255, 0, 0);
     }
     else if (event == CV_EVENT_MBUTTONDBLCLK || (flags & CV_EVENT_FLAG_MBUTTON))
@@ -47,7 +47,7 @@ void
 invoke()
 {
     planning = true;
-    if (!dfs->planning())
+    if (!alg_ptr->planning())
     {
         std::cerr << "Planning failed." << std::endl;
     }
@@ -63,9 +63,10 @@ int
 main(int argc, char* argv[])
 {
     env_ptr = std::make_shared<planner::Environment>();
-    dfs = std::make_shared<planner::Dfs>();
     env_ptr->initialize(100, 200, 5);
-    dfs->initialize(env_ptr);
+
+    alg_ptr = std::make_shared<planner::Dfs>();
+    alg_ptr->initialize(env_ptr);
 
     cv::namedWindow("InteractiveWindow");
     cv::namedWindow("PlanningGrid");
@@ -78,7 +79,7 @@ main(int argc, char* argv[])
         // 更新交互显示
         env_ptr->display();
         // 读取键盘值
-        auto key = cv::waitKey(10);
+        auto key = cv::waitKey(5);
         // 如果正在执行,则不做任何操作
         if (planning)
         {

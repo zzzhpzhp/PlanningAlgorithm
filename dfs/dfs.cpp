@@ -6,14 +6,14 @@ namespace planner
     {
         env_ptr_ = env;
 
-        side_points_.emplace_back(boost::bind(&Dfs::_get_right, this, _1, _2, _3, _4));
-        side_points_.emplace_back(boost::bind(&Dfs::_get_higher_right, this, _1, _2, _3, _4));
-        side_points_.emplace_back(boost::bind(&Dfs::_get_middle_higher, this, _1, _2, _3, _4));
-        side_points_.emplace_back(boost::bind(&Dfs::_get_higher_left, this, _1, _2, _3, _4));
-        side_points_.emplace_back(boost::bind(&Dfs::_get_left, this, _1, _2, _3, _4));
-        side_points_.emplace_back(boost::bind(&Dfs::_get_lower_left, this, _1, _2, _3, _4));
-        side_points_.emplace_back(boost::bind(&Dfs::_get_middle_lower, this, _1, _2, _3, _4));
-        side_points_.emplace_back(boost::bind(&Dfs::_get_lower_right, this, _1, _2, _3, _4));
+        side_points_.emplace_back(boost::bind(&Dfs::_get_right, this, _1, _2, _3, _4, _5));
+//        side_points_.emplace_back(boost::bind(&Dfs::_get_higher_right, this, _1, _2, _3, _4, _5));
+        side_points_.emplace_back(boost::bind(&Dfs::_get_middle_higher, this, _1, _2, _3, _4, _5));
+//        side_points_.emplace_back(boost::bind(&Dfs::_get_higher_left, this, _1, _2, _3, _4, _5));
+        side_points_.emplace_back(boost::bind(&Dfs::_get_left, this, _1, _2, _3, _4, _5));
+//        side_points_.emplace_back(boost::bind(&Dfs::_get_lower_left, this, _1, _2, _3, _4, _5));
+        side_points_.emplace_back(boost::bind(&Dfs::_get_middle_lower, this, _1, _2, _3, _4, _5));
+//        side_points_.emplace_back(boost::bind(&Dfs::_get_lower_right, this, _1, _2, _3, _4, _5));
 
         initialized_ = true;
     }
@@ -85,7 +85,7 @@ namespace planner
             uint8_t side_val;
             for (auto &side_node : side_points_)
             {
-                if (!side_node(x, y, side_x, side_y))
+                if (!side_node(env_ptr_, x, y, side_x, side_y))
                 {
                     continue;
                 }
