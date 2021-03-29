@@ -14,7 +14,6 @@
 
 namespace planner
 {
-#define DEBUG_PRINT { std::cout << __FUNCTION__ << " " << __LINE__ << std::endl;}
     class Dfs : public AlgorithmInterface
     {
     public:

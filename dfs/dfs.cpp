@@ -21,15 +21,12 @@ namespace planner
     void Dfs::setGoal(int x, int y)
     {
         int tx, ty;
-//        env_ptr_->setGridValueFromDisp(goal_x_ * env_ptr_->getScale(), goal_y_ * env_ptr_->getScale(),
-//                                       255, 255, 255, 255);
         if (!env_ptr_->displayXY2PlanningXY(x, y, tx, ty))
         {
             throw std::runtime_error("Coordinate transform failed.");
         }
         goal_x_ = tx;
         goal_y_ = ty;
-//        env_ptr_->setGridValueFromDisp(x, y, 255, 255, 0, 0);
         std::cout << "Set goal to ["<< goal_x_ << ", " << goal_y_ << "]" << std::endl;
     }
 
@@ -41,17 +38,13 @@ namespace planner
             throw std::runtime_error("Coordinate transform failed.");
         }
 
-//        env_ptr_->setGridValueFromDisp(start_x_ * env_ptr_->getScale(), start_y_ * env_ptr_->getScale(),
-//                                       255, 255, 255, 255);
         start_x_ = tx;
         start_y_ = ty;
-//        env_ptr_->setGridValueFromDisp(x, y, 255, 0, 255, 0);
         std::cout << "Set start to ["<< start_x_ << ", " << start_y_ << "]" << std::endl;
     }
 
     bool Dfs::planning()
     {
-        DEBUG_PRINT
         if (!initialized_)
         {
             std::cerr << "Should initialize first." << std::endl;
