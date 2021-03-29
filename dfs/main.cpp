@@ -103,6 +103,4 @@ main(int argc, char* argv[])
             env_ptr->reset();
         }
     }
-
-    return 0;
 }

@@ -23,7 +23,6 @@ namespace planner
         }
         imshow("InteractiveWindow", display_img_);
         imshow("PlanningGrid", planning_grid_);
-//        cv::waitKey(1);
     }
 
     uint8_t
@@ -35,7 +34,6 @@ namespace planner
         }
         int tx = (x / rect_size_), ty = (y / rect_size_);
 
-//        std::cout << (int)*planning_grid_.col(tx).row(ty).data << " " << (int)*planning_grid_.col(tx+1).row(ty+1).data << "\n";
         return getGridValue(tx, ty);
     }
 
