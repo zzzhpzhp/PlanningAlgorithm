@@ -1,5 +1,5 @@
-#ifndef DFS_ENVIRONMENT_H
-#define DFS_ENVIRONMENT_H
+#ifndef AFF_ENVIRONMENT_H
+#define AFF_ENVIRONMENT_H
 
 #include <iostream>
 #include <chrono>
@@ -14,7 +14,7 @@
 
 #include "environment_interface.h"
 
-namespace planner
+namespace aff
 {
     class Environment : public EnvironmentInterface
     {
@@ -107,4 +107,4 @@ namespace planner
 
     };
 }
-#endif //DFS_ENVIRONMENT_H
+#endif //AFF_ENVIRONMENT_H

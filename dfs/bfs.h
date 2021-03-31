@@ -1,10 +1,12 @@
-#ifndef AFF_DFS_H
-#define AFF_DFS_H
+#ifndef AFF_BFS_H
+#define AFF_BFS_H
 
 #include <iostream>
 #include <chrono>
 #include <thread>
 #include <stack>
+#include <deque>
+#include <queue>
 #include <unordered_map>
 
 #include <boost/bind.hpp>
@@ -14,7 +16,7 @@
 
 namespace aff
 {
-    class Dfs : public AlgorithmInterface
+    class Bfs : public AlgorithmInterface
     {
     public:
         void
@@ -40,4 +42,4 @@ namespace aff
     };
 }
 
-#endif //AFF_DFS_H
+#endif //AFF_BFS_H

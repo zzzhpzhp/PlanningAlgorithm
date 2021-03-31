@@ -1,6 +1,6 @@
 #include "environment.h"
 
-namespace planner
+namespace aff
 {
     void
     Environment::initialize(int length, int width, int display_scale)
@@ -213,5 +213,4 @@ namespace planner
     {
         _initialize_grid();
     }
-
 }

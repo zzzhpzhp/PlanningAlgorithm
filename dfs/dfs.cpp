@@ -1,6 +1,6 @@
 #include "dfs.h"
 
-namespace planner
+namespace aff
 {
     void Dfs::initialize(EnvironmentInterfacePtr &env)
     {
@@ -60,7 +60,10 @@ namespace planner
         std::cout << "Start pose: [" << start_x_ << ", " << start_y_ << "]" << std::endl;
         std::cout << "Goal pose: [" << goal_x_ << ", " << goal_y_ << "]" << std::endl;
 
-        boost::unordered_map<int,boost::unordered_map<int, bool>> visited;
+        std::stack<std::pair<int,int>> node_stack;
+
+
+        std::unordered_map<int, std::unordered_map<int, bool>> visited;
         std::function<bool(int, int)> dfs = [&](int x, int y)->bool
         {
             if (x == goal_x_ && y == goal_y_)

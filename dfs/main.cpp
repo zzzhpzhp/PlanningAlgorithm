@@ -1,5 +1,7 @@
 #include "main.h"
 
+#define ALGORITHM 1
+
 bool planning = false;
 std::shared_ptr<EnvironmentInterface> env_ptr;
 std::shared_ptr<AlgorithmInterface> alg_ptr;
@@ -62,11 +64,16 @@ invoke()
 int
 main(int argc, char* argv[])
 {
-    env_ptr = std::make_shared<planner::Environment>();
+    env_ptr = std::make_shared<aff::Environment>();
     env_ptr->initialize(100, 200, 5);
 
-    alg_ptr = std::make_shared<planner::Dfs>();
+#if ALGORITHM == 1
+    alg_ptr = std::make_shared<aff::Dfs>();
     alg_ptr->initialize(env_ptr);
+#elif ALGORITHM == 2
+    alg_ptr = std::make_shared<aff::Bfs>();
+    alg_ptr->initialize(env_ptr);
+#endif
 
     cv::namedWindow("InteractiveWindow");
     cv::namedWindow("PlanningGrid");

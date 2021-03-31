@@ -1,5 +1,5 @@
-#ifndef DFS_MAIN_H
-#define DFS_MAIN_H
+#ifndef AFF_MAIN_H
+#define AFF_MAIN_H
 
 
 #include <iostream>
@@ -17,6 +17,7 @@
 
 #include "environment.h"
 #include "dfs.h"
+#include "bfs.h"
 
 
-#endif //DFS_MAIN_H
+#endif //AFF_MAIN_H
