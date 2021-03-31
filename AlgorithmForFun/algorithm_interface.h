@@ -117,4 +117,4 @@ protected:
     }
 };
 
-#endif //DFS_ALGORITHMINTERFACE_H
+#endif //AFF_ALGORITHMINTERFACE_H
