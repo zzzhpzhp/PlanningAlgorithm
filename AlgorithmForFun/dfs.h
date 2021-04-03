@@ -12,13 +12,13 @@
 #include "environment_interface.h"
 #include "algorithm_interface.h"
 
-namespace aff
+namespace algorithm
 {
     class Dfs : public AlgorithmInterface
     {
     public:
         void
-        initialize(EnvironmentInterfacePtr &env) override;
+        initialize(environment::EnvironmentInterfacePtr &env) override;
 
         void
         setGoal(int x, int y) override;
@@ -29,14 +29,18 @@ namespace aff
         bool
         planning() override;
 
+        environment::Path&
+        getPath() override;
+
     private:
         bool initialized_{false};
 
         int start_x_{0}, start_y_{0};
         int goal_x_{0}, goal_y_{0};
 
-        EnvironmentInterfacePtr env_ptr_;
-        std::vector<std::function<bool(EnvironmentInterfacePtr&, int, int, int&, int&)>> side_points_;
+        environment::EnvironmentInterfacePtr env_ptr_;
+        std::vector<std::function<bool(environment::EnvironmentInterfacePtr&, int, int, int&, int&)>> side_points_;
+        environment::Path path_;
     };
 }
 

@@ -1,8 +1,8 @@
 #include "dfs.h"
 
-namespace aff
+namespace algorithm
 {
-    void Dfs::initialize(EnvironmentInterfacePtr &env)
+    void Dfs::initialize(environment::EnvironmentInterfacePtr &env)
     {
         env_ptr_ = env;
 
@@ -61,11 +61,18 @@ namespace aff
         std::cout << "Goal pose: [" << goal_x_ << ", " << goal_y_ << "]" << std::endl;
 
         std::stack<std::pair<int,int>> node_stack;
-
+        environment::PathNode pn{};
+        pn.g = 255;
+        pn.a = 255;
+        path_.clear();
 
         std::unordered_map<int, std::unordered_map<int, bool>> visited;
         std::function<bool(int, int)> dfs = [&](int x, int y)->bool
         {
+            pn.x = x;
+            pn.y = y;
+            path_.emplace_back(pn);
+
             if (x == goal_x_ && y == goal_y_)
             {
                 return true;
@@ -102,5 +109,10 @@ namespace aff
 
         auto result = dfs(start_x_, start_y_);
         return result;
+    }
+
+    environment::Path& Dfs::getPath()
+    {
+        return path_;
     }
 }
