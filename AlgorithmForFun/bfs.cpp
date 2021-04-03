@@ -1,8 +1,8 @@
 #include "bfs.h"
 
-namespace aff
+namespace algorithm
 {
-    void Bfs::initialize(EnvironmentInterfacePtr &env)
+    void Bfs::initialize(environment::EnvironmentInterfacePtr &env)
     {
         env_ptr_ = env;
 
@@ -63,7 +63,7 @@ namespace aff
         struct Node
         {
             int x, y;
-            int id, parent;
+            int id, parent_id;
             int dist;
             bool operator<(const Node& n) const
             {
@@ -77,8 +77,13 @@ namespace aff
         cur_.y = start_y_;
         cur_.dist = 0;
         cur_.id = id_index++;
+        cur_.parent_id = -1;
         node_stack.push(cur_);
         std::unordered_map<int, std::unordered_map<int, bool>> visited;
+        environment::PathNode pn{};
+        pn.g = 255;
+        pn.a = 255;
+        path_.clear();
 
         std::function<bool()> bfs = [&]()->bool
         {
@@ -86,6 +91,10 @@ namespace aff
             {
                 cur_ = node_stack.top();
                 node_stack.pop();
+
+                pn.x = cur_.x;
+                pn.y = cur_.y;
+                path_.emplace_back(pn);
 
                 if (cur_.x == goal_x_ && cur_.y == goal_y_)
                 {
@@ -100,7 +109,7 @@ namespace aff
                 if (cur_.x != start_x_ || cur_.y != start_y_)
                 {
                     env_ptr_->setIntGridValByPlanXY(cur_.x, cur_.y, 100, 100, 100);
-                    env_ptr_->display();
+//                    env_ptr_->display();
                 }
 
                 visited[cur_.x][cur_.y] = true;
@@ -122,8 +131,15 @@ namespace aff
 
                     side.x = side_x;
                     side.y = side_y;
-                    side.dist = cur_.dist + 1;
-                    side.parent = cur_.id;
+                    if (side.x != cur_.x && side.y != cur_.y)
+                    {
+                        side.dist = cur_.dist + 14;
+                    }
+                    else
+                    {
+                        side.dist = cur_.dist + 10;
+                    }
+                    side.parent_id = cur_.id;
                     side.id = id_index++;
 
                     node_stack.push(side);
@@ -135,5 +151,10 @@ namespace aff
 
         auto result = bfs();
         return result;
+    }
+
+    environment::Path &Bfs::getPath()
+    {
+        return path_;
     }
 }
