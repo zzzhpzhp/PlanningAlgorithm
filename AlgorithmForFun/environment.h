@@ -14,8 +14,9 @@
 
 #include "environment_interface.h"
 
-namespace aff
+namespace environment
 {
+
     class Environment : public EnvironmentInterface
     {
     public:
@@ -32,16 +33,19 @@ namespace aff
         getGridValue(int x, int y) override;
 
         bool
-        setGridValueFromDisp(int x, int y, uint8_t value = 0) override;
+        setGridValueFromDisp(int x, int y, uint8_t value) override;
 
         bool
-        setGridValue(int x, int y, uint8_t value = 0) override;
+        setGridValue(int x, int y, uint8_t value) override;
 
         bool
-        setInteractiveGridValue(int x, int y, uint8_t r = 0, uint8_t g = 0, uint8_t b = 0);
+        setInteractiveGridValue(int x, int y, uint8_t r, uint8_t g, uint8_t b) override;
 
         bool
-        setIntGridValByPlanXY(int x, int y, uint8_t r = 0, uint8_t g = 0, uint8_t b = 0);
+        setIntGridValByPlanXY(int x, int y, uint8_t r, uint8_t g, uint8_t b) override;
+
+        void
+        drawPath(const Path &path) override;
 
         int
         getGridXSizeInCells() override;
@@ -71,16 +75,17 @@ namespace aff
         reset() override;
 
         void
-        markStart(int x, int y, int r = 0, int g = 0, int b = 0) override;
+        markStart(int x, int y, int r, int g, int b) override;
 
         void
-        markGoal(int x, int y, int r = 0, int g = 0, int b = 0) override;
+        markGoal(int x, int y, int r, int g, int b) override;
 
         void
         markObstacle(int x, int y) override;
 
         void
         showStartGoalPose() override;
+
     private:
         bool initialized_{false};
         cv::Mat display_img_, planning_grid_;

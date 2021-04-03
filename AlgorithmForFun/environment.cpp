@@ -1,6 +1,6 @@
 #include "environment.h"
 
-namespace aff
+namespace environment
 {
     void
     Environment::initialize(int length, int width, int display_scale)
@@ -10,6 +10,9 @@ namespace aff
         length_ = length;
         img_length_ = length_ * rect_size_, img_width_ = width_ * rect_size_;
         _initialize_grid();
+
+        cv::namedWindow("InteractiveWindow");
+        cv::namedWindow("PlanningGrid");
 
         initialized_ = true;
     }
@@ -86,6 +89,23 @@ namespace aff
                   cv::Scalar(b, g, r), -1);
 
         return true;
+    }
+
+    void Environment::drawPath(const Path &path)
+    {
+        int x1, y1, x2, y2;
+        int half_rect_ = rect_size_ / 2;
+        for (int i = 0; i < path.size() - 1; i++)
+        {
+            auto &n1 = path[i];
+            auto &n2 = path[i+1];
+            x1 = n1.x * rect_size_ + half_rect_;
+            y1 = n1.y * rect_size_ + half_rect_;
+            x2 = n2.x * rect_size_ + half_rect_;
+            y2 = n2.y * rect_size_ + half_rect_;
+            line(display_img_, cv::Point(x1, y1), cv::Point(x2, y2),
+                 cv::Scalar(n1.b, n1.g, n1.r, n1.a),1,  cv::LINE_8, 0);
+        }
     }
 
     int Environment::getGridXSizeInCells()
@@ -190,13 +210,16 @@ namespace aff
     {
         ox = ix * rect_size_;
         oy = iy * rect_size_;
+
+        return true;
     }
 
     bool Environment::setIntGridValByPlanXY(int x, int y, uint8_t r, uint8_t g, uint8_t b)
     {
         auto ix = x * rect_size_;
         auto iy = y * rect_size_;
-        setInteractiveGridValue(ix, iy, r, g, b);
+
+        return setInteractiveGridValue(ix, iy, r, g, b);
     }
 
     void Environment::clear()
@@ -213,4 +236,5 @@ namespace aff
     {
         _initialize_grid();
     }
+
 }
