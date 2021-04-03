@@ -1,10 +1,14 @@
 #include "main.h"
 
+// 配置执行的算法
 #define ALGORITHM 1
 
+// 算法执行成功后，是否显示算法给出的路径
+constexpr bool SHOW_PATH = true;
+
 bool planning = false;
-std::shared_ptr<EnvironmentInterface> env_ptr;
-std::shared_ptr<AlgorithmInterface> alg_ptr;
+std::shared_ptr<environment::EnvironmentInterface> env_ptr;
+std::shared_ptr<algorithm::AlgorithmInterface> alg_ptr;
 
 void
 eventCallback(int event, int x, int y, int flags, void *param)
@@ -13,7 +17,7 @@ eventCallback(int event, int x, int y, int flags, void *param)
     {
         return;
     }
-    if ((event == CV_EVENT_LBUTTONDOWN) || (flags & CV_EVENT_FLAG_LBUTTON))
+    if ((event == cv::EVENT_LBUTTONDOWN) || (flags & cv::EVENT_FLAG_LBUTTON))
     {
         // 鼠标左键设定起点
         if (planning)
@@ -21,9 +25,9 @@ eventCallback(int event, int x, int y, int flags, void *param)
             return;
         }
         alg_ptr->setStart(x, y);
-        env_ptr->markStart(x, y, 0, 255, 0);
+        env_ptr->markStart(x, y, 0, 0, 255);
     }
-    else if (event == CV_EVENT_RBUTTONDBLCLK || (flags & CV_EVENT_FLAG_RBUTTON))
+    else if (event == cv::EVENT_RBUTTONDBLCLK || (flags & cv::EVENT_FLAG_RBUTTON))
     {
         // 鼠标右键设定终点
         if (planning)
@@ -33,7 +37,7 @@ eventCallback(int event, int x, int y, int flags, void *param)
         alg_ptr->setGoal(x, y);
         env_ptr->markGoal(x, y, 255, 0, 0);
     }
-    else if (event == CV_EVENT_MBUTTONDBLCLK || (flags & CV_EVENT_FLAG_MBUTTON))
+    else if (event == cv::EVENT_MBUTTONDBLCLK || (flags & cv::EVENT_FLAG_MBUTTON))
     {
         // 鼠标中键(滚轮按下)设定障碍物
         if (!env_ptr->insideGridFromDisp(x, y))
@@ -49,13 +53,25 @@ void
 invoke()
 {
     planning = true;
-    if (!alg_ptr->planning())
+    auto result = alg_ptr->planning();
+    if (!result)
     {
         std::cerr << "Planning failed." << std::endl;
     }
     else
     {
         std::cout << "Planning Succeed." << std::endl;
+    }
+    if (result)
+    {
+        if (SHOW_PATH)
+        {
+            auto path = alg_ptr->getPath();
+            if (!path.empty())
+            {
+                env_ptr->drawPath(path);
+            }
+        }
     }
     env_ptr->showStartGoalPose();
     planning = false;
@@ -64,19 +80,23 @@ invoke()
 int
 main(int argc, char* argv[])
 {
-    env_ptr = std::make_shared<aff::Environment>();
-    env_ptr->initialize(100, 200, 5);
+    env_ptr = std::make_shared<environment::Environment>();
+    env_ptr->initialize(60, 100, 11);
 
 #if ALGORITHM == 1
-    alg_ptr = std::make_shared<aff::Dfs>();
+    alg_ptr = std::make_shared<algorithm::Dfs>();
     alg_ptr->initialize(env_ptr);
 #elif ALGORITHM == 2
-    alg_ptr = std::make_shared<aff::Bfs>();
+    alg_ptr = std::make_shared<algorithm::Bfs>();
     alg_ptr->initialize(env_ptr);
 #endif
 
-    cv::namedWindow("InteractiveWindow");
-    cv::namedWindow("PlanningGrid");
+    if (!alg_ptr)
+    {
+        std::cerr << "Please set correct algorithm." << std::endl;
+        return 0;
+    }
+
     cv::setMouseCallback("InteractiveWindow", eventCallback);
 
     std::future<void> future_planning;
@@ -86,7 +106,7 @@ main(int argc, char* argv[])
         // 更新交互显示
         env_ptr->display();
         // 读取键盘值
-        auto key = cv::waitKey(5);
+        auto key = cv::waitKey(2);
         // 如果正在执行,则不做任何操作
         if (planning)
         {
