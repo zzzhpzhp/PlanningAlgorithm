@@ -95,8 +95,9 @@ namespace environment
 
         int start_x_{0}, start_y_{0};
         int goal_x_{0}, goal_y_{0};
-        int start_r_, start_g_, start_b_;
-        int goal_r_, goal_g_, goal_b_;
+        int start_r_, start_g_, start_b_ = 255;
+        int goal_r_ = 255, goal_g_, goal_b_;
+        bool have_start_ = false, have_goal_ = false;
 
         using Obstacle = std::tuple<int, int>;
         std::set<Obstacle> obstacles_;

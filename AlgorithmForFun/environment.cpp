@@ -175,6 +175,7 @@ namespace environment
         start_g_ = g;
         start_b_ = b;
         setInteractiveGridValue(start_x_, start_y_, r, g, b);
+        have_start_ = true;
     }
 
     void Environment::markGoal(int x, int y, int r, int g, int b)
@@ -186,6 +187,7 @@ namespace environment
         goal_g_ = g;
         goal_b_ = b;
         setInteractiveGridValue(goal_x_, goal_y_, r, g, b);
+        have_goal_ = true;
     }
 
     void Environment::markObstacle(int x, int y)
@@ -202,8 +204,14 @@ namespace environment
 
     void Environment::showStartGoalPose()
     {
-        setInteractiveGridValue(start_x_, start_y_, start_r_, start_g_, start_b_);
-        setInteractiveGridValue(goal_x_, goal_y_, goal_r_, goal_g_, goal_b_);
+        if (have_start_)
+        {
+            setInteractiveGridValue(start_x_, start_y_, start_r_, start_g_, start_b_);
+        }
+        if (have_goal_)
+        {
+            setInteractiveGridValue(goal_x_, goal_y_, goal_r_, goal_g_, goal_b_);
+        }
     }
 
     bool Environment::planningXY2InteractiveXY(int ix, int iy, int &ox, int &oy)
@@ -235,6 +243,7 @@ namespace environment
     void Environment::reset()
     {
         _initialize_grid();
+        obstacles_.clear();
     }
 
 }
