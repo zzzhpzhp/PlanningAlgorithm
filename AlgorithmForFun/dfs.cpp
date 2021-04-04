@@ -69,6 +69,7 @@ namespace algorithm
         std::unordered_map<int, std::unordered_map<int, bool>> visited;
         std::function<bool(int, int)> dfs = [&](int x, int y)->bool
         {
+            std::this_thread::sleep_for(std::chrono::microseconds(1000));
             pn.x = x;
             pn.y = y;
             path_.emplace_back(pn);
@@ -80,7 +81,6 @@ namespace algorithm
             if (x != start_x_ || y != start_y_)
             {
                 env_ptr_->setIntGridValByPlanXY(x, y, 100, 100, 100);
-                env_ptr_->display();
             }
 
             visited[x][y] = true;
