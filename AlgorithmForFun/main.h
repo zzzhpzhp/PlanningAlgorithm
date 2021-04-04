@@ -18,6 +18,7 @@
 #include "environment.h"
 #include "dfs.h"
 #include "bfs.h"
+#include "bcd.h"
 
 
 #endif //AFF_MAIN_H

@@ -89,6 +89,9 @@ main(int argc, char* argv[])
 #elif ALGORITHM == 2
     alg_ptr = std::make_shared<algorithm::Bfs>();
     alg_ptr->initialize(env_ptr);
+#elif ALGORITHM == 3
+    alg_ptr = std::make_shared<algorithm::Bcd>();
+    alg_ptr->initialize(env_ptr);
 #endif
 
     if (!alg_ptr)
