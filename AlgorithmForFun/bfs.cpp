@@ -89,6 +89,7 @@ namespace algorithm
         {
             while (!node_stack.empty())
             {
+                std::this_thread::sleep_for(std::chrono::microseconds(200));
                 cur_ = node_stack.top();
                 node_stack.pop();
 
@@ -109,7 +110,6 @@ namespace algorithm
                 if (cur_.x != start_x_ || cur_.y != start_y_)
                 {
                     env_ptr_->setIntGridValByPlanXY(cur_.x, cur_.y, 100, 100, 100);
-//                    env_ptr_->display();
                 }
 
                 visited[cur_.x][cur_.y] = true;
