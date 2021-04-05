@@ -76,17 +76,20 @@ namespace algorithm
         std::priority_queue<Node*, std::vector<Node*>, Node> node_stack;
         int id_index = 0;
         std::vector<Node> nodes(env_ptr_->getGridXSizeInCells() * env_ptr_->getGridYSizeInCells());
-        Node *cur_ = &nodes[id_index++];
+        Node *cur_ = &nodes[id_index];
         cur_->x = start_x_;
         cur_->y = start_y_;
         cur_->dist = 0;
-        cur_->id = id_index++;
+        cur_->id = id_index;
+        id_index++;
         node_stack.push(cur_);
         std::unordered_map<int, std::unordered_map<int, bool>> visited;
         environment::PathNode pn{};
         pn.g = 255;
         pn.a = 255;
         path_.clear();
+
+        visited[cur_->x][cur_->y] = true;
 
         std::function<bool()> dijkstra = [&]()->bool
         {
@@ -111,7 +114,6 @@ namespace algorithm
                     env_ptr_->setIntGridValByPlanXY(cur_->x, cur_->y, 100, 100, 100);
                 }
 
-                visited[cur_->x][cur_->y] = true;
                 int side_x, side_y;
                 uint8_t side_val;
                 Node *side;
