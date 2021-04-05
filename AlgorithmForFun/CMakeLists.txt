@@ -18,6 +18,6 @@ add_executable(${PROJECT_NAME}
         bcd.cpp
         bcd.h
         dijkstra.cpp
-        dijkstra.h)
+        dijkstra.h bcd_with_dijkstra.cpp bcd_with_dijkstra.h)
 
 target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS} -lpthread -lm)
