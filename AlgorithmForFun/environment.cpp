@@ -160,12 +160,6 @@ namespace environment
         return true;
     }
 
-    void Environment::_initialize_grid()
-    {
-        display_img_ = cv::Mat(img_length_, img_width_, CV_8UC3, cv::Scalar(255, 255, 255));
-        planning_grid_ = cv::Mat(length_, width_, CV_8UC1, cv::Scalar(255, 255, 255));
-    }
-
     void Environment::markStart(int x, int y, int r, int g, int b)
     {
         setInteractiveGridValue(start_x_, start_y_, 255, 255, 255);
@@ -194,12 +188,6 @@ namespace environment
     {
         obstacles_.insert(std::make_tuple(x, y));
         setInteractiveGridValue(x, y, 0, 0, 0);
-    }
-
-    void Environment::_normalize_xy(int x, int y, int &nx, int &ny)
-    {
-        nx = (x / rect_size_) * rect_size_;
-        ny = (y / rect_size_) * rect_size_;
     }
 
     void Environment::showStartGoalPose()
@@ -246,4 +234,15 @@ namespace environment
         obstacles_.clear();
     }
 
+    void Environment::_normalize_xy(int x, int y, int &nx, int &ny)
+    {
+        nx = (x / rect_size_) * rect_size_;
+        ny = (y / rect_size_) * rect_size_;
+    }
+
+    void Environment::_initialize_grid()
+    {
+        display_img_ = cv::Mat(img_length_, img_width_, CV_8UC3, cv::Scalar(255, 255, 255));
+        planning_grid_ = cv::Mat(length_, width_, CV_8UC1, cv::Scalar(255, 255, 255));
+    }
 }
