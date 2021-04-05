@@ -4,6 +4,7 @@
 #include <iostream>
 #include <chrono>
 #include <thread>
+#include <tuple>
 
 #include <boost/unordered_map.hpp>
 #include <boost/bind.hpp>
@@ -91,6 +92,11 @@ namespace environment
         virtual void
         showStartGoalPose() = 0;
 
+        virtual std::tuple<int, int>
+        getStart() = 0;
+
+        virtual std::tuple<int, int>
+        getGoal() = 0;
     };
 
     using EnvironmentInterfacePtr = std::shared_ptr<EnvironmentInterface>;

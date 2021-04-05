@@ -87,6 +87,12 @@ namespace environment
         void
         showStartGoalPose() override;
 
+        std::tuple<int, int>
+        getStart() override;
+
+        std::tuple<int, int>
+        getGoal() override;
+
     private:
         bool initialized_{false};
         bool have_start_ = false, have_goal_ = false;

@@ -259,4 +259,14 @@ namespace environment
         std::lock_guard<std::mutex> plg(planning_grid_mtx_);
         planning_grid_ = cv::Mat(length_, width_, CV_8UC1, cv::Scalar(255, 255, 255));
     }
+
+    std::tuple<int, int> Environment::getStart()
+    {
+        return {start_x_, start_y_};
+    }
+
+    std::tuple<int, int> Environment::getGoal()
+    {
+        return {goal_x_, goal_y_};
+    }
 }
