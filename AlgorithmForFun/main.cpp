@@ -158,12 +158,17 @@ main(int argc, char* argv[])
         {
             // 按下r键,清除算法执行痕迹和设定的障碍物信息
             env_ptr->reset();
+            env_ptr->showStartGoalPose();
         }
         else if (key == 'a' || key == 'A')
         {
             // 按下a鍵，切換算法
             selected_algorithm = ++selected_algorithm % algorithm_num;
             switch_algorithm(selected_algorithm);
+            auto start = env_ptr->getStart();
+            auto goal = env_ptr->getGoal();
+            alg_ptr->setStart(std::get<0>(start), std::get<1>(start));
+            alg_ptr->setGoal(std::get<0>(goal), std::get<1>(goal));
         }
     }
 }
