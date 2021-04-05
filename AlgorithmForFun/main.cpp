@@ -3,7 +3,7 @@
 // 算法执行成功后，是否显示算法给出的路径
 bool show_path = true;
 bool planning = false;
-int algorithm_num = 3;
+int algorithm_num = 4;
 std::shared_ptr<environment::EnvironmentInterface> env_ptr;
 std::shared_ptr<algorithm::AlgorithmInterface> alg_ptr;
 
@@ -92,6 +92,12 @@ void switch_algorithm(int index)
     {
         std::cout << "Selected algorithm is BCD." << std::endl;
         alg_ptr = std::make_shared<algorithm::Bcd>();
+        alg_ptr->initialize(env_ptr);
+    }
+    else if (index == 3)
+    {
+        std::cout << "Selected algorithm is Dijkstra." << std::endl;
+        alg_ptr = std::make_shared<algorithm::Dijkstra>();
         alg_ptr->initialize(env_ptr);
     }
     else
