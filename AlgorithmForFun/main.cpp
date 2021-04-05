@@ -1,12 +1,9 @@
 #include "main.h"
 
-// 配置执行的算法
-#define ALGORITHM 1
-
 // 算法执行成功后，是否显示算法给出的路径
-constexpr bool SHOW_PATH = true;
-
+bool show_path = true;
 bool planning = false;
+int algorithm_num = 3;
 std::shared_ptr<environment::EnvironmentInterface> env_ptr;
 std::shared_ptr<algorithm::AlgorithmInterface> alg_ptr;
 
@@ -64,7 +61,7 @@ invoke()
     }
     if (result)
     {
-        if (SHOW_PATH)
+        if (show_path)
         {
             auto path = alg_ptr->getPath();
             if (!path.empty())
@@ -77,22 +74,46 @@ invoke()
     planning = false;
 }
 
+void switch_algorithm(int index)
+{
+    if (index == 0)
+    {
+        std::cout << "Selected algorithm is DFS." << std::endl;
+        alg_ptr = std::make_shared<algorithm::Dfs>();
+        alg_ptr->initialize(env_ptr);
+    }
+    else if (index == 1)
+    {
+        std::cout << "Selected algorithm is BFS." << std::endl;
+        alg_ptr = std::make_shared<algorithm::Bfs>();
+        alg_ptr->initialize(env_ptr);
+    }
+    else if (index == 2)
+    {
+        std::cout << "Selected algorithm is BCD." << std::endl;
+        alg_ptr = std::make_shared<algorithm::Bcd>();
+        alg_ptr->initialize(env_ptr);
+    }
+    else
+    {
+        std::cerr << "The first argument is " << index << ", have no corresponding algorithm." << std::endl;
+    }
+}
+
 int
 main(int argc, char* argv[])
 {
     env_ptr = std::make_shared<environment::Environment>();
     env_ptr->initialize(60, 100, 11);
 
-#if ALGORITHM == 1
-    alg_ptr = std::make_shared<algorithm::Dfs>();
-    alg_ptr->initialize(env_ptr);
-#elif ALGORITHM == 2
-    alg_ptr = std::make_shared<algorithm::Bfs>();
-    alg_ptr->initialize(env_ptr);
-#elif ALGORITHM == 3
-    alg_ptr = std::make_shared<algorithm::Bcd>();
-    alg_ptr->initialize(env_ptr);
-#endif
+    int selected_algorithm = 0;
+    std::cout << argc << std::endl;
+    if (argc > 1)
+    {
+        selected_algorithm = std::stoi(argv[1]);
+    }
+
+    switch_algorithm(selected_algorithm);
 
     if (!alg_ptr)
     {
@@ -131,6 +152,12 @@ main(int argc, char* argv[])
         {
             // 按下r键,清除算法执行痕迹和设定的障碍物信息
             env_ptr->reset();
+        }
+        else if (key == 'a' || key == 'A')
+        {
+            // 按下a鍵，切換算法
+            selected_algorithm = ++selected_algorithm % algorithm_num;
+            switch_algorithm(selected_algorithm);
         }
     }
 }
