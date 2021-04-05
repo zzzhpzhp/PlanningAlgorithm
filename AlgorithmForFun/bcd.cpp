@@ -96,7 +96,10 @@ namespace algorithm
             {
                 std::this_thread::sleep_for(std::chrono::microseconds(1000));
                 // 標記已訪問區域
-                env_ptr_->setIntGridValByPlanXY(cur_x, cur_y, 100, 100, 100);
+                if (cur_x != start_x_ || cur_y != start_y_)
+                {
+                    env_ptr_->setIntGridValByPlanXY(cur_x, cur_y, 100, 100, 100);
+                }
                 // 存儲路徑
                 save_path(cur_x, cur_y);
 
