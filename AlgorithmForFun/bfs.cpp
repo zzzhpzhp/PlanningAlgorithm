@@ -122,12 +122,12 @@ namespace algorithm
                     {
                         continue;
                     }
-                    visited[side.x][side.y] = true;
                     side_val = env_ptr_->getGridValue(side_x, side_y);
                     if (visited[side_x][side_y] || side_val == 0)
                     {
                         continue;
                     }
+                    visited[side_x][side_y] = true;
 
                     side.x = side_x;
                     side.y = side_y;
