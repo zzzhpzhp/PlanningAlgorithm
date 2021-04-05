@@ -4,6 +4,7 @@
 #include <iostream>
 #include <chrono>
 #include <thread>
+#include <mutex>
 
 #include <boost/unordered_map.hpp>
 #include <boost/bind.hpp>
@@ -88,16 +89,19 @@ namespace environment
 
     private:
         bool initialized_{false};
+        bool have_start_ = false, have_goal_ = false;
+
         cv::Mat display_img_, planning_grid_;
+
         int rect_size_{5};
         int length_{200}, width_{200};
         int img_length_ = length_ * rect_size_, img_width_ = width_ * rect_size_;
-
         int start_x_{0}, start_y_{0};
         int goal_x_{0}, goal_y_{0};
         int start_r_, start_g_, start_b_ = 255;
         int goal_r_ = 255, goal_g_, goal_b_;
-        bool have_start_ = false, have_goal_ = false;
+
+        std::mutex display_img_mtx_, planning_grid_mtx_;
 
         using Obstacle = std::tuple<int, int>;
         std::set<Obstacle> obstacles_;

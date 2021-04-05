@@ -24,7 +24,10 @@ namespace environment
         {
             throw std::runtime_error("Should initialize first.");
         }
+        std::lock_guard<std::mutex> dlg(display_img_mtx_);
         imshow("InteractiveWindow", display_img_);
+
+        std::lock_guard<std::mutex> plg(planning_grid_mtx_);
         imshow("PlanningGrid", planning_grid_);
     }
 
@@ -47,6 +50,8 @@ namespace environment
         {
             throw std::runtime_error("Out of bound.");
         }
+
+        std::lock_guard<std::mutex> plg(planning_grid_mtx_);
         return *planning_grid_.col(x).row(y).data;
     }
 
@@ -70,6 +75,7 @@ namespace environment
             return false;
         }
 
+        std::lock_guard<std::mutex> lg(planning_grid_mtx_);
         circle(planning_grid_, cv::Point(x, y), 0,
                cv::Scalar(value), 0);
 
@@ -85,6 +91,7 @@ namespace environment
 
         _normalize_xy(x, y, x, y);
 
+        std::lock_guard<std::mutex> lg(display_img_mtx_);
         rectangle(display_img_, cv::Rect(x, y, rect_size_, rect_size_),
                   cv::Scalar(b, g, r), -1);
 
@@ -103,6 +110,8 @@ namespace environment
             y1 = n1.y * rect_size_ + half_rect_;
             x2 = n2.x * rect_size_ + half_rect_;
             y2 = n2.y * rect_size_ + half_rect_;
+
+            std::lock_guard<std::mutex> lg(display_img_mtx_);
             line(display_img_, cv::Point(x1, y1), cv::Point(x2, y2),
                  cv::Scalar(n1.b, n1.g, n1.r, n1.a),1,  cv::LINE_8, 0);
         }
@@ -220,7 +229,10 @@ namespace environment
 
     void Environment::clear()
     {
-        display_img_ = cv::Mat(img_length_, img_width_, CV_8UC3, cv::Scalar(255, 255, 255));
+        {
+            std::lock_guard<std::mutex> lg(display_img_mtx_);
+            display_img_ = cv::Mat(img_length_, img_width_, CV_8UC3, cv::Scalar(255, 255, 255));
+        }
         showStartGoalPose();
         for (auto &o : obstacles_)
         {
@@ -242,7 +254,9 @@ namespace environment
 
     void Environment::_initialize_grid()
     {
+        std::lock_guard<std::mutex> dlg(display_img_mtx_);
         display_img_ = cv::Mat(img_length_, img_width_, CV_8UC3, cv::Scalar(255, 255, 255));
+        std::lock_guard<std::mutex> plg(planning_grid_mtx_);
         planning_grid_ = cv::Mat(length_, width_, CV_8UC1, cv::Scalar(255, 255, 255));
     }
 }
