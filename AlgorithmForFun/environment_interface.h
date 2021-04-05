@@ -42,7 +42,7 @@ namespace environment
         setGridValue(int x, int y, uint8_t value) = 0;
 
         virtual bool
-        setInteractiveGridValue(int x, int y, uint8_t r = 0, uint8_t g = 0, uint8_t b = 0) = 0;
+        setInteractiveGridValue(int x, int y, uint8_t r = 0, uint8_t g = 0, uint8_t b = 0, uint8_t a = 0) = 0;
 
         virtual bool
         setIntGridValByPlanXY(int x, int y, uint8_t r = 0, uint8_t g = 0, uint8_t b = 0) = 0;
@@ -97,6 +97,9 @@ namespace environment
 
         virtual std::tuple<int, int>
         getGoal() = 0;
+
+        virtual void
+        play(Path &path) = 0;
     };
 
     using EnvironmentInterfacePtr = std::shared_ptr<EnvironmentInterface>;

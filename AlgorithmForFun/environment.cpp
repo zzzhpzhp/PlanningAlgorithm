@@ -82,7 +82,7 @@ namespace environment
         return true;
     }
 
-    bool Environment::setInteractiveGridValue(int x, int y, uint8_t r, uint8_t g, uint8_t b)
+    bool Environment::setInteractiveGridValue(int x, int y, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
     {
         if (x >= img_width_ || x < 0 || y >= img_length_ || y < 0)
         {
@@ -93,7 +93,7 @@ namespace environment
 
         std::lock_guard<std::mutex> lg(display_img_mtx_);
         rectangle(display_img_, cv::Rect(x, y, rect_size_, rect_size_),
-                  cv::Scalar(b, g, r), -1);
+                  cv::Scalar(b, g, r, a), -1);
 
         return true;
     }
@@ -268,5 +268,17 @@ namespace environment
     std::tuple<int, int> Environment::getGoal()
     {
         return {goal_x_, goal_y_};
+    }
+
+    void Environment::play(Path &path)
+    {
+        int nx, ny;
+        for (const auto& n : path)
+        {
+            nx = n.x * rect_size_;
+            ny = n.y * rect_size_;
+            setInteractiveGridValue(nx, ny, n.r, n.g, n.b, 100);
+            std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        }
     }
 }

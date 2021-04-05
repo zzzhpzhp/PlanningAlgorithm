@@ -40,7 +40,7 @@ namespace environment
         setGridValue(int x, int y, uint8_t value) override;
 
         bool
-        setInteractiveGridValue(int x, int y, uint8_t r, uint8_t g, uint8_t b) override;
+        setInteractiveGridValue(int x, int y, uint8_t r, uint8_t g, uint8_t b, uint8_t a = 255) override;
 
         bool
         setIntGridValByPlanXY(int x, int y, uint8_t r, uint8_t g, uint8_t b) override;
@@ -92,6 +92,9 @@ namespace environment
 
         std::tuple<int, int>
         getGoal() override;
+
+        void
+        play(Path &path) override;
 
     private:
         bool initialized_{false};
