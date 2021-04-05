@@ -80,6 +80,7 @@ namespace algorithm
         cur_.parent_id = -1;
         node_stack.push(cur_);
         std::unordered_map<int, std::unordered_map<int, bool>> visited;
+        visited[cur_.x][cur_.y] = true;
         environment::PathNode pn{};
         pn.g = 255;
         pn.a = 255;
@@ -112,7 +113,6 @@ namespace algorithm
                     env_ptr_->setIntGridValByPlanXY(cur_.x, cur_.y, 100, 100, 100);
                 }
 
-                visited[cur_.x][cur_.y] = true;
                 int side_x, side_y;
                 uint8_t side_val;
                 Node side;
