@@ -20,6 +20,7 @@
 #include "bfs.h"
 #include "bcd.h"
 #include "dijkstra.h"
+#include "bcd_with_dijkstra.h"
 
 
 #endif //AFF_MAIN_H

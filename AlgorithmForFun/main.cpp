@@ -2,8 +2,8 @@
 
 // 算法执行成功后，是否显示算法给出的路径
 bool show_path = true;
-bool planning = false;
-int algorithm_num = 4;
+bool busy = false;
+int algorithm_num = 5;
 std::shared_ptr<environment::EnvironmentInterface> env_ptr;
 std::shared_ptr<algorithm::AlgorithmInterface> alg_ptr;
 
@@ -17,7 +17,7 @@ eventCallback(int event, int x, int y, int flags, void *param)
     if ((event == cv::EVENT_LBUTTONDOWN) || (flags & cv::EVENT_FLAG_LBUTTON))
     {
         // 鼠标左键设定起点
-        if (planning)
+        if (busy)
         {
             return;
         }
@@ -27,7 +27,7 @@ eventCallback(int event, int x, int y, int flags, void *param)
     else if (event == cv::EVENT_RBUTTONDBLCLK || (flags & cv::EVENT_FLAG_RBUTTON))
     {
         // 鼠标右键设定终点
-        if (planning)
+        if (busy)
         {
             return;
         }
@@ -49,7 +49,7 @@ eventCallback(int event, int x, int y, int flags, void *param)
 void
 invoke()
 {
-    planning = true;
+    busy = true;
     auto result = alg_ptr->planning();
     if (!result)
     {
@@ -71,7 +71,15 @@ invoke()
         }
     }
     env_ptr->showStartGoalPose();
-    planning = false;
+    busy = false;
+}
+
+void play()
+{
+    busy = true;
+    env_ptr->play(alg_ptr->getPath());
+    std::cout << "Play over." << std::endl;
+    busy = false;
 }
 
 void switch_algorithm(int index)
@@ -98,6 +106,12 @@ void switch_algorithm(int index)
     {
         std::cout << "Selected algorithm is Dijkstra." << std::endl;
         alg_ptr = std::make_shared<algorithm::Dijkstra>();
+        alg_ptr->initialize(env_ptr);
+    }
+    else if (index == 4)
+    {
+        std::cout << "Selected algorithm is BcdWidthDijkstra." << std::endl;
+        alg_ptr = std::make_shared<algorithm::BcdWidthDijkstra>();
         alg_ptr->initialize(env_ptr);
     }
     else
@@ -129,7 +143,7 @@ main(int argc, char* argv[])
 
     cv::setMouseCallback("InteractiveWindow", eventCallback);
 
-    std::future<void> future_planning;
+    std::future<void> future_working;
 
     while (true)
     {
@@ -138,16 +152,16 @@ main(int argc, char* argv[])
         // 读取键盘值
         auto key = cv::waitKey(2);
         // 如果正在执行,则不做任何操作
-        if (planning)
+        if (busy)
         {
             continue;
         }
         if (key == 's' || key == 'S')
         {
             // 如果按下s键,执行算法
-            std::cout << "Start planning..." << std::endl;
+            std::cout << "Working..." << std::endl;
             env_ptr->clear();
-            future_planning = std::async(std::launch::async, invoke);
+            future_working = std::async(std::launch::async, invoke);
         }
         else if (key == 'c' || key == 'C')
         {
@@ -169,6 +183,11 @@ main(int argc, char* argv[])
             auto goal = env_ptr->getGoal();
             alg_ptr->setStart(std::get<0>(start), std::get<1>(start));
             alg_ptr->setGoal(std::get<0>(goal), std::get<1>(goal));
+        }
+        else if (key == 'p' || key == 'P')
+        {
+            std::cout << "Playing..." << std::endl;
+            future_working = std::async(std::launch::async, play);
         }
     }
 }
