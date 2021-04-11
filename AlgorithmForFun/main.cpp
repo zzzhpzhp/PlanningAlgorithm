@@ -41,7 +41,6 @@ eventCallback(int event, int x, int y, int flags, void *param)
         {
             return;
         }
-        env_ptr->setGridValueFromDisp(x, y, 0);
         env_ptr->markObstacle(x, y);
     }
 }

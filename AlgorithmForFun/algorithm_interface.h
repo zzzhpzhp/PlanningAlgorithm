@@ -22,6 +22,7 @@ namespace algorithm
 
         virtual environment::Path&
         getPath() = 0;
+
     protected:
 
         inline bool

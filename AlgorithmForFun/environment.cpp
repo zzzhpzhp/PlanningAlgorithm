@@ -72,6 +72,7 @@ namespace environment
     {
         if (!insideGrid(x, y))
         {
+            std::cerr << "Failed to set grid value." << std::endl;
             return false;
         }
 
@@ -86,6 +87,7 @@ namespace environment
     {
         if (x >= img_width_ || x < 0 || y >= img_length_ || y < 0)
         {
+            std::cerr << "Out of bound." << std::endl;
             return false;
         }
 
@@ -133,8 +135,7 @@ namespace environment
         {
             throw std::runtime_error("Should initialize first.");
         }
-        int tx = (x / rect_size_), ty = (y / rect_size_);
-        if (tx >= width_ || tx < 0 || ty >= length_ || ty < 0)
+        if (x >= img_width_ || x < 0 || y >= img_length_ || y < 0)
         {
             return false;
         }
@@ -195,8 +196,15 @@ namespace environment
 
     void Environment::markObstacle(int x, int y)
     {
+        if (!setInteractiveGridValue(x, y, 0, 0, 0))
+        {
+            return;
+        }
+        if (!setGridValueFromDisp(x, y, 0))
+        {
+            return;
+        }
         obstacles_.insert(std::make_tuple(x, y));
-        setInteractiveGridValue(x, y, 0, 0, 0);
     }
 
     void Environment::showStartGoalPose()
