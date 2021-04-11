@@ -17,7 +17,6 @@ namespace algorithm
 //        side_points_.emplace_back(boost::bind(&BcdWidthDijkstra::_get_lower_left, this, _1, _2, _3, _4, _5));
 //        side_points_.emplace_back(boost::bind(&BcdWidthDijkstra::_get_lower_right, this, _1, _2, _3, _4, _5));
 
-        nodes_ = std::vector<Node>(env_ptr_->getGridXSizeInCells() * env_ptr_->getGridYSizeInCells());
 
         initialized_ = true;
     }
@@ -182,27 +181,33 @@ namespace algorithm
     bool BcdWidthDijkstra::_dijkstra(int start_x, int start_y, int &goal_x, int &goal_y,
                    VisitedTable& visited, std::vector<environment::PathNode> &path)
     {
-        int id_index = 0;
+        auto size_x = env_ptr_->getGridXSizeInCells(), size_y = env_ptr_->getGridYSizeInCells();
+        nodes_ = std::vector<Node>(size_x * size_y);
         std::priority_queue<Node*, std::vector<Node*>, Node> nodes_queue;
+        int id_index = start_y * size_x + start_x;
         Node *cur_ = &nodes_[id_index];
         cur_->x = start_x;
         cur_->y = start_y;
         cur_->dist = 0;
         cur_->id = id_index;
-        id_index++;
         nodes_queue.push(cur_);
         environment::PathNode pn{};
         pn.r = 255;
         pn.a = 255;
         bool find = false;
-        VisitedTable dj_visited;
-        dj_visited[cur_->x][cur_->y] = true;
+        int side_to_cur_cost{};
+        int through_cur_cost{};
+        int side_x, side_y;
+        uint8_t side_val;
+        Node *side;
 
         while (!nodes_queue.empty())
         {
             std::this_thread::sleep_for(std::chrono::microseconds(200));
             cur_ = nodes_queue.top();
             nodes_queue.pop();
+            cur_->in_close_list = true;
+            cur_->in_open_list = false;
 
             // 避免覆盖起始位置标志
             if (cur_->x != start_x || cur_->y != start_y)
@@ -219,9 +224,6 @@ namespace algorithm
                 break;
             }
 
-            int side_x, side_y;
-            uint8_t side_val;
-            Node *side;
             for (auto &side_node : side_points_)
             {
                 if (!side_node(env_ptr_, cur_->x, cur_->y, side_x, side_y))
@@ -229,29 +231,52 @@ namespace algorithm
                     continue;
                 }
 
-                side_val = env_ptr_->getGridValue(side_x, side_y);
-                if (dj_visited[side_x][side_y] || side_val == 0)
+                auto id = side_y * size_x + side_x;
+                side = &nodes_[id];
+
+                if (side_x != cur_->x && side_y != cur_->y)
                 {
-                    // 如果此點是障礙物，則跳過
+                    side_to_cur_cost = 14;
+                }
+                else
+                {
+                    side_to_cur_cost = 10;
+                }
+                through_cur_cost = side_to_cur_cost + cur_->dist;
+
+                if (side->in_open_list)
+                {
+                    if (through_cur_cost < side->dist)
+                    {
+                        side->dist = through_cur_cost;
+                        side->parent_node = cur_;
+                    }
                     continue;
                 }
-                dj_visited[side_x][side_y] = true;
+                else if (side->in_close_list)
+                {
+                    continue;
+                }
 
-                auto id = id_index++;
-                side = &nodes_[id];
+                if (side->is_obstacle)
+                {
+                    continue;
+                }
+
+                side_val = env_ptr_->getGridValue(side_x, side_y);
+                if (side_val == 0)
+                {
+                    // 如果此點是障礙物，則跳過
+                    side->is_obstacle = true;
+                    continue;
+                }
+
                 side->id = id;
                 side->x = side_x;
                 side->y = side_y;
                 side->parent_node = cur_;
-
-                if (side->x != cur_->x && side->y != cur_->y)
-                {
-                    side->dist = cur_->dist + 14;
-                }
-                else
-                {
-                    side->dist = cur_->dist + 10;
-                }
+                side->dist = cur_->dist + side_to_cur_cost;
+                side->in_open_list = true;
 
                 nodes_queue.push(side);
             }

@@ -51,6 +51,9 @@ namespace algorithm
             int id;
             int dist;
             Node *parent_node;
+            bool in_open_list = false;
+            bool in_close_list = false;
+            bool is_obstacle = false;
 
             bool operator()(const Node* a, const Node* n) const
             {

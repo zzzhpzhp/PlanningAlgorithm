@@ -63,28 +63,33 @@ namespace algorithm
         struct Node
         {
             int x, y;
-            int id, parent_id;
+            int id;
             int dist;
-            bool operator<(const Node& n) const
+            Node *parent_node;
+
+            bool operator()(const Node* a, const Node* n) const
             {
-                return dist > n.dist;
-            }
+                return a->dist > n->dist;
+            };
         };
-        std::priority_queue<Node> node_stack;
+
+        std::priority_queue<Node*, std::vector<Node*>, Node> node_stack;
         int id_index = 0;
-        Node cur_;
-        cur_.x = start_x_;
-        cur_.y = start_y_;
-        cur_.dist = 0;
-        cur_.id = id_index++;
-        cur_.parent_id = -1;
+        std::vector<Node> nodes(env_ptr_->getGridXSizeInCells() * env_ptr_->getGridYSizeInCells());
+        Node *cur_ = &nodes[id_index];
+        cur_->x = start_x_;
+        cur_->y = start_y_;
+        cur_->dist = 0;
+        cur_->id = id_index;
+        id_index++;
         node_stack.push(cur_);
         std::unordered_map<int, std::unordered_map<int, bool>> visited;
-        visited[cur_.x][cur_.y] = true;
         environment::PathNode pn{};
         pn.g = 255;
         pn.a = 255;
         path_.clear();
+
+        visited[cur_->x][cur_->y] = true;
 
         std::function<bool()> bfs = [&]()->bool
         {
@@ -94,53 +99,55 @@ namespace algorithm
                 cur_ = node_stack.top();
                 node_stack.pop();
 
-                pn.x = cur_.x;
-                pn.y = cur_.y;
-                path_.emplace_back(pn);
-
-                if (cur_.x == goal_x_ && cur_.y == goal_y_)
+                if (cur_->x == goal_x_ && cur_->y == goal_y_)
                 {
                     return true;
                 }
 
-                if (cur_.x == goal_x_ && cur_.y == goal_y_)
+                if (cur_->x == goal_x_ && cur_->y == goal_y_)
                 {
                     return true;
                 }
 
-                if (cur_.x != start_x_ || cur_.y != start_y_)
+                if (cur_->x != start_x_ || cur_->y != start_y_)
                 {
-                    env_ptr_->setIntGridValByPlanXY(cur_.x, cur_.y, 100, 100, 100);
+                    env_ptr_->setIntGridValByPlanXY(cur_->x, cur_->y, 100, 100, 100);
                 }
 
                 int side_x, side_y;
                 uint8_t side_val;
-                Node side;
+                Node *side;
                 for (auto &side_node : side_points_)
                 {
-                    if (!side_node(env_ptr_, cur_.x, cur_.y, side_x, side_y))
+                    if (!side_node(env_ptr_, cur_->x, cur_->y, side_x, side_y))
                     {
                         continue;
                     }
+
                     side_val = env_ptr_->getGridValue(side_x, side_y);
                     if (visited[side_x][side_y] || side_val == 0)
                     {
+                        // 如果此點已被訪問過或是障礙物，則跳過
                         continue;
                     }
+
                     visited[side_x][side_y] = true;
 
-                    side.x = side_x;
-                    side.y = side_y;
-                    if (side.x != cur_.x && side.y != cur_.y)
+                    auto id = id_index++;
+                    side = &nodes[id];
+                    side->id = id;
+                    side->x = side_x;
+                    side->y = side_y;
+                    side->parent_node = cur_;
+
+                    if (side->x != cur_->x && side->y != cur_->y)
                     {
-                        side.dist = cur_.dist + 14;
+                        side->dist = cur_->dist + 14;
                     }
                     else
                     {
-                        side.dist = cur_.dist + 10;
+                        side->dist = cur_->dist + 10;
                     }
-                    side.parent_id = cur_.id;
-                    side.id = id_index++;
 
                     node_stack.push(side);
                 }
@@ -150,6 +157,18 @@ namespace algorithm
         };
 
         auto result = bfs();
+
+        if (result)
+        {
+            while (cur_)
+            {
+                pn.x = cur_->x;
+                pn.y = cur_->y;
+                path_.emplace_back(pn);
+                cur_ = cur_->parent_node;
+            }
+        }
+
         return result;
     }
 
