@@ -20,6 +20,6 @@ add_executable(${PROJECT_NAME}
         dijkstra.cpp
         dijkstra.h
         bcd_with_dijkstra.cpp
-        bcd_with_dijkstra.h)
+        bcd_with_dijkstra.h hybrid_astar.cpp hybrid_astar.h)
 
 target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS} -lpthread -lm)

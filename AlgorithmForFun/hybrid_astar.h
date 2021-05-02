@@ -1,0 +1,4 @@
+#ifndef AFF_HYBRID_ASTAR_H
+#define AFF_HYBRID_ASTAR_H
+
+#endif //AFF_HYBRID_ASTAR_H
