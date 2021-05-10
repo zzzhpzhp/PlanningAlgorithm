@@ -96,9 +96,13 @@ namespace environment
         void
         play(Path &path) override;
 
+        void
+        setFootprint(Footprint footprint);
+
     private:
         bool initialized_{false};
         bool have_start_ = false, have_goal_ = false;
+        Footprint footprint_;
 
         cv::Mat display_img_, planning_grid_;
 
@@ -123,6 +127,7 @@ namespace environment
 
         void
         _display_start_goal();
+
 
     };
 }

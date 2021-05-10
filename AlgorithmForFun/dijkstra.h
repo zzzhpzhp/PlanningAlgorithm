@@ -1,18 +1,18 @@
 #ifndef AFF_DIJKSTRA_H
 #define AFF_DIJKSTRA_H
 
-#include <iostream>
-#include <chrono>
-#include <thread>
 #include <stack>
 #include <deque>
 #include <queue>
+#include <chrono>
+#include <thread>
+#include <iostream>
 #include <unordered_map>
 
 #include <boost/bind.hpp>
 
-#include "environment_interface.h"
 #include "algorithm_interface.h"
+#include "environment_interface.h"
 
 namespace algorithm
 {
@@ -46,14 +46,14 @@ namespace algorithm
 
         struct Node
         {
-            int x, y;
             int id;
+            int x, y;
             int dist = 0;
             Node *parent_node;
 
+            bool is_obstacle = false;
             bool in_open_list = false;
             bool in_close_list = false;
-            bool is_obstacle = false;
 
             bool operator()(const Node* a, const Node* n) const
             {

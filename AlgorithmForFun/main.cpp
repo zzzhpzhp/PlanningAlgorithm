@@ -123,7 +123,25 @@ int
 main(int argc, char* argv[])
 {
     env_ptr = std::make_shared<environment::Environment>();
-    env_ptr->initialize(60, 100, 11);
+    env_ptr->initialize(100, 100, 5);
+
+    environment::GridPoint gp;
+    std::vector<environment::GridPoint> gps;
+    gp.x = 10;
+    gp.y = 10;
+    gps.emplace_back(gp);
+    gp.x = 00;
+    gp.y = 90;
+    gps.emplace_back(gp);
+    gp.x = 70;
+    gp.y = 70;
+    gps.emplace_back(gp);
+//    gp.x = 70;
+//    gp.y = 10;
+//    gps.emplace_back(gp);
+//    env_ptr->scanFill(gps.size(), gps.data());
+    env_ptr->fillPolygon(gps);
+
 
     int selected_algorithm = 0;
     std::cout << argc << std::endl;
