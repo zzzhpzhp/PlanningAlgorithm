@@ -127,24 +127,27 @@ main(int argc, char* argv[])
 
     environment::GridPoint gp;
     std::vector<environment::GridPoint> gps;
-    gp.x = 10;
-    gp.y = 10;
-    gps.emplace_back(gp);
     gp.x = 00;
-    gp.y = 90;
+    gp.y = 00;
     gps.emplace_back(gp);
-    gp.x = 70;
-    gp.y = 70;
+    gp.x = 10;
+    gp.y = 40;
     gps.emplace_back(gp);
-//    gp.x = 70;
-//    gp.y = 10;
-//    gps.emplace_back(gp);
+    gp.x = 80;
+    gp.y = 80;
+    gps.emplace_back(gp);
+    gp.x = 90;
+    gp.y = 50;
+    gps.emplace_back(gp);
+    gp.x = 50;
+    gp.y = 40;
+    gps.emplace_back(gp);
 //    env_ptr->scanFill(gps.size(), gps.data());
     env_ptr->fillPolygon(gps);
 
 
     int selected_algorithm = 0;
-    std::cout << argc << std::endl;
+    std::cout << "Arguments num: " << argc << std::endl;
     if (argc > 1)
     {
         selected_algorithm = std::stoi(argv[1]);

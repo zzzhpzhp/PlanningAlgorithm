@@ -6,6 +6,7 @@
 #include <thread>
 #include <tuple>
 #include <unordered_map>
+#include <queue>
 
 #include <boost/bind.hpp>
 
@@ -327,46 +328,69 @@ namespace environment
             int ymax, x;
             float inv_k;
             std::shared_ptr<Edge> next;
+
+            bool operator()(const std::shared_ptr<Edge> &a, const std::shared_ptr<Edge> &b) const
+            {
+                return a->x > b->x;
+            };
         };
 
         std::unordered_map<int, std::shared_ptr<Edge>> et_;
+        int y_min_, y_max_;
 
         void
         _create_et(std::vector<GridPoint>& points)
         {
-            auto proc_lin = [&](GridPoint &ph, GridPoint &pl,
-                                bool perpendicular)
+            auto create_edge = [&](GridPoint *ph, GridPoint *pl, bool perpendicular)
             {
 //                std::cout << ph->x <<"  " <<ph->y <<std::endl;
-                auto &e = et_[ph.y];
-                while(e)
+                y_min_ = std::min(pl->y, y_min_);
+                y_max_ = std::max(ph->y, y_max_);
+
+                std::shared_ptr<Edge> cur;
+                // 找到链表尾部
+                if (!et_[pl->y])
                 {
-                    e = e->next;
-                }
-                e = std::make_shared<Edge>();
-                e->ymax = ph.y;
-                if (perpendicular)
-                {
-                    e->inv_k = std::numeric_limits<float>::infinity();
+                    et_[pl->y] = std::make_shared<Edge>();
+                    cur = et_[pl->y];
                 }
                 else
                 {
-                    e->inv_k = (float)(ph.x - pl.x) / (float)(ph.y - pl.y);
+                    cur = et_[pl->y];
+                    auto pre = cur;
+                    while(cur)
+                    {
+                        pre = cur;
+                        cur = cur->next;
+                    }
+                    pre->next = std::make_shared<Edge>();
+                    cur = pre->next;
                 }
-                e->x = pl.x;
-                std::cout << e->ymax << " " << e->x << " " << e->inv_k <<std::endl;
+
+                cur->ymax = ph->y;
+                if (perpendicular)
+                {
+                    cur->inv_k = std::numeric_limits<float>::infinity();
+                }
+                else
+                {
+                    cur->inv_k = (float)(ph->x - pl->x) / (float)(ph->y - pl->y);
+                }
+                cur->x = pl->x;
+//                std::cout << cur->ymax << " " << cur->x << " " << cur->inv_k <<std::endl;
             };
 
-            auto get_ph_pl = [&](GridPoint p1, GridPoint p2, GridPoint &ph, GridPoint &pl, bool &perpend)
+            auto get_ph_pl = [&](GridPoint *p1, GridPoint *p2, GridPoint* &ph, GridPoint* &pl, bool &perpend)
             {
-//                std::cout << p1.x <<"  " <<p1.y <<std::endl;
+//                std::cout << "p1 xy " << p1->x <<"  " <<p1->y <<std::endl;
+//                std::cout << "p2 xy " << p2->x <<"  " <<p2->y <<std::endl;
                 perpend = false;
-                if (p1.y > p2.y)
+                if (p1->y > p2->y)
                 {
                     ph = p1;
                     pl = p2;
                 }
-                else if (p1.y < p2.y)
+                else if (p1->y < p2->y)
                 {
                     ph = p2;
                     pl = p1;
@@ -377,46 +401,69 @@ namespace environment
                     pl = p1;
                     perpend = true;
                 }
-//                std::cout << ph->x <<"  " <<ph->y <<std::endl;
+//                std::cout << "pl xy " << pl->x <<"  " <<pl->y <<std::endl;
+//                std::cout << "ph xy " << ph->x <<"  " <<ph->y <<std::endl;
             };
 
-            GridPoint ph, pl;
+            GridPoint *ph{}, *pl{};
             bool perpendicular{false};
             for (int i = 0; i < points.size() - 1; i++)
             {
 //                std::cout << points[i].x << " " << points[i].y <<std::endl;
-                get_ph_pl(points[i], points[i+1], ph, pl, perpendicular);
-//                std::cout << ph.x <<"  " <<ph.y <<std::endl;
-                proc_lin(ph, pl, perpendicular);
+                get_ph_pl(&points[i], &points[i+1], ph, pl, perpendicular);
+//                std::cout << ph->x <<"  " <<ph->y <<std::endl;
+                create_edge(ph, pl, perpendicular);
             }
-            get_ph_pl(points.back(), points.front(), ph, pl, perpendicular);
-            proc_lin(ph, pl, perpendicular);
+            get_ph_pl(&points.back(), &points.front(), ph, pl, perpendicular);
+            create_edge(ph, pl, perpendicular);
         }
 
         void
-        _ael_process(std::shared_ptr<Edge>& ael)
+        _ael_process(int y)
         {
+            auto ael = et_[y];
+//            std::cout << " y " << y << std::endl;
+            if (!ael)
+            {
+                std::cout << "empty ael" << std::endl;
+                return;
+            }
+            std::cout << "have " << y << std::endl;
             auto p = ael;
-            std::unordered_map<int, std::shared_ptr<Edge>> xsorted;
+            std::priority_queue<std::shared_ptr<Edge>, std::vector<std::shared_ptr<Edge>>, Edge> xsorted;
             while(p)
             {
-                xsorted[p->x] = p;
+//                std::cout << "e ymax " << p->ymax << " x " << p->x << " k_inv " << p->inv_k << std::endl;
+                xsorted.push(p);
                 p = p->next;
             }
-            for (auto &tp : xsorted)
+            for (int i = 0; i < xsorted.size(); i++)
             {
-                std::cout << tp.second->x << std::endl;
+                auto top = xsorted.top();
+                xsorted.pop();
+//                std::cout << top->x << " ";
             }
+//            for (auto &tp : xsorted)
+//            {
+//                std::cout << tp.second->x << " ";
+//            }
             std::cout << std::endl;
         }
 
         void
         _loop()
         {
-            for (auto &e : et_)
+            auto &e = et_[0];
+            while(e)
             {
-                _ael_process(et_[e.second->ymax]);
+                std::cout << e->ymax << " " << e->x << " " << e->inv_k <<std::endl;
+                e = e->next;
             }
+
+//            for (int i = y_min_; i <= y_max_; i++)
+//            {
+//                _ael_process(i);
+//            }
         }
 
         void
