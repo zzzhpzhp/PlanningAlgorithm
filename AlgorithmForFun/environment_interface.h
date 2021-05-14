@@ -335,8 +335,9 @@ namespace environment
             };
         };
 
-        std::unordered_map<int, std::shared_ptr<Edge>> et_;
         int y_min_, y_max_;
+        std::unordered_map<int, std::shared_ptr<Edge>> et_;
+        std::priority_queue<std::shared_ptr<Edge>, std::vector<std::shared_ptr<Edge>>, Edge> x_sorted_;
 
         void
         _create_et(std::vector<GridPoint>& points)
@@ -351,11 +352,14 @@ namespace environment
                 // 找到链表尾部
                 if (!et_[pl->y])
                 {
+                    // 如果当前桶为空，则初始化当前桶
                     et_[pl->y] = std::make_shared<Edge>();
+                    // 指向当前边
                     cur = et_[pl->y];
                 }
                 else
                 {
+                    // 当前桶不为空，找到当前链表的尾部，新建边，并指向新建边
                     cur = et_[pl->y];
                     auto pre = cur;
                     while(cur)
@@ -367,6 +371,7 @@ namespace environment
                     cur = pre->next;
                 }
 
+                // 初始化当前边的数据结构
                 cur->ymax = ph->y;
                 if (perpendicular)
                 {
@@ -425,45 +430,49 @@ namespace environment
 //            std::cout << " y " << y << std::endl;
             if (!ael)
             {
-                std::cout << "empty ael" << std::endl;
                 return;
             }
-            std::cout << "have " << y << std::endl;
-            auto p = ael;
-            std::priority_queue<std::shared_ptr<Edge>, std::vector<std::shared_ptr<Edge>>, Edge> xsorted;
-            while(p)
+            // 将当前ael按x从小到大排序
+            auto cur = ael;
+            while(cur)
             {
-//                std::cout << "e ymax " << p->ymax << " x " << p->x << " k_inv " << p->inv_k << std::endl;
-                xsorted.push(p);
-                p = p->next;
+//                std::cout << "e ymax " << cur->ymax << " x " << cur->x << " k_inv " << cur->inv_k << std::endl;
+                x_sorted_.push(cur);
+                cur = cur->next;
             }
-            for (int i = 0; i < xsorted.size(); i++)
+
+            // 删除y最大值小于当前y的边
+            int sz = x_sorted_.size();
+            for (int i = 0; i < sz; i++)
             {
-                auto top = xsorted.top();
-                xsorted.pop();
-//                std::cout << top->x << " ";
+                auto top = x_sorted_.top();
+                x_sorted_.pop();
+                std::cout << top->x << " ";
             }
-//            for (auto &tp : xsorted)
-//            {
-//                std::cout << tp.second->x << " ";
-//            }
-            std::cout << std::endl;
         }
 
         void
         _loop()
         {
-            auto &e = et_[0];
-            while(e)
+//            auto &e = et_[40];
+//            while(e)
+//            {
+//                std::cout << e->ymax << " " << e->x << " " << e->inv_k <<std::endl;
+//                e = e->next;
+//            }
+            for (int i = y_min_; i <= y_max_; i++)
             {
-                std::cout << e->ymax << " " << e->x << " " << e->inv_k <<std::endl;
-                e = e->next;
+                _ael_process(i);
             }
 
-//            for (int i = y_min_; i <= y_max_; i++)
+//            int sz = x_sorted_.size();
+//            for (int i = 0; i < sz; i++)
 //            {
-//                _ael_process(i);
+//                auto top = x_sorted_.top();
+//                x_sorted_.pop();
+//                std::cout << top->x << " ";
 //            }
+//            std::cout << std::endl;
         }
 
         void
