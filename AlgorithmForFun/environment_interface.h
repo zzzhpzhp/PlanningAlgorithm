@@ -39,10 +39,25 @@ namespace environment
         float x, y, theta;
     };
 
+    using Polygon = std::vector<Point>;
+    using GridPolygon = std::vector<GridPoint>;
+
     struct Footprint
     {
         Point center;
         std::vector<Point> footprint;
+    };
+
+    struct Edge
+    {
+        float ymax{}, x{};
+        float inv_k{};
+        std::shared_ptr<Edge> next;
+
+        bool operator()(const std::shared_ptr<Edge> &a, const std::shared_ptr<Edge> &b) const
+        {
+            return a->x > b->x;
+        };
     };
 
     class EnvironmentInterface
@@ -123,366 +138,23 @@ namespace environment
         virtual void
         play(Path &path) = 0;
 
+        virtual void
+        setFootprint(Footprint footprint) = 0;
 
-//        struct Edge
-//        {
-//            float xIntersect, yIntersect, yUpper, yLoser, xUpper, xLower;
-//            float dxPerScan;
-//            Edge *next;
-//        };
-//
-//        void
-//        insertEdge(Edge *list, Edge *edge)
-//        {
-//            Edge *p, *q = list;
-//            p = q->next;
-//            while(p != nullptr)
-//            {
-//                if (edge->xIntersect < p->xIntersect)
-//                {
-//                    p = nullptr;
-//                }
-//                else
-//                {
-//                    q = p;
-//                    p = p->next;
-//                }
-//            }
-//            edge->next = q->next;
-//            q->next = edge;
-//        }
-//
-//        int
-//        yNext(int k, int cnt, GridPoint *pts)
-//        {
-//            int j;
-//            if ((k+1) > (cnt-1))
-//            {
-//                j = 0;
-//            }
-//            else
-//            {
-//                j = k + 1;
-//            }
-//            while(pts[k].y == pts[j].y)
-//            {
-//                if ((j+1) > (cnt-1))
-//                {
-//                    j = 0;
-//                }
-//                else
-//                {
-//                    j++;
-//                }
-//            }
-//            return pts[j].y;
-//        }
-//
-//        void
-//        makeEdgeRec(GridPoint lower, GridPoint upper, int yComp, Edge *edge, Edge *edges[])
-//        {
-//            edge->dxPerScan = (float)(upper.x - lower.x) / (upper.y - lower.y);
-//            edge->xIntersect = (float)lower.x;
-//            if (upper.y < yComp)
-//            {
-//                edge->yUpper = upper.y - 1;
-//            }
-//            else
-//            {
-//                edge->yUpper = upper.y;
-//            }
-//            insertEdge(edges[(int)lower.y], edge);
-//        }
-//
-//        void
-//        buildActiveList(int scan, Edge *active, Edge *edges[])
-//        {
-//            Edge *p, *q;
-//            p = edges[scan]->next;
-//            while(p)
-//            {
-//                q = p->next;
-//                insertEdge(active, p);
-//                p = q;
-//            }
-//        }
-//
-//        void
-//        fillscan(int scan, Edge *active)
-//        {
-//            Edge *p1, *p2;
-//            int i;
-//            p1 = active->next;
-//            while(p1)
-//            {
-//                p2 = p1->next;
-//                for (i = (int)p1->xIntersect; i < (int)p2->xIntersect; i++)
-//                {
-////                    PutPixel((int)i, scan, 0);
-//                    setGridValue((int)i, scan, 0);
-//                    setInteractiveGridValue((int)i * getScale(), scan * getScale(), 0);
-//                }
-//                p1 = p2->next;
-//            }
-//        }
-//
-//        void
-//        deleteAfter(Edge *q)
-//        {
-//            Edge *p = q->next;
-//            q->next = p->next;
-//            free(p);
-//        }
-//
-//        void
-//        updateActiveList(int scan, Edge *active)
-//        {
-//            Edge *q = active, *p = active->next;
-//            while(p)
-//            {
-//                if (scan >= p->yUpper)
-//                {
-//                    p = p->next;
-//                    deleteAfter(q);
-//                }
-//                else
-//                {
-//                    p->xIntersect = p->xIntersect + p->dxPerScan;
-//                    q = p;
-//                    p = p->next;
-//                }
-//            }
-//        }
-//
-//        void
-//        resortActiveList(Edge *active)
-//        {
-//            Edge *q, *p = active->next;
-//            active->next = nullptr;
-//            while(p)
-//            {
-//                q = p->next;
-//                insertEdge(active, p);
-//                p = q;
-//            }
-//        }
-//
-//        void
-//        buildEdgeList(int cnt, GridPoint *pts, Edge *edges[])
-//        {
-//            Edge *edge;
-//            GridPoint v1{}, v2{};
-//            int yPrev = pts[cnt-2].y;
-//            v1.x = pts[cnt-1].x;
-//            v1.y = pts[cnt-1].y;
-//            for (int i = 0; i < cnt; i++)
-//            {
-//                v2 = pts[i];
-//                if (v1.y != v2.y)
-//                {
-//                    edge = (Edge*)malloc(sizeof(Edge));
-//                    if (v1.y < v2.y)
-//                    {
-//                        makeEdgeRec(v1, v2, yNext(i, cnt, pts), edge, edges);
-//                    }
-//                    else
-//                    {
-//                        makeEdgeRec(v2, v1, yPrev, edge, edges);
-//                    }
-//                    yPrev = v1.y;
-//                    v1 = v2;
-//                }
-//            }
-//        }
-//
-//        void
-//        scanFill(int cnt, GridPoint *pts)
-//        {
-//            int win_h = 100;
-//            Edge *edges[win_h], *active;
-//            int scan;
-//            for (int i = 0; i < win_h; i++)
-//            {
-//                edges[i] = (Edge *)malloc(sizeof(Edge));
-//                edges[i]->next = nullptr;
-//            }
-//            buildEdgeList(cnt, pts, edges);
-//
-//            active = (Edge *)malloc(sizeof (edges));
-//            active->next = nullptr;
-//            for (scan = 0; scan < win_h; scan++)
-//            {
-//                buildActiveList(scan, active, edges);
-//                if (active->next)
-//                {
-//                    fillscan(scan, active);
-//                    updateActiveList(scan, active);
-//                    resortActiveList(active);
-//                }
-//            }
-//        }
+        virtual void
+        drawPolygon(const GridPolygon &polygon) = 0;
 
+        virtual void
+        fillGridPolygon(const GridPolygon& polygon) = 0;
 
-        struct Edge
-        {
-            int ymax, x;
-            float inv_k;
-            std::shared_ptr<Edge> next;
+        virtual void
+        drawGridLine(int x1, int y1, int x2, int y2) = 0;
 
-            bool operator()(const std::shared_ptr<Edge> &a, const std::shared_ptr<Edge> &b) const
-            {
-                return a->x > b->x;
-            };
-        };
+        virtual void
+        drawLine(int x1, int y1, int x2, int y2) = 0;
 
-        int y_min_, y_max_;
-        std::unordered_map<int, std::shared_ptr<Edge>> et_;
-        std::priority_queue<std::shared_ptr<Edge>, std::vector<std::shared_ptr<Edge>>, Edge> x_sorted_;
-
-        void
-        _create_et(std::vector<GridPoint>& points)
-        {
-            auto create_edge = [&](GridPoint *ph, GridPoint *pl, bool perpendicular)
-            {
-//                std::cout << ph->x <<"  " <<ph->y <<std::endl;
-                y_min_ = std::min(pl->y, y_min_);
-                y_max_ = std::max(ph->y, y_max_);
-
-                std::shared_ptr<Edge> cur;
-                // 找到链表尾部
-                if (!et_[pl->y])
-                {
-                    // 如果当前桶为空，则初始化当前桶
-                    et_[pl->y] = std::make_shared<Edge>();
-                    // 指向当前边
-                    cur = et_[pl->y];
-                }
-                else
-                {
-                    // 当前桶不为空，找到当前链表的尾部，新建边，并指向新建边
-                    cur = et_[pl->y];
-                    auto pre = cur;
-                    while(cur)
-                    {
-                        pre = cur;
-                        cur = cur->next;
-                    }
-                    pre->next = std::make_shared<Edge>();
-                    cur = pre->next;
-                }
-
-                // 初始化当前边的数据结构
-                cur->ymax = ph->y;
-                if (perpendicular)
-                {
-                    cur->inv_k = std::numeric_limits<float>::infinity();
-                }
-                else
-                {
-                    cur->inv_k = (float)(ph->x - pl->x) / (float)(ph->y - pl->y);
-                }
-                cur->x = pl->x;
-//                std::cout << cur->ymax << " " << cur->x << " " << cur->inv_k <<std::endl;
-            };
-
-            auto get_ph_pl = [&](GridPoint *p1, GridPoint *p2, GridPoint* &ph, GridPoint* &pl, bool &perpend)
-            {
-//                std::cout << "p1 xy " << p1->x <<"  " <<p1->y <<std::endl;
-//                std::cout << "p2 xy " << p2->x <<"  " <<p2->y <<std::endl;
-                perpend = false;
-                if (p1->y > p2->y)
-                {
-                    ph = p1;
-                    pl = p2;
-                }
-                else if (p1->y < p2->y)
-                {
-                    ph = p2;
-                    pl = p1;
-                }
-                else
-                {
-                    ph = p2;
-                    pl = p1;
-                    perpend = true;
-                }
-//                std::cout << "pl xy " << pl->x <<"  " <<pl->y <<std::endl;
-//                std::cout << "ph xy " << ph->x <<"  " <<ph->y <<std::endl;
-            };
-
-            GridPoint *ph{}, *pl{};
-            bool perpendicular{false};
-            for (int i = 0; i < points.size() - 1; i++)
-            {
-//                std::cout << points[i].x << " " << points[i].y <<std::endl;
-                get_ph_pl(&points[i], &points[i+1], ph, pl, perpendicular);
-//                std::cout << ph->x <<"  " <<ph->y <<std::endl;
-                create_edge(ph, pl, perpendicular);
-            }
-            get_ph_pl(&points.back(), &points.front(), ph, pl, perpendicular);
-            create_edge(ph, pl, perpendicular);
-        }
-
-        void
-        _ael_process(int y)
-        {
-            auto ael = et_[y];
-//            std::cout << " y " << y << std::endl;
-            if (!ael)
-            {
-                return;
-            }
-            // 将当前ael按x从小到大排序
-            auto cur = ael;
-            while(cur)
-            {
-//                std::cout << "e ymax " << cur->ymax << " x " << cur->x << " k_inv " << cur->inv_k << std::endl;
-                x_sorted_.push(cur);
-                cur = cur->next;
-            }
-
-            // 删除y最大值小于当前y的边
-            int sz = x_sorted_.size();
-            for (int i = 0; i < sz; i++)
-            {
-                auto top = x_sorted_.top();
-                x_sorted_.pop();
-                std::cout << top->x << " ";
-            }
-        }
-
-        void
-        _loop()
-        {
-//            auto &e = et_[40];
-//            while(e)
-//            {
-//                std::cout << e->ymax << " " << e->x << " " << e->inv_k <<std::endl;
-//                e = e->next;
-//            }
-            for (int i = y_min_; i <= y_max_; i++)
-            {
-                _ael_process(i);
-            }
-
-//            int sz = x_sorted_.size();
-//            for (int i = 0; i < sz; i++)
-//            {
-//                auto top = x_sorted_.top();
-//                x_sorted_.pop();
-//                std::cout << top->x << " ";
-//            }
-//            std::cout << std::endl;
-        }
-
-        void
-        fillPolygon(std::vector<GridPoint>& polygon)
-        {
-            _create_et(polygon);
-            _loop();
-        }
-
-
+        virtual void
+        fillPolygonOutline(const GridPolygon& polygon) = 0;
     };
 
     using EnvironmentInterfacePtr = std::shared_ptr<EnvironmentInterface>;

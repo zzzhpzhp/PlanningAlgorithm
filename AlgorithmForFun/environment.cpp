@@ -289,4 +289,153 @@ namespace environment
             std::this_thread::sleep_for(std::chrono::milliseconds(50));
         }
     }
+
+    void
+    Environment::setFootprint(Footprint footprint)
+    {
+        footprint_ = footprint;
+    }
+
+    void
+    Environment::drawPolygon(const std::vector<GridPoint> &polygon)
+    {
+        int x1, y1, x2, y2;
+        for (int i = 0; i < polygon.size()-1; i++)
+        {
+            x1 = polygon[i].x * rect_size_;
+            x2 = polygon[i+1].x * rect_size_;
+            y1 = polygon[i].y * rect_size_;
+            y2 = polygon[i+1].y * rect_size_;
+            line(display_img_, cv::Point(x1, y1), cv::Point(x2, y2),
+                 cv::Scalar(0, 255, 0, 255),1,  cv::LINE_8, 0);
+            _bresenham_line(x1, y1, x2, y2);
+        }
+        x1 = polygon.back().x * rect_size_;
+        y1 = polygon.back().y * rect_size_;
+        x2 = polygon.front().x * rect_size_;
+        y2 = polygon.front().y * rect_size_;
+        line(display_img_, cv::Point(x1, y1), cv::Point(x2, y2),
+             cv::Scalar(0, 255, 0, 255),1,  cv::LINE_8, 0);
+        _bresenham_line(x1, y1, x2, y2);
+    }
+
+    void Environment::fillGridPolygon(const std::vector<GridPoint> &polygon)
+    {
+        _create_et(polygon);
+        for (int i = y_min_; i <= y_max_; i++)
+        {
+            _ael_update(i);
+            _fill_line(i);
+        }
+    }
+
+    void Environment::fillPolygonOutline(const GridPolygon &polygon)
+    {
+
+        int x1{0}, y1{0}, x2{0}, y2{0};
+        for (int i = 0; i < polygon.size()-1; i++)
+        {
+            x1 = polygon[i].x;
+            x2 = polygon[i+1].x;
+            y1 = polygon[i].y;
+            y2 = polygon[i+1].y;
+            std::cout << "x1 " << x1 << " y1 " << y1 << " x2 " << x2 << " y2 " << y2 << std::endl;
+            drawGridLine(x1, y1, x2, y2);
+            drawLine(x1, y1, x2, y2);
+        }
+        x1 = polygon.back().x;
+        y1 = polygon.back().y;
+        x2 = polygon.front().x;
+        y2 = polygon.front().y;
+        std::cout << "x1 " << x1 << " y1 " << y1 << " x2 " << x2 << " y2 " << y2 << std::endl;
+        drawGridLine(x1, y1, x2, y2);
+        drawLine(x1, y1, x2, y2);
+    }
+
+    void Environment::drawGridLine(int x1, int y1, int x2, int y2)
+    {
+        int dx, dy, x{0}, y{0}, d1, d2;
+        int cur_x, cur_y;
+        int dh, dl;
+        int dir, x_dir = 1, y_dir = 2;
+        int *main_dir, *sub_dir, main_target, main_inc{1}, sub_inc{1};
+
+        dx = abs(x2 - x1);
+        dy = abs(y2 - y1);
+
+        if (dx >= dy)
+        {
+            dir = x_dir;
+            main_dir = &x;
+            sub_dir = &y;
+            main_target = x2 - x1;
+            dh = dx;
+            dl = dy;
+            if (x2 < x1)
+            {
+                main_inc = -1;
+            }
+            if (y2 < y1)
+            {
+                sub_inc = -1;
+            }
+        }
+        else
+        {
+            dir = y_dir;
+            main_dir = &y;
+            sub_dir = &x;
+            main_target = y2 - y1;
+            dh = dy;
+            dl = dx;
+            if (y2 < y1)
+            {
+                main_inc = -1;
+            }
+            if (x2 < x1)
+            {
+                sub_inc = -1;
+            }
+        }
+
+        d1 = 2 * dl - dh;
+
+        while (abs(*main_dir) < abs(main_target))
+        {
+            if (dir == x_dir)
+            {
+                cur_x = x1 + *main_dir;
+                cur_y = y1 + *sub_dir;
+            }
+            else
+            {
+                cur_x = x1 + *sub_dir;
+                cur_y = y1 + *main_dir;
+            }
+
+            setInteractiveGridValue(cur_x * rect_size_, cur_y * rect_size_, 0);
+            setGridValue(cur_x, cur_y, 0);
+
+            if (d1 >= 0)
+            {
+                d2 = d1 + 2 * (dl - dh);
+                *sub_dir += sub_inc;
+            }
+            else
+            {
+                d2 = d1 + 2 * dl;
+            }
+
+            d1 = d2;
+
+            *main_dir += main_inc;
+        }
+    }
+
+    void Environment::drawLine(int x1, int y1, int x2, int y2)
+    {
+        line(display_img_, cv::Point(x1 * rect_size_, y1 * rect_size_),
+             cv::Point(x2 * rect_size_, y2 * rect_size_),
+             cv::Scalar(0, 255, 0, 255),1,  cv::LINE_8, 0);
+    }
 }

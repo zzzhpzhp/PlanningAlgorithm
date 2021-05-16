@@ -126,7 +126,7 @@ main(int argc, char* argv[])
     env_ptr->initialize(100, 100, 5);
 
     environment::GridPoint gp;
-    std::vector<environment::GridPoint> gps;
+    environment::GridPolygon gps;
     gp.x = 00;
     gp.y = 00;
     gps.emplace_back(gp);
@@ -140,10 +140,15 @@ main(int argc, char* argv[])
     gp.y = 50;
     gps.emplace_back(gp);
     gp.x = 50;
-    gp.y = 40;
+    gp.y = 95;
     gps.emplace_back(gp);
-//    env_ptr->scanFill(gps.size(), gps.data());
-    env_ptr->fillPolygon(gps);
+
+//    env_ptr->drawGridLine(99, 80, 10, 10);
+//    env_ptr->drawGridLine(10, 10, 99, 80);
+//    env_ptr->drawLine(10, 10, 99, 80);
+//    env_ptr->fillGridPolygon(gps);
+    env_ptr->fillPolygonOutline(gps);
+//    env_ptr->drawPolygon(gps);
 
 
     int selected_algorithm = 0;
