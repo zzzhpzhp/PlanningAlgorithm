@@ -41,6 +41,7 @@ namespace environment
 
     using Polygon = std::vector<Point>;
     using GridPolygon = std::vector<GridPoint>;
+    using Grids = std::vector<GridPoint>;
 
     struct Footprint
     {
@@ -155,6 +156,15 @@ namespace environment
 
         virtual void
         fillPolygonOutline(const GridPolygon& polygon) = 0;
+
+        virtual Grids
+        getPolygonPoints(const GridPolygon &polygon) = 0;
+
+        virtual Grids
+        getPolygonOutlinePoints(const GridPolygon &polygon) = 0;
+
+        virtual void
+        fillPoints(const Grids points) = 0;
     };
 
     using EnvironmentInterfacePtr = std::shared_ptr<EnvironmentInterface>;

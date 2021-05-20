@@ -147,9 +147,13 @@ main(int argc, char* argv[])
 //    env_ptr->drawGridLine(10, 10, 99, 80);
 //    env_ptr->drawLine(10, 10, 99, 80);
 //    env_ptr->fillGridPolygon(gps);
-    env_ptr->fillPolygonOutline(gps);
+//    env_ptr->fillPolygonOutline(gps);
 //    env_ptr->drawPolygon(gps);
 
+//    auto ps = env_ptr->getPolygonPoints(gps);
+    auto ps = env_ptr->getPolygonOutlinePoints(gps);
+    env_ptr->fillPoints(ps);
+    std::cout << "points size: " <<ps.size() <<std::endl;
 
     int selected_algorithm = 0;
     std::cout << "Arguments num: " << argc << std::endl;
