@@ -1,8 +1,8 @@
 #include "main.h"
 
 // 算法执行成功后，是否显示算法给出的路径
-bool show_path = true;
 bool busy = false;
+bool show_path = true;
 int algorithm_num = 5;
 std::shared_ptr<environment::EnvironmentInterface> env_ptr;
 std::shared_ptr<algorithm::AlgorithmInterface> alg_ptr;
@@ -125,24 +125,24 @@ main(int argc, char* argv[])
     env_ptr = std::make_shared<environment::Environment>();
     env_ptr->initialize(100, 100, 5);
 
-    environment::GridPoint gp;
-    environment::GridPolygon gps;
-    gp.x = 00;
-    gp.y = 00;
-    gps.emplace_back(gp);
-    gp.x = 10;
-    gp.y = 40;
-    gps.emplace_back(gp);
-    gp.x = 80;
-    gp.y = 80;
-    gps.emplace_back(gp);
-    gp.x = 90;
-    gp.y = 50;
-    gps.emplace_back(gp);
-    gp.x = 50;
-    gp.y = 95;
-    gps.emplace_back(gp);
-
+//    environment::GridPoint gp;
+//    environment::GridPolygon gps;
+//    gp.x = 00;
+//    gp.y = 00;
+//    gps.emplace_back(gp);
+//    gp.x = 10;
+//    gp.y = 40;
+//    gps.emplace_back(gp);
+//    gp.x = 80;
+//    gp.y = 80;
+//    gps.emplace_back(gp);
+//    gp.x = 90;
+//    gp.y = 50;
+//    gps.emplace_back(gp);
+//    gp.x = 50;
+//    gp.y = 95;
+//    gps.emplace_back(gp);
+//
 //    env_ptr->drawGridLine(99, 80, 10, 10);
 //    env_ptr->drawGridLine(10, 10, 99, 80);
 //    env_ptr->drawLine(10, 10, 99, 80);
@@ -151,9 +151,9 @@ main(int argc, char* argv[])
 //    env_ptr->drawPolygon(gps);
 
 //    auto ps = env_ptr->getPolygonPoints(gps);
-    auto ps = env_ptr->getPolygonOutlinePoints(gps);
-    env_ptr->fillPoints(ps);
-    std::cout << "points size: " <<ps.size() <<std::endl;
+//    auto ps = env_ptr->getPolygonOutlinePoints(gps);
+//    env_ptr->fillPoints(ps);
+//    std::cout << "points size: " <<ps.size() <<std::endl;
 
     int selected_algorithm = 0;
     std::cout << "Arguments num: " << argc << std::endl;

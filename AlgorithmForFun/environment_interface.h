@@ -164,7 +164,7 @@ namespace environment
         getPolygonOutlinePoints(const GridPolygon &polygon) = 0;
 
         virtual void
-        fillPoints(const Grids points) = 0;
+        fillPoints(const Grids& points) = 0;
     };
 
     using EnvironmentInterfacePtr = std::shared_ptr<EnvironmentInterface>;

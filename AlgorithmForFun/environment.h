@@ -121,7 +121,7 @@ namespace environment
         getPolygonOutlinePoints(const GridPolygon &polygon) override;
 
         void
-        fillPoints(const Grids points) override;
+        fillPoints(const Grids& points) override;
 
     private:
 

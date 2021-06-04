@@ -43,7 +43,6 @@ namespace environment
         return getGridValue(tx, ty);
     }
 
-
     uint8_t Environment::getGridValue(int x, int y)
     {
         if (!insideGrid(x, y))
@@ -390,7 +389,7 @@ namespace environment
         return *points;
     }
 
-    void Environment::fillPoints(const Grids points)
+    void Environment::fillPoints(const Grids& points)
     {
         for (const auto& p : points)
         {
