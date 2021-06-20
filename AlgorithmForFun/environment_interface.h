@@ -14,53 +14,10 @@
 #include<opencv2/imgproc/imgproc.hpp>
 #include<opencv2/highgui/highgui.hpp>
 
+#include "typedefine.h"
+
 namespace environment
 {
-    struct PathNode
-    {
-        int x, y;
-        uint8_t r, g, b, a;
-    };
-
-    using Path = std::vector<PathNode>;
-
-    struct Point
-    {
-        float x, y;
-    };
-
-    struct GridPoint
-    {
-        int x, y;
-    };
-
-    struct Pose
-    {
-        float x, y, theta;
-    };
-
-    using Polygon = std::vector<Point>;
-    using GridPolygon = std::vector<GridPoint>;
-    using Grids = std::vector<GridPoint>;
-
-    struct Footprint
-    {
-        Point center;
-        std::vector<Point> footprint;
-    };
-
-    struct Edge
-    {
-        float ymax{}, x{};
-        float inv_k{};
-        std::shared_ptr<Edge> next;
-
-        bool operator()(const std::shared_ptr<Edge> &a, const std::shared_ptr<Edge> &b) const
-        {
-            return a->x > b->x;
-        };
-    };
-
     class EnvironmentInterface
     {
     public:

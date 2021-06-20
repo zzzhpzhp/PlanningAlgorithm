@@ -4,8 +4,8 @@
 bool busy = false;
 bool show_path = true;
 int algorithm_num = 5;
-std::shared_ptr<environment::EnvironmentInterface> env_ptr;
 std::shared_ptr<algorithm::AlgorithmInterface> alg_ptr;
+std::shared_ptr<environment::EnvironmentInterface> env_ptr;
 
 void
 eventCallback(int event, int x, int y, int flags, void *param)
