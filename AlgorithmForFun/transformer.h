@@ -13,7 +13,7 @@ namespace environment
     public:
 
         void
-        getTransform(std::string target_frame, std::string origin_frame, Point& point);
+        getTransform(std::string target_frame, std::string origin_frame, Pose& pose);
 
         void
         getTransform(std::string target_frame, std::string origin_frame, float& x, float& y, float& z,
@@ -25,9 +25,6 @@ namespace environment
         void
         setTransform(std::string parent_frame, std::string child_frame, float x, float y, float z,
                      float qx, float qy, float qz, float qw);
-
-        void
-        getTransform();
 
     private:
 

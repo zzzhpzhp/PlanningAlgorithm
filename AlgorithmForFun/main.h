@@ -11,10 +11,6 @@
 
 #include <boost/unordered_map.hpp>
 
-#include<opencv4/opencv2/core.hpp>
-#include<opencv4/opencv2/imgproc.hpp>
-#include<opencv4/opencv2/highgui.hpp>
-
 #include "environment.h"
 #include "dfs.h"
 #include "bfs.h"

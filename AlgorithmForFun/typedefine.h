@@ -57,8 +57,9 @@ namespace environment
 
     struct Quaternion
     {
-        float x, y, z, w;
+        float x{0.0f}, y{0.0f}, z{0.0f}, w{1.0f};
 
+        Quaternion(){};
         Quaternion(float tx, float ty, float tz, float tw)
         {
             x = tx;
@@ -125,12 +126,16 @@ namespace environment
         }
     };
 
+    struct Displacement
+    {
+        float x, y, z;
+    };
+
+
     struct Transform
     {
-        // 位移
-        float x, y, z;
-        // 旋转
-        float qx, qy, qz, qw;
+        Displacement position;
+        Quaternion rotation;
     };
 }
 #endif //AFF_TYPEDEFINE_H
