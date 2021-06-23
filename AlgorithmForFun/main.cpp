@@ -122,38 +122,10 @@ void switch_algorithm(int index)
 int
 main(int argc, char* argv[])
 {
+//    environment::Vector3 vec(1.1, 2.2, 3.3);
+//    std::cout << vec[0] << " " << vec[1] << " " << vec[2] << " " << vec[3] << std::endl;
     env_ptr = std::make_shared<environment::Environment>();
     env_ptr->initialize(100, 100, 5);
-
-//    environment::GridPoint gp;
-//    environment::GridPolygon gps;
-//    gp.x = 00;
-//    gp.y = 00;
-//    gps.emplace_back(gp);
-//    gp.x = 10;
-//    gp.y = 40;
-//    gps.emplace_back(gp);
-//    gp.x = 80;
-//    gp.y = 80;
-//    gps.emplace_back(gp);
-//    gp.x = 90;
-//    gp.y = 50;
-//    gps.emplace_back(gp);
-//    gp.x = 50;
-//    gp.y = 95;
-//    gps.emplace_back(gp);
-//
-//    env_ptr->drawGridLine(99, 80, 10, 10);
-//    env_ptr->drawGridLine(10, 10, 99, 80);
-//    env_ptr->drawLine(10, 10, 99, 80);
-//    env_ptr->fillGridPolygon(gps);
-//    env_ptr->fillPolygonOutline(gps);
-//    env_ptr->drawPolygon(gps);
-
-//    auto ps = env_ptr->getPolygonPoints(gps);
-//    auto ps = env_ptr->getPolygonOutlinePoints(gps);
-//    env_ptr->fillPoints(ps);
-//    std::cout << "points size: " <<ps.size() <<std::endl;
 
     int selected_algorithm = 0;
     std::cout << "Arguments num: " << argc << std::endl;
