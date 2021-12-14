@@ -215,21 +215,21 @@ namespace environment
             assert(0 <= i && i < 3);
             return m_vectors[i];
         }
-
-        void
-        setRotation(const Quaternion& q)
-        {
-            float d = q.length2();
-            assert(d != float(0.0));
-            float s = float(2.0) / d;
-            float xs = q.x * s,   ys = q.y * s,   zs = q.z * s;
-            float wx = q.w * xs,  wy = q.w * ys,  wz = q.w * zs;
-            float xx = q.x * xs,  xy = q.x * ys,  xz = q.x * zs;
-            float yy = q.y * ys,  yz = q.y * zs,  zz = q.z * zs;
-            setValue(float(1.0) - (yy + zz), xy - wz, xz + wy,
-                     xy + wz, float(1.0) - (xx + zz), yz - wx,
-                     xz - wy, yz + wx, float(1.0) - (xx + yy));
-        }
+//
+//        void
+//        setRotation(const Quaternion& q)
+//        {
+//            float d = q.length2();
+//            assert(d != float(0.0));
+//            float s = float(2.0) / d;
+//            float xs = q.x * s,   ys = q.y * s,   zs = q.z * s;
+//            float wx = q.w * xs,  wy = q.w * ys,  wz = q.w * zs;
+//            float xx = q.x * xs,  xy = q.x * ys,  xz = q.x * zs;
+//            float yy = q.y * ys,  yz = q.y * zs,  zz = q.z * zs;
+//            setValue(float(1.0) - (yy + zz), xy - wz, xz + wy,
+//                     xy + wz, float(1.0) - (xx + zz), yz - wx,
+//                     xz - wy, yz + wx, float(1.0) - (xx + yy));
+//        }
 //        Vector3
 //        operator*()
     };

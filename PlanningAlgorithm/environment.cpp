@@ -114,7 +114,7 @@ namespace environment
 
             std::lock_guard<std::mutex> lg(display_img_mtx_);
             line(display_img_, cv::Point(x1, y1), cv::Point(x2, y2),
-                 cv::Scalar(n1.b, n1.g, n1.r, n1.a),1,  cv::LINE_8, 0);
+                 cv::Scalar(n1.b, n1.g, n1.r, n1.a),1, 8, 0);
         }
     }
 
@@ -269,12 +269,12 @@ namespace environment
 
     std::tuple<int, int> Environment::getStart()
     {
-        return {start_x_, start_y_};
+        return std::tuple<int, int>{start_x_, start_y_};
     }
 
     std::tuple<int, int> Environment::getGoal()
     {
-        return {goal_x_, goal_y_};
+        return std::tuple<int, int>{goal_x_, goal_y_};
     }
 
     void Environment::play(Path &path)
@@ -306,14 +306,14 @@ namespace environment
             y1 = polygon[i].y * rect_size_;
             y2 = polygon[i+1].y * rect_size_;
             line(display_img_, cv::Point(x1, y1), cv::Point(x2, y2),
-                 cv::Scalar(0, 255, 0, 255),1,  cv::LINE_8, 0);
+                 cv::Scalar(0, 255, 0, 255),1,  8, 0);
         }
         x1 = polygon.back().x * rect_size_;
         y1 = polygon.back().y * rect_size_;
         x2 = polygon.front().x * rect_size_;
         y2 = polygon.front().y * rect_size_;
         line(display_img_, cv::Point(x1, y1), cv::Point(x2, y2),
-             cv::Scalar(0, 255, 0, 255),1,  cv::LINE_8, 0);
+             cv::Scalar(0, 255, 0, 255),1,  8, 0);
     }
 
     void Environment::fillGridPolygon(const std::vector<GridPoint> &polygon)
@@ -407,7 +407,7 @@ namespace environment
     {
         line(display_img_, cv::Point(x1 * rect_size_, y1 * rect_size_),
              cv::Point(x2 * rect_size_, y2 * rect_size_),
-             cv::Scalar(0, 255, 0, 255),1,  cv::LINE_8, 0);
+             cv::Scalar(0, 255, 0, 255),1,  8, 0);
     }
 
     void Environment::_bresenham_line(std::function<void(int, int)> action, int x1, int y1, int x2, int y2)

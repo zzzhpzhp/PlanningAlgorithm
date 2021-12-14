@@ -17,6 +17,7 @@
 #include "bcd.h"
 #include "dijkstra.h"
 #include "bcd_with_dijkstra.h"
+#include "bcd_with_footprint.h"
 
 
 #endif //AFF_MAIN_H

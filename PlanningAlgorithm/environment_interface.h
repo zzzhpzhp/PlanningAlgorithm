@@ -10,9 +10,9 @@
 
 #include <boost/bind.hpp>
 
-#include<opencv2/core.hpp>
-#include<opencv2/imgproc.hpp>
-#include<opencv2/highgui.hpp>
+#include<opencv2/core/core.hpp>
+#include<opencv2/imgproc/imgproc.hpp>
+#include<opencv2/highgui/highgui.hpp>
 
 #include "typedefine.h"
 
@@ -21,6 +21,14 @@ namespace environment
     class EnvironmentInterface
     {
     public:
+        /**
+         * @brief 初始化規劃環境
+         * @param length 
+         * @param width 
+         * @param display_scale 
+         * @LastEditors:
+         * @LastEditTime:
+         */
         virtual void
         initialize(int length, int width, int display_scale) = 0;
 
