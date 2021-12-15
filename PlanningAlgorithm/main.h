@@ -1,6 +1,4 @@
-#ifndef AFF_MAIN_H
-#define AFF_MAIN_H
-
+#pragma once
 
 #include <iostream>
 #include <chrono>
@@ -18,6 +16,3 @@
 #include "dijkstra.h"
 #include "bcd_with_dijkstra.h"
 #include "bcd_with_footprint.h"
-
-
-#endif //AFF_MAIN_H

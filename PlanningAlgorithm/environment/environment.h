@@ -1,6 +1,4 @@
-#ifndef AFF_ENVIRONMENT_H
-#define AFF_ENVIRONMENT_H
-
+#pragma once
 #include <iostream>
 #include <chrono>
 #include <thread>
@@ -187,4 +185,3 @@ namespace environment
 
     };
 }
-#endif //AFF_ENVIRONMENT_H

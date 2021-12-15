@@ -1,6 +1,4 @@
-#ifndef AFF_HYBRID_ASTAR_H
-#define AFF_HYBRID_ASTAR_H
-
+#pragma once
 #include <iostream>
 #include <chrono>
 #include <thread>
@@ -80,6 +78,3 @@ namespace algorithm
         getForwardRightPose(double x, double y);
     };
 }
-
-
-#endif //AFF_HYBRID_ASTAR_H

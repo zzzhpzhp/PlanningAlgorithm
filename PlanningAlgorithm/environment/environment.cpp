@@ -25,10 +25,12 @@ namespace environment
             throw std::runtime_error("Should initialize first.");
         }
         std::lock_guard<std::mutex> dlg(display_img_mtx_);
-        imshow("InteractiveWindow", display_img_);
 
         std::lock_guard<std::mutex> plg(planning_grid_mtx_);
         imshow("PlanningGrid", planning_grid_);
+        cvMoveWindow("PlanningGrid", 0, 0);
+        imshow("InteractiveWindow", display_img_);
+        cvMoveWindow("InteractiveWindow", 0, 0);
     }
 
     uint8_t
@@ -195,32 +197,29 @@ namespace environment
 
     void Environment::markObstacle(int x, int y, int obstacle_radius)
     {
-        if (obstacle_radius_ != 8)
+        if (obstacle_radius_ != obstacle_radius)
         {
             GridPoint p{0};
             catched_obstacle_area_.clear();
-            obstacle_radius_ = 8;
+            obstacle_radius_ = obstacle_radius;
             for (int i = -obstacle_radius_+1; i <= obstacle_radius_-1; i++)
             {
                 for (int j = -obstacle_radius_+1; j <= obstacle_radius_-1; j++)
                 {
                     if ((i*i + j*j) <= obstacle_radius_*obstacle_radius_)
                     {
-                        std::cout << i << " " << j << std::endl;
                         p.x = i * rect_size_;
                         p.y = j * rect_size_;
                         catched_obstacle_area_.emplace_back(p);
                     }
                 }
             }
-            std::cout << "size " << catched_obstacle_area_.size() << std::endl;
         }
 
         for (auto p : catched_obstacle_area_)
         {
             p.x += x;
             p.y += y;
-            std::cout << "xy " << p.x << " " << p.y << std::endl;
             if (!setInteractiveGridValue(p.x, p.y, 0, 0, 0))
             {
                 continue;

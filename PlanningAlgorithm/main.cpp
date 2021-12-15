@@ -1,14 +1,22 @@
 #include "main.h"
 
 // 算法执行成功后，是否显示算法给出的路径
-bool busy = false;
 bool show_path = true;
-int cell_with = 5;
-int obstacle_radius = 8;
+// 一个网格的宽度，单位：像素
+int cell_with = 10;
+// 障碍物标记的宽度，以给定坐标为中心
+int obstacle_radius = 5;
+// 当前运行的算法的索引
 int selected_algorithm = 5;
+// 当前运行算法的指针
 std::shared_ptr<algorithm::AlgorithmInterface> alg_ptr;
+// 当前环境的指针
 std::shared_ptr<environment::EnvironmentInterface> env_ptr;
+// 包含所有算法实例指针的容器
 std::vector<std::shared_ptr<algorithm::AlgorithmInterface>> algorithm_ptrs;
+
+// 忙标志
+std::atomic_bool busy{false};
 
 void
 eventCallback(int event, int x, int y, int flags, void *param)
@@ -99,10 +107,8 @@ void switch_algorithm(int index)
 int
 main(int argc, char* argv[])
 {
-//    environment::Vector3 vec(1.1, 2.2, 3.3);
-//    std::cout << vec[0] << " " << vec[1] << " " << vec[2] << " " << vec[3] << std::endl;
     env_ptr = std::make_shared<environment::Environment>();
-    env_ptr->initialize(100, 100, cell_with);
+    env_ptr->initialize(100, 162, cell_with);
 
     algorithm_ptrs.emplace_back(std::make_shared<algorithm::Dfs>(env_ptr, "Dfs"));
     algorithm_ptrs.emplace_back(std::make_shared<algorithm::Bfs>(env_ptr, "Bfs"));

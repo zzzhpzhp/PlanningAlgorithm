@@ -1,6 +1,4 @@
-#ifndef AFF_TRANSFORMER_H
-#define AFF_TRANSFORMER_H
-
+#pragma once
 #include <iostream>
 #include <cmath>
 
@@ -32,4 +30,3 @@ namespace environment
     };
 }
 
-#endif //AFF_TRANSFORMER_H

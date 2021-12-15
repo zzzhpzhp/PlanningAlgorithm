@@ -69,21 +69,18 @@ namespace algorithm
         path_.clear();
         visited_.clear();
         cleaned_.clear();
-
+        in_path_.clear();
 
         if (_position_validation(start_x_, start_y_))
         {
             _mark_cleaned(start_x_, start_y_);
             env_ptr_->setIntGridValByPlanXY(start_x_, start_y_, 100, 100, 100);
-            visited_[start_x_][start_y_] = true;
-            pn.x = start_x_;
-            pn.y = start_y_;
-            path_.emplace_back(pn);
+            in_path_[start_x_][start_y_] = true;
         }
-        else
-        {
-            return false;
-        }
+        visited_[start_x_][start_y_] = true;
+        pn.x = start_x_;
+        pn.y = start_y_;
+        path_.emplace_back(pn);
 
         std::function<void(int, int)> BcdWithFootprint = [&](int x, int y)
         {
@@ -102,7 +99,6 @@ namespace algorithm
                 {
                     continue;
                 }
-//                std::cout << "side xy " << side_x << " " << side_y <<std::endl;
                 visited_[side_x][side_y] = true;
                 if (_position_validation(side_x, side_y))
                 {
@@ -112,8 +108,8 @@ namespace algorithm
                     pn.x = side_x;
                     pn.y = side_y;
                     path_.emplace_back(pn);
+                    in_path_[side_x][side_y] = true;
                     BcdWithFootprint(side_x, side_y);
-//                    std::cout <<"l " <<side_x <<" " <<side_y << std::endl;
                 }
             }
             if (!valid)
@@ -177,7 +173,7 @@ namespace algorithm
                 continue;
             }
             cleaned_[tx][ty] = true;
-            if (!visited_[tx][ty])
+            if (!in_path_[tx][ty])
             {
                 env_ptr_->setIntGridValByPlanXY(tx, ty, 150, 150, 150);
             }

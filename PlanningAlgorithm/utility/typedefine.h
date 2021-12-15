@@ -1,6 +1,4 @@
-#ifndef AFF_TYPEDEFINE_H
-#define AFF_TYPEDEFINE_H
-
+#pragma once
 #include <cmath>
 #include <iostream>
 #include <memory>
@@ -234,4 +232,3 @@ namespace environment
 //        operator*()
     };
 }
-#endif //AFF_TYPEDEFINE_H

@@ -5,9 +5,21 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 FIND_PACKAGE(OpenCV REQUIRED)
 INCLUDE_DIRECTORIES(${OpenCV_INCLUDE_DIRS})
-file(GLOB SRC_FILES *.cpp)
-include_directories(./)
-add_executable(${PROJECT_NAME}
-        ${SRC_FILES})
+
+file(GLOB SRC_FILES
+        ./utility/*.cpp
+        ./algorithms/*.cpp
+        ./environment/*.cpp
+        ./*.cpp
+        )
+include_directories(
+        ./
+        ./utility
+        ./interface
+        ./algorithms
+        ./environment
+)
+
+add_executable(${PROJECT_NAME} ${SRC_FILES})
 
 target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS} -lpthread -lm)

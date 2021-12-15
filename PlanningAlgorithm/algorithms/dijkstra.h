@@ -1,25 +1,23 @@
-#ifndef AFF_BFS_H
-#define AFF_BFS_H
-
-#include <iostream>
-#include <chrono>
-#include <thread>
+#pragma once
 #include <stack>
 #include <deque>
 #include <queue>
+#include <chrono>
+#include <thread>
+#include <iostream>
 #include <unordered_map>
 
 #include <boost/bind.hpp>
 
-#include "environment_interface.h"
 #include "algorithm_interface.h"
+#include "environment_interface.h"
 
 namespace algorithm
 {
-    class Bfs : public AlgorithmInterface
+    class Dijkstra : public AlgorithmInterface
     {
     public:
-        Bfs(environment::EnvironmentInterfacePtr &env, std::string name)
+        Dijkstra(environment::EnvironmentInterfacePtr &env, std::string name)
         {
             initialize(env, std::move(name));
         }
@@ -48,7 +46,22 @@ namespace algorithm
         environment::EnvironmentInterfacePtr env_ptr_;
         std::vector<std::function<bool(environment::EnvironmentInterfacePtr&, int, int, int&, int&)>> side_points_;
         environment::Path path_;
+
+        struct Node
+        {
+            int id;
+            int x, y;
+            int dist = 0;
+            Node *parent_node;
+
+            bool is_obstacle = false;
+            bool in_open_list = false;
+            bool in_close_list = false;
+
+            bool operator()(const Node* a, const Node* n) const
+            {
+                return a->dist > n->dist;
+            };
+        };
     };
 }
-
-#endif //AFF_BFS_H

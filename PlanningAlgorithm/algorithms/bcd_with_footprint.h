@@ -1,26 +1,22 @@
-#ifndef AFF_BCD_H
-#define AFF_BCD_H
+#pragma once
 
 #include <iostream>
 #include <chrono>
 #include <thread>
 #include <stack>
-#include <deque>
-#include <queue>
 #include <unordered_map>
 
 #include <boost/bind.hpp>
-#include <utility>
 
 #include "environment_interface.h"
 #include "algorithm_interface.h"
 
 namespace algorithm
 {
-    class Bcd : public AlgorithmInterface
+    class BcdWithFootprint : public AlgorithmInterface
     {
     public:
-        Bcd(environment::EnvironmentInterfacePtr &env, std::string name)
+        BcdWithFootprint(environment::EnvironmentInterfacePtr &env, std::string name)
         {
             initialize(env, std::move(name));
         }
@@ -43,12 +39,17 @@ namespace algorithm
     private:
         bool initialized_{false};
 
+        int robot_radius_{8};
         int start_x_{0}, start_y_{0};
         int goal_x_{0}, goal_y_{0};
 
         environment::EnvironmentInterfacePtr env_ptr_;
+        std::vector<std::function<bool(environment::EnvironmentInterfacePtr&, int, int, int&, int&)>> side_points_;
         environment::Path path_;
+
+        std::unordered_map<int, std::unordered_map<int, bool>> visited_, cleaned_, in_path_;
+
+        bool _position_validation(int x, int y);
+        void _mark_cleaned(int x, int y);
     };
 }
-
-#endif //AFF_BCD_H
