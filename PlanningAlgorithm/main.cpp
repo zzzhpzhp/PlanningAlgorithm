@@ -3,9 +3,12 @@
 // 算法执行成功后，是否显示算法给出的路径
 bool busy = false;
 bool show_path = true;
-int algorithm_num = 6;
+int cell_with = 5;
+int obstacle_radius = 8;
+int selected_algorithm = 5;
 std::shared_ptr<algorithm::AlgorithmInterface> alg_ptr;
 std::shared_ptr<environment::EnvironmentInterface> env_ptr;
+std::vector<std::shared_ptr<algorithm::AlgorithmInterface>> algorithm_ptrs;
 
 void
 eventCallback(int event, int x, int y, int flags, void *param)
@@ -41,7 +44,7 @@ eventCallback(int event, int x, int y, int flags, void *param)
         {
             return;
         }
-        env_ptr->markObstacle(x, y);
+        env_ptr->markObstacle(x, y, obstacle_radius);
     }
 }
 
@@ -83,46 +86,14 @@ void play()
 
 void switch_algorithm(int index)
 {
-    if (index == 0)
+    if (index >= algorithm_ptrs.size())
     {
-        std::cout << "Selected algorithm is DFS." << std::endl;
-        alg_ptr = std::make_shared<algorithm::Dfs>();
-        alg_ptr->initialize(env_ptr);
+        std::cerr << "Algorithm index \"" << index << "\" dose not exist." << std::endl;
+        return;
     }
-    else if (index == 1)
-    {
-        std::cout << "Selected algorithm is BFS." << std::endl;
-        alg_ptr = std::make_shared<algorithm::Bfs>();
-        alg_ptr->initialize(env_ptr);
-    }
-    else if (index == 2)
-    {
-        std::cout << "Selected algorithm is BCD." << std::endl;
-        alg_ptr = std::make_shared<algorithm::Bcd>();
-        alg_ptr->initialize(env_ptr);
-    }
-    else if (index == 3)
-    {
-        std::cout << "Selected algorithm is Dijkstra." << std::endl;
-        alg_ptr = std::make_shared<algorithm::Dijkstra>();
-        alg_ptr->initialize(env_ptr);
-    }
-    else if (index == 4)
-    {
-        std::cout << "Selected algorithm is BcdWidthDijkstra." << std::endl;
-        alg_ptr = std::make_shared<algorithm::BcdWidthDijkstra>();
-        alg_ptr->initialize(env_ptr);
-    }
-    else if (index == 5)
-    {
-        std::cout << "Selected algorithm is BcdWithFootprint." << std::endl;
-        alg_ptr = std::make_shared<algorithm::BcdWithFootprint>();
-        alg_ptr->initialize(env_ptr);
-    }
-    else
-    {
-        std::cerr << "The first argument is " << index << ", have no corresponding algorithm." << std::endl;
-    }
+
+    alg_ptr = algorithm_ptrs[index];
+    std::cout << "Selected algorithm is " << alg_ptr->getName() << std::endl;
 }
 
 int
@@ -131,9 +102,15 @@ main(int argc, char* argv[])
 //    environment::Vector3 vec(1.1, 2.2, 3.3);
 //    std::cout << vec[0] << " " << vec[1] << " " << vec[2] << " " << vec[3] << std::endl;
     env_ptr = std::make_shared<environment::Environment>();
-    env_ptr->initialize(100, 100, 5);
+    env_ptr->initialize(100, 100, cell_with);
 
-    int selected_algorithm = 0;
+    algorithm_ptrs.emplace_back(std::make_shared<algorithm::Dfs>(env_ptr, "Dfs"));
+    algorithm_ptrs.emplace_back(std::make_shared<algorithm::Bfs>(env_ptr, "Bfs"));
+    algorithm_ptrs.emplace_back(std::make_shared<algorithm::Bcd>(env_ptr, "Bcd"));
+    algorithm_ptrs.emplace_back(std::make_shared<algorithm::Dijkstra>(env_ptr, "Dijkstra"));
+    algorithm_ptrs.emplace_back(std::make_shared<algorithm::BcdWidthDijkstra>(env_ptr, "BcdWidthDijkstra"));
+    algorithm_ptrs.emplace_back(std::make_shared<algorithm::BcdWithFootprint>(env_ptr, "BcdWithFootprint"));
+
     std::cout << "Arguments num: " << argc << std::endl;
     if (argc > 1)
     {
@@ -184,7 +161,7 @@ main(int argc, char* argv[])
         else if (key == 'a' || key == 'A')
         {
             // 按下a鍵，切換算法
-            selected_algorithm = ++selected_algorithm % algorithm_num;
+            selected_algorithm = ++selected_algorithm % algorithm_ptrs.size();
             switch_algorithm(selected_algorithm);
             auto start = env_ptr->getStart();
             auto goal = env_ptr->getGoal();

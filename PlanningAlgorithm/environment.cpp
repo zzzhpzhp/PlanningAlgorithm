@@ -193,17 +193,44 @@ namespace environment
         have_goal_ = true;
     }
 
-    void Environment::markObstacle(int x, int y)
+    void Environment::markObstacle(int x, int y, int obstacle_radius)
     {
-        if (!setInteractiveGridValue(x, y, 0, 0, 0))
+        if (obstacle_radius_ != 8)
         {
-            return;
+            GridPoint p{0};
+            catched_obstacle_area_.clear();
+            obstacle_radius_ = 8;
+            for (int i = -obstacle_radius_+1; i <= obstacle_radius_-1; i++)
+            {
+                for (int j = -obstacle_radius_+1; j <= obstacle_radius_-1; j++)
+                {
+                    if ((i*i + j*j) <= obstacle_radius_*obstacle_radius_)
+                    {
+                        std::cout << i << " " << j << std::endl;
+                        p.x = i * rect_size_;
+                        p.y = j * rect_size_;
+                        catched_obstacle_area_.emplace_back(p);
+                    }
+                }
+            }
+            std::cout << "size " << catched_obstacle_area_.size() << std::endl;
         }
-        if (!setGridValueFromDisp(x, y, 0))
+
+        for (auto p : catched_obstacle_area_)
         {
-            return;
+            p.x += x;
+            p.y += y;
+            std::cout << "xy " << p.x << " " << p.y << std::endl;
+            if (!setInteractiveGridValue(p.x, p.y, 0, 0, 0))
+            {
+                continue;
+            }
+            if (!setGridValueFromDisp(p.x, p.y, 0))
+            {
+                continue;
+            }
+            obstacles_.insert(std::make_tuple(p.x, p.y));
         }
-        obstacles_.insert(std::make_tuple(x, y));
     }
 
     void Environment::showStartGoalPose()
@@ -285,7 +312,7 @@ namespace environment
             nx = n.x * rect_size_;
             ny = n.y * rect_size_;
             setInteractiveGridValue(nx, ny, n.r, n.g, n.b, 100);
-            std::this_thread::sleep_for(std::chrono::milliseconds(50));
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
         }
     }
 

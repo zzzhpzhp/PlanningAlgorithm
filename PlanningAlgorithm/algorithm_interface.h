@@ -9,7 +9,13 @@ namespace algorithm
     {
     public:
         virtual void
-        initialize(environment::EnvironmentInterfacePtr &env) = 0;
+        initialize(environment::EnvironmentInterfacePtr &env, std::string name) = 0;
+
+        virtual std::string
+        getName()
+        {
+            return name_;
+        }
 
         virtual void
         setGoal(int x, int y) = 0;
@@ -26,10 +32,10 @@ namespace algorithm
     protected:
 
         inline bool
-        _get_middle_higher(environment::EnvironmentInterfacePtr &ep, int x, int y, int &sx, int &sy)
+        _get_middle_higher(environment::EnvironmentInterfacePtr &ep, int x, int y, int &sx, int &sy, int step_size = 1)
         {
             sx = x;
-            sy = y - 1;
+            sy = y - step_size;
             if (ep->insideGrid(sx, sy))
             {
                 return true;
@@ -38,10 +44,10 @@ namespace algorithm
         }
 
         inline bool
-        _get_middle_lower(environment::EnvironmentInterfacePtr &ep, int x, int y, int &sx, int &sy)
+        _get_middle_lower(environment::EnvironmentInterfacePtr &ep, int x, int y, int &sx, int &sy, int step_size = 1)
         {
             sx = x;
-            sy = y + 1;
+            sy = y + step_size;
             if (ep->insideGrid(sx, sy))
             {
                 return true;
@@ -50,9 +56,9 @@ namespace algorithm
         }
 
         inline bool
-        _get_left(environment::EnvironmentInterfacePtr &ep, int x, int y, int &sx, int &sy)
+        _get_left(environment::EnvironmentInterfacePtr &ep, int x, int y, int &sx, int &sy, int step_size = 1)
         {
-            sx = x - 1;
+            sx = x - step_size;
             sy = y;
             if (ep->insideGrid(sx, sy))
             {
@@ -62,9 +68,9 @@ namespace algorithm
         }
 
         inline bool
-        _get_right(environment::EnvironmentInterfacePtr &ep, int x, int y, int &sx, int &sy)
+        _get_right(environment::EnvironmentInterfacePtr &ep, int x, int y, int &sx, int &sy, int step_size = 1)
         {
-            sx = x + 1;
+            sx = x + step_size;
             sy = y;
             if (ep->insideGrid(sx, sy))
             {
@@ -74,10 +80,10 @@ namespace algorithm
         }
 
         inline bool
-        _get_higher_left(environment::EnvironmentInterfacePtr &ep, int x, int y, int &sx, int &sy)
+        _get_higher_left(environment::EnvironmentInterfacePtr &ep, int x, int y, int &sx, int &sy, int step_size = 1)
         {
-            sx = x - 1;
-            sy = y - 1;
+            sx = x - step_size;
+            sy = y - step_size;
             if (ep->insideGrid(sx, sy))
             {
                 return true;
@@ -86,10 +92,10 @@ namespace algorithm
         }
 
         inline bool
-        _get_higher_right(environment::EnvironmentInterfacePtr &ep, int x, int y, int &sx, int &sy)
+        _get_higher_right(environment::EnvironmentInterfacePtr &ep, int x, int y, int &sx, int &sy, int step_size = 1)
         {
-            sx = x + 1;
-            sy = y - 1;
+            sx = x + step_size;
+            sy = y - step_size;
             if (ep->insideGrid(sx, sy))
             {
                 return true;
@@ -98,10 +104,10 @@ namespace algorithm
         }
 
         inline bool
-        _get_lower_left(environment::EnvironmentInterfacePtr &ep, int x, int y, int &sx, int &sy)
+        _get_lower_left(environment::EnvironmentInterfacePtr &ep, int x, int y, int &sx, int &sy, int step_size = 1)
         {
-            sx = x - 1;
-            sy = y + 1;
+            sx = x - step_size;
+            sy = y + step_size;
             if (ep->insideGrid(sx, sy))
             {
                 return true;
@@ -110,16 +116,19 @@ namespace algorithm
         }
 
         inline bool
-        _get_lower_right(environment::EnvironmentInterfacePtr &ep, int x, int y, int &sx, int &sy)
+        _get_lower_right(environment::EnvironmentInterfacePtr &ep, int x, int y, int &sx, int &sy, int step_size = 1)
         {
-            sx = x + 1;
-            sy = y + 1;
+            sx = x + step_size;
+            sy = y + step_size;
             if (ep->insideGrid(sx, sy))
             {
                 return true;
             }
             return false;
         }
+
+    protected:
+        std::string name_{};
     };
 }
 

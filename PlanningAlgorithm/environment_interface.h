@@ -15,20 +15,12 @@
 #include<opencv2/highgui/highgui.hpp>
 
 #include "typedefine.h"
-
+#define FL_PRINT {std::cout << __FUNCTION__ << " " << __LINE__ << std::endl;};
 namespace environment
 {
     class EnvironmentInterface
     {
     public:
-        /**
-         * @brief 初始化規劃環境
-         * @param length 
-         * @param width 
-         * @param display_scale 
-         * @LastEditors:
-         * @LastEditTime:
-         */
         virtual void
         initialize(int length, int width, int display_scale) = 0;
 
@@ -44,6 +36,9 @@ namespace environment
         virtual bool
         setGridValue(int x, int y, uint8_t value) = 0;
 
+        /**
+         * @brief 交互界面中设置一个网格的颜色
+         * */
         virtual bool
         setInteractiveGridValue(int x, int y, uint8_t r = 0, uint8_t g = 0, uint8_t b = 0, uint8_t a = 0) = 0;
 
@@ -90,7 +85,7 @@ namespace environment
         markGoal(int x, int y, int r = 0, int g = 0, int b = 0) = 0;
 
         virtual void
-        markObstacle(int x, int y) = 0;
+        markObstacle(int x, int y, int obstacle_radius = 1) = 0;
 
         virtual void
         showStartGoalPose() = 0;

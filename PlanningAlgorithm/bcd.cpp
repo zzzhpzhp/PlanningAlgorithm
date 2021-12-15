@@ -2,9 +2,10 @@
 
 namespace algorithm
 {
-    void Bcd::initialize(environment::EnvironmentInterfacePtr &env)
+    void Bcd::initialize(environment::EnvironmentInterfacePtr &env, std::string name)
     {
         env_ptr_ = env;
+        name_ = name;
 
         initialized_ = true;
     }

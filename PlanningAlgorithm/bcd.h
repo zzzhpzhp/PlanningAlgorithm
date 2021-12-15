@@ -10,6 +10,7 @@
 #include <unordered_map>
 
 #include <boost/bind.hpp>
+#include <utility>
 
 #include "environment_interface.h"
 #include "algorithm_interface.h"
@@ -19,8 +20,13 @@ namespace algorithm
     class Bcd : public AlgorithmInterface
     {
     public:
+        Bcd(environment::EnvironmentInterfacePtr &env, std::string name)
+        {
+            initialize(env, std::move(name));
+        }
+
         void
-        initialize(environment::EnvironmentInterfacePtr &env) override;
+        initialize(environment::EnvironmentInterfacePtr &env, std::string name={}) override;
 
         void
         setGoal(int x, int y) override;

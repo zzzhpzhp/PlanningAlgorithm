@@ -17,8 +17,13 @@ namespace algorithm
     class Dfs : public AlgorithmInterface
     {
     public:
+        Dfs(environment::EnvironmentInterfacePtr &env, std::string name)
+        {
+            initialize(env, std::move(name));
+        }
+
         void
-        initialize(environment::EnvironmentInterfacePtr &env) override;
+        initialize(environment::EnvironmentInterfacePtr &env, std::string name={}) override;
 
         void
         setGoal(int x, int y) override;

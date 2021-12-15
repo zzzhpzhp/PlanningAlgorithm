@@ -82,7 +82,7 @@ namespace environment
         markGoal(int x, int y, int r, int g, int b) override;
 
         void
-        markObstacle(int x, int y) override;
+        markObstacle(int x, int y, int obstacle_radius = 1) override;
 
         void
         showStartGoalPose() override;
@@ -155,8 +155,10 @@ namespace environment
             return a->x < b->x;
         };
         int y_min_, y_max_;
+        int obstacle_radius_{0};
         std::shared_ptr<Edge> ael_;
         std::vector<std::shared_ptr<Edge>> x_sorted_;
+        std::vector<GridPoint> catched_obstacle_area_;
         std::unordered_map<int, std::shared_ptr<Edge>> et_;
 
         void
