@@ -5,7 +5,7 @@ int window_width = 162;
 // 交互窗口高度（网格）
 int window_height = 100;
 // 一个网格的宽度，单位：像素
-int cell_with = 10;
+int cell_with = 5;
 // 算法步骤执行延时（秒）
 float running_delay_time = 0.0001;
 // 算法执行结果演示时的步骤延时（秒）
@@ -17,7 +17,7 @@ int obstacle_radius = 3;
 // 机器人半径
 int robot_radius = 5;
 // 当前运行的算法的索引
-int selected_algorithm = 5;
+int selected_algorithm = 4;
 // 当前运行算法的指针
 std::shared_ptr<algorithm::AlgorithmInterface> alg_ptr;
 // 当前环境的指针
@@ -131,6 +131,7 @@ main(int argc, char* argv[])
     algorithms_ptr.emplace_back(std::make_shared<algorithm::Bfs>(env_ptr, "Bfs"));
     algorithms_ptr.emplace_back(std::make_shared<algorithm::Bcd>(env_ptr, "Bcd"));
     algorithms_ptr.emplace_back(std::make_shared<algorithm::Dijkstra>(env_ptr, "Dijkstra"));
+    algorithms_ptr.emplace_back(std::make_shared<algorithm::Astar>(env_ptr, "Astar"));
     algorithms_ptr.emplace_back(std::make_shared<algorithm::BcdWidthDijkstra>(env_ptr, "BcdWidthDijkstra"));
     algorithms_ptr.emplace_back(std::make_shared<algorithm::BcdWithFootprint>(env_ptr, "BcdWithFootprint"));
 

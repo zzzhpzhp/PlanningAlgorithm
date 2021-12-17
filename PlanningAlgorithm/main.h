@@ -14,5 +14,6 @@
 #include "bfs.h"
 #include "bcd.h"
 #include "dijkstra.h"
+#include "astar.h"
 #include "bcd_with_dijkstra.h"
 #include "bcd_with_footprint.h"

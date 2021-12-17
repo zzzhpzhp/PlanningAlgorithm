@@ -1,5 +1,4 @@
-#ifndef DFS_ENVIRONMENT_INTERFACE_H
-#define DFS_ENVIRONMENT_INTERFACE_H
+#pragma once
 
 #include <iostream>
 #include <chrono>
@@ -171,4 +170,3 @@ namespace environment
 
     using EnvironmentInterfacePtr = std::shared_ptr<EnvironmentInterface>;
 }
-#endif //DFS_ENVIRONMENT_INTERFACE_H

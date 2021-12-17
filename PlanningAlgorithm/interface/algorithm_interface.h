@@ -1,6 +1,4 @@
-#ifndef DFS_ALGORITHM_INTERFACE_H
-#define DFS_ALGORITHM_INTERFACE_H
-
+#pragma once
 #include "environment_interface.h"
 
 namespace algorithm
@@ -131,5 +129,3 @@ namespace algorithm
         std::string name_{};
     };
 }
-
-#endif //AFF_ALGORITHMINTERFACE_H
