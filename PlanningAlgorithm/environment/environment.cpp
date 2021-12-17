@@ -311,7 +311,7 @@ namespace environment
             nx = n.x * rect_size_;
             ny = n.y * rect_size_;
             setInteractiveGridValue(nx, ny, n.r, n.g, n.b, 100);
-            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            std::this_thread::sleep_for(std::chrono::microseconds((int)(getDisplayDelayTime() * 1e6)));
         }
     }
 

@@ -88,7 +88,7 @@ namespace algorithm
         {
             while (!node_stack.empty())
             {
-                std::this_thread::sleep_for(std::chrono::microseconds(200));
+                std::this_thread::sleep_for(std::chrono::microseconds((int)(env_ptr_->getAlgorithmRunningDelayTime() * 1e6)));
                 cur_ = node_stack.top();
                 node_stack.pop();
                 cur_->in_close_list = true;

@@ -49,7 +49,7 @@ namespace algorithm
 
         std::unordered_map<int, std::unordered_map<int, bool>> visited_, cleaned_, in_path_;
 
-        bool _position_validation(int x, int y);
-        void _mark_cleaned(int x, int y);
+        bool _position_validation(int x, int y, int &limiting_index_l, int &limiting_index_h);
+        void _mark_cleaned(int x, int y, int limiting_l, int limiting_h);
     };
 }

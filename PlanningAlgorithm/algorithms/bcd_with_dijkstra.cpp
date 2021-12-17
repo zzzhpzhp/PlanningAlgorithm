@@ -205,7 +205,7 @@ namespace algorithm
 
         while (!nodes_queue.empty())
         {
-            std::this_thread::sleep_for(std::chrono::microseconds(200));
+            std::this_thread::sleep_for(std::chrono::microseconds((int)(env_ptr_->getAlgorithmRunningDelayTime() * 1e6)));
             cur_ = nodes_queue.top();
             nodes_queue.pop();
             cur_->in_close_list = true;

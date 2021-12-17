@@ -36,6 +36,42 @@ namespace environment
         virtual bool
         setGridValue(int x, int y, uint8_t value) = 0;
 
+        virtual int
+        getRobotRadius()
+        {
+            return robot_radius_;
+        }
+
+        virtual void
+        setRobotRadius(int robot_radius)
+        {
+            robot_radius_ = robot_radius;
+        }
+
+        virtual void
+        setAlgorithmRunningDelayTime(float second)
+        {
+            delay_time_ = second;
+        }
+
+        virtual void
+        setDisplayDelayTime(float second)
+        {
+            display_delay_time_ = second;
+        }
+
+        virtual float
+        getDisplayDelayTime()
+        {
+            return display_delay_time_;
+        }
+
+        virtual double
+        getAlgorithmRunningDelayTime()
+        {
+            return delay_time_;
+        }
+
         /**
          * @brief 交互界面中设置一个网格的颜色
          * */
@@ -125,6 +161,12 @@ namespace environment
 
         virtual void
         fillPoints(const Grids& points) = 0;
+
+    protected:
+
+        int robot_radius_{5};
+        float delay_time_{0.001};
+        float display_delay_time_{0.001};
     };
 
     using EnvironmentInterfacePtr = std::shared_ptr<EnvironmentInterface>;

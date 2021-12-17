@@ -1,11 +1,21 @@
 #include "main.h"
 
-// 算法执行成功后，是否显示算法给出的路径
-bool show_path = true;
+// 交互窗口宽度（网格）
+int window_width = 162;
+// 交互窗口高度（网格）
+int window_height = 100;
 // 一个网格的宽度，单位：像素
 int cell_with = 10;
+// 算法步骤执行延时（秒）
+float running_delay_time = 0.0001;
+// 算法执行结果演示时的步骤延时（秒）
+float display_delay_time = 0.01;
+// 算法执行成功后，是否显示算法给出的路径
+bool show_path = true;
 // 障碍物标记的宽度，以给定坐标为中心
-int obstacle_radius = 5;
+int obstacle_radius = 3;
+// 机器人半径
+int robot_radius = 5;
 // 当前运行的算法的索引
 int selected_algorithm = 5;
 // 当前运行算法的指针
@@ -13,11 +23,12 @@ std::shared_ptr<algorithm::AlgorithmInterface> alg_ptr;
 // 当前环境的指针
 std::shared_ptr<environment::EnvironmentInterface> env_ptr;
 // 包含所有算法实例指针的容器
-std::vector<std::shared_ptr<algorithm::AlgorithmInterface>> algorithm_ptrs;
+std::vector<std::shared_ptr<algorithm::AlgorithmInterface>> algorithms_ptr;
 
 // 忙标志
 std::atomic_bool busy{false};
 
+// 鼠标事件回调
 void
 eventCallback(int event, int x, int y, int flags, void *param)
 {
@@ -56,6 +67,7 @@ eventCallback(int event, int x, int y, int flags, void *param)
     }
 }
 
+// 算法执行线程
 void
 invoke()
 {
@@ -84,6 +96,7 @@ invoke()
     busy = false;
 }
 
+// 算法执行结果演示线程
 void play()
 {
     busy = true;
@@ -92,15 +105,16 @@ void play()
     busy = false;
 }
 
+// 算法切换函数
 void switch_algorithm(int index)
 {
-    if (index >= algorithm_ptrs.size())
+    if (index >= algorithms_ptr.size())
     {
         std::cerr << "Algorithm index \"" << index << "\" dose not exist." << std::endl;
         return;
     }
 
-    alg_ptr = algorithm_ptrs[index];
+    alg_ptr = algorithms_ptr[index];
     std::cout << "Selected algorithm is " << alg_ptr->getName() << std::endl;
 }
 
@@ -108,16 +122,25 @@ int
 main(int argc, char* argv[])
 {
     env_ptr = std::make_shared<environment::Environment>();
-    env_ptr->initialize(100, 162, cell_with);
+    env_ptr->initialize(window_height, window_width, cell_with);
+    env_ptr->setRobotRadius(robot_radius);
+    env_ptr->setAlgorithmRunningDelayTime(running_delay_time);
+    env_ptr->setDisplayDelayTime(display_delay_time);
 
-    algorithm_ptrs.emplace_back(std::make_shared<algorithm::Dfs>(env_ptr, "Dfs"));
-    algorithm_ptrs.emplace_back(std::make_shared<algorithm::Bfs>(env_ptr, "Bfs"));
-    algorithm_ptrs.emplace_back(std::make_shared<algorithm::Bcd>(env_ptr, "Bcd"));
-    algorithm_ptrs.emplace_back(std::make_shared<algorithm::Dijkstra>(env_ptr, "Dijkstra"));
-    algorithm_ptrs.emplace_back(std::make_shared<algorithm::BcdWidthDijkstra>(env_ptr, "BcdWidthDijkstra"));
-    algorithm_ptrs.emplace_back(std::make_shared<algorithm::BcdWithFootprint>(env_ptr, "BcdWithFootprint"));
+    algorithms_ptr.emplace_back(std::make_shared<algorithm::Dfs>(env_ptr, "Dfs"));
+    algorithms_ptr.emplace_back(std::make_shared<algorithm::Bfs>(env_ptr, "Bfs"));
+    algorithms_ptr.emplace_back(std::make_shared<algorithm::Bcd>(env_ptr, "Bcd"));
+    algorithms_ptr.emplace_back(std::make_shared<algorithm::Dijkstra>(env_ptr, "Dijkstra"));
+    algorithms_ptr.emplace_back(std::make_shared<algorithm::BcdWidthDijkstra>(env_ptr, "BcdWidthDijkstra"));
+    algorithms_ptr.emplace_back(std::make_shared<algorithm::BcdWithFootprint>(env_ptr, "BcdWithFootprint"));
 
-    std::cout << "Arguments num: " << argc << std::endl;
+    std::cout << "Obstacle radius: " << obstacle_radius << " " << "robot radius: " << robot_radius << std::endl;
+    std::cout << "Algorithms number: " << algorithms_ptr.size() << std::endl;
+    for (const auto &a : algorithms_ptr)
+    {
+        std::cout << a->getName() << std::endl;
+    }
+    std::cout << "Arguments number: " << argc << std::endl;
     if (argc > 1)
     {
         selected_algorithm = std::stoi(argv[1]);
@@ -167,7 +190,7 @@ main(int argc, char* argv[])
         else if (key == 'a' || key == 'A')
         {
             // 按下a鍵，切換算法
-            selected_algorithm = ++selected_algorithm % algorithm_ptrs.size();
+            selected_algorithm = ++selected_algorithm % algorithms_ptr.size();
             switch_algorithm(selected_algorithm);
             auto start = env_ptr->getStart();
             auto goal = env_ptr->getGoal();
@@ -176,6 +199,7 @@ main(int argc, char* argv[])
         }
         else if (key == 'p' || key == 'P')
         {
+            // 启动算法结果演示
             std::cout << "Playing..." << std::endl;
             future_working = std::async(std::launch::async, play);
         }

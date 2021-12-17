@@ -6,16 +6,11 @@ namespace algorithm
     {
         env_ptr_ = env;
         name_ = name;
-
+        robot_radius_ = env_ptr_->getRobotRadius();
         side_points_.emplace_back(boost::bind(&BcdWithFootprint::_get_right, this, _1, _2, _3, _4, _5, 1));
         side_points_.emplace_back(boost::bind(&BcdWithFootprint::_get_left, this, _1, _2, _3, _4, _5, 1));
         side_points_.emplace_back(boost::bind(&BcdWithFootprint::_get_middle_higher, this, _1, _2, _3, _4, _5, robot_radius_));
         side_points_.emplace_back(boost::bind(&BcdWithFootprint::_get_middle_lower, this, _1, _2, _3, _4, _5, robot_radius_));
-
-//        side_points_.emplace_back(boost::bind(&BcdWithFootprint::_get_higher_right, this, _1, _2, _3, _4, _5, 1));
-//        side_points_.emplace_back(boost::bind(&BcdWithFootprint::_get_higher_left, this, _1, _2, _3, _4, _5, 1));
-//        side_points_.emplace_back(boost::bind(&BcdWithFootprint::_get_lower_left, this, _1, _2, _3, _4, _5, 1));
-//        side_points_.emplace_back(boost::bind(&BcdWithFootprint::_get_lower_right, this, _1, _2, _3, _4, _5, 1));
 
         initialized_ = true;
     }
@@ -64,6 +59,7 @@ namespace algorithm
 
         std::stack<std::pair<int,int>> node_stack;
         environment::PathNode pn{};
+        int limiting_index_l{0}, limiting_index_h{0};
         pn.g = 255;
         pn.a = 255;
         path_.clear();
@@ -71,9 +67,9 @@ namespace algorithm
         cleaned_.clear();
         in_path_.clear();
 
-        if (_position_validation(start_x_, start_y_))
+        if (_position_validation(start_x_, start_y_, limiting_index_l, limiting_index_h))
         {
-            _mark_cleaned(start_x_, start_y_);
+            _mark_cleaned(start_x_, start_y_, limiting_index_l, limiting_index_h);
             env_ptr_->setIntGridValByPlanXY(start_x_, start_y_, 100, 100, 100);
             in_path_[start_x_][start_y_] = true;
         }
@@ -84,7 +80,7 @@ namespace algorithm
 
         std::function<void(int, int)> BcdWithFootprint = [&](int x, int y)
         {
-            std::this_thread::sleep_for(std::chrono::microseconds(1000));
+            std::this_thread::sleep_for(std::chrono::microseconds((int)(env_ptr_->getAlgorithmRunningDelayTime() * 1e6)));
             int side_x, side_y;
             uint8_t side_val;
             bool valid = false;
@@ -100,10 +96,10 @@ namespace algorithm
                     continue;
                 }
                 visited_[side_x][side_y] = true;
-                if (_position_validation(side_x, side_y))
+                if (_position_validation(side_x, side_y, limiting_index_l, limiting_index_h))
                 {
                     valid = true;
-                    _mark_cleaned(side_x, side_y);
+                    _mark_cleaned(side_x, side_y, limiting_index_l, limiting_index_h);
                     env_ptr_->setIntGridValByPlanXY(side_x, side_y, 100, 100, 100);
                     pn.x = side_x;
                     pn.y = side_y;
@@ -128,43 +124,51 @@ namespace algorithm
         return path_;
     }
 
-    bool BcdWithFootprint::_position_validation(int x, int y)
+    bool BcdWithFootprint::_position_validation(int x, int y, int &limiting_index_l, int &limiting_index_h)
     {
-        int dir = -robot_radius_, start = 0;
-
-        int h = std::max(start, dir);
-        int l = std::min(start, dir);
-
-        for (int i = l; i < h; i++)
+        limiting_index_l = limiting_index_h = 0;
+        bool res{false};
+        for (int i = 0; i > -robot_radius_; i--)
         {
             auto tx = x;
             auto ty = i + y;
             if (!env_ptr_->insideGrid(tx, ty))
             {
-                continue;
+                break;
             }
 
-            if (cleaned_[tx][ty])
+            auto val = env_ptr_->getGridValue(tx, ty);
+            if (cleaned_[tx][ty] || val == 0)
             {
-                return false;
+                break;
             }
+            res = true;
+            limiting_index_l = i;
+        }
+
+        // 以下部分的判断仅仅是为了得到另一边的覆盖情况，以便完善显示信息，不影响此点的可通行判断
+        for (int i = 1; i < robot_radius_; i++)
+        {
+            auto tx = x;
+            auto ty = i + y;
+            if (!env_ptr_->insideGrid(tx, ty))
+            {
+                break;
+            }
+
             auto val = env_ptr_->getGridValue(tx, ty);
             if (val == 0)
             {
-                return false;
+                break;
             }
+            limiting_index_h = i;
         }
-        return true;
+        return res;
     }
 
-    void BcdWithFootprint::_mark_cleaned(int x, int y)
+    void BcdWithFootprint::_mark_cleaned(int x, int y, int limiting_l, int limiting_h)
     {
-        int dir = -robot_radius_, start = 0;
-
-        int h = std::max(start, dir);
-        int l = std::min(start, dir);
-
-        for (int i = l; i < h; i++)
+        for (int i = limiting_l; i <= 0; i++)
         {
             auto tx = x;
             auto ty = i + y;
@@ -173,6 +177,20 @@ namespace algorithm
                 continue;
             }
             cleaned_[tx][ty] = true;
+            if (!in_path_[tx][ty])
+            {
+                env_ptr_->setIntGridValByPlanXY(tx, ty, 150, 150, 150);
+            }
+        }
+
+        for (int i = 1; i <= limiting_h; i++)
+        {
+            auto tx = x;
+            auto ty = i + y;
+            if (!env_ptr_->insideGrid(tx, ty))
+            {
+                continue;
+            }
             if (!in_path_[tx][ty])
             {
                 env_ptr_->setIntGridValByPlanXY(tx, ty, 150, 150, 150);
