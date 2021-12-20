@@ -19,7 +19,6 @@ namespace algorithm
 //        side_points_.emplace_back(boost::bind(&BcdWidthDijkstra::_get_lower_left, this, _1, _2, _3, _4, _5, 1));
 //        side_points_.emplace_back(boost::bind(&BcdWidthDijkstra::_get_lower_right, this, _1, _2, _3, _4, _5, 1));
 
-
         initialized_ = true;
     }
 
@@ -109,7 +108,7 @@ namespace algorithm
         {
             int sx, sy;
 
-            while (true)
+            while (is_running_.load())
             {
                 std::this_thread::sleep_for(std::chrono::microseconds(500));
                 // 標記已訪問區域
@@ -203,7 +202,7 @@ namespace algorithm
         uint8_t side_val;
         Node *side;
 
-        while (!nodes_queue.empty())
+        while (!nodes_queue.empty() && is_running_.load())
         {
             std::this_thread::sleep_for(std::chrono::microseconds((int)(env_ptr_->getAlgorithmRunningDelayTime() * 1e6)));
             cur_ = nodes_queue.top();

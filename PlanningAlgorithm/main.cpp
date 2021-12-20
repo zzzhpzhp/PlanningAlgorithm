@@ -5,7 +5,7 @@ int window_width = 162;
 // 交互窗口高度（网格）
 int window_height = 100;
 // 一个网格的宽度，单位：像素
-int cell_with = 5;
+int width = 5;
 // 算法步骤执行延时（秒）
 float running_delay_time = 0.0001;
 // 算法执行结果演示时的步骤延时（秒）
@@ -17,7 +17,7 @@ int obstacle_radius = 3;
 // 机器人半径
 int robot_radius = 5;
 // 当前运行的算法的索引
-int selected_algorithm = 4;
+int selected_algorithm = 3;
 // 当前运行算法的指针
 std::shared_ptr<algorithm::AlgorithmInterface> alg_ptr;
 // 当前环境的指针
@@ -118,11 +118,21 @@ void switch_algorithm(int index)
     std::cout << "Selected algorithm is " << alg_ptr->getName() << std::endl;
 }
 
+void print_info()
+{
+    std::cout << "搜索算法演示程序" << std::endl;
+    std::cout << "按键A： 切换算法" << std::endl;
+    std::cout << "按键S： 启动算法运行" << std::endl;
+    std::cout << "按键T： 结束算法运行" << std::endl;
+    std::cout << "按键P： 演示算法运行结果" << std::endl;
+}
+
 int
 main(int argc, char* argv[])
 {
+    print_info();
     env_ptr = std::make_shared<environment::Environment>();
-    env_ptr->initialize(window_height, window_width, cell_with);
+    env_ptr->initialize(window_height, window_width, width);
     env_ptr->setRobotRadius(robot_radius);
     env_ptr->setAlgorithmRunningDelayTime(running_delay_time);
     env_ptr->setDisplayDelayTime(display_delay_time);
@@ -130,8 +140,8 @@ main(int argc, char* argv[])
     algorithms_ptr.emplace_back(std::make_shared<algorithm::Dfs>(env_ptr, "Dfs"));
     algorithms_ptr.emplace_back(std::make_shared<algorithm::Bfs>(env_ptr, "Bfs"));
     algorithms_ptr.emplace_back(std::make_shared<algorithm::Bcd>(env_ptr, "Bcd"));
+    algorithms_ptr.emplace_back(std::make_shared<algorithm::Astar>(env_ptr, "AStar"));
     algorithms_ptr.emplace_back(std::make_shared<algorithm::Dijkstra>(env_ptr, "Dijkstra"));
-    algorithms_ptr.emplace_back(std::make_shared<algorithm::Astar>(env_ptr, "Astar"));
     algorithms_ptr.emplace_back(std::make_shared<algorithm::BcdWidthDijkstra>(env_ptr, "BcdWidthDijkstra"));
     algorithms_ptr.emplace_back(std::make_shared<algorithm::BcdWithFootprint>(env_ptr, "BcdWithFootprint"));
 
@@ -157,7 +167,7 @@ main(int argc, char* argv[])
 
     cv::setMouseCallback("InteractiveWindow", eventCallback);
 
-    std::future<void> future_working;
+    std::shared_ptr<std::thread> future_working;
 
     while (true)
     {
@@ -165,7 +175,12 @@ main(int argc, char* argv[])
         env_ptr->display();
         // 读取键盘值
         auto key = cv::waitKey(2);
-        // 如果正在执行,则不做任何操作
+        if (key == 't' || key == 'T')
+        {
+            std::cout << "Terminate algorithm" << std::endl;
+            alg_ptr->stop();
+        }
+        // 如果正在执行,则不做以下操作
         if (busy)
         {
             continue;
@@ -175,7 +190,9 @@ main(int argc, char* argv[])
             // 如果按下s键,执行算法
             std::cout << "Working..." << std::endl;
             env_ptr->clear();
-            future_working = std::async(std::launch::async, invoke);
+            alg_ptr->start();
+            future_working = std::make_shared<std::thread>(invoke);
+            future_working->detach();
         }
         else if (key == 'c' || key == 'C')
         {
@@ -202,7 +219,8 @@ main(int argc, char* argv[])
         {
             // 启动算法结果演示
             std::cout << "Playing..." << std::endl;
-            future_working = std::async(std::launch::async, play);
+            future_working = std::make_shared<std::thread>(play);
+            future_working->detach();
         }
     }
 }

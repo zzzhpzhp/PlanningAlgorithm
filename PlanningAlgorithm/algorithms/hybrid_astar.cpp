@@ -86,7 +86,7 @@ namespace algorithm
 
         std::function<bool()> hybird_astar = [&]()->bool
         {
-            while (!node_stack.empty())
+            while (!node_stack.empty() && is_running_.load())
             {
                 std::this_thread::sleep_for(std::chrono::microseconds((int)(env_ptr_->getAlgorithmRunningDelayTime() * 1e6)));
                 cur_ = node_stack.top();

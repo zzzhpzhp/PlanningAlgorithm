@@ -78,8 +78,12 @@ namespace algorithm
         pn.y = start_y_;
         path_.emplace_back(pn);
 
-        std::function<void(int, int)> BcdWithFootprint = [&](int x, int y)
+        std::function<bool(int, int)> BcdWithFootprint = [&](int x, int y)->bool
         {
+            if (!is_running_)
+            {
+                return false;
+            }
             std::this_thread::sleep_for(std::chrono::microseconds((int)(env_ptr_->getAlgorithmRunningDelayTime() * 1e6)));
             int side_x, side_y;
             uint8_t side_val;
@@ -105,7 +109,10 @@ namespace algorithm
                     pn.y = side_y;
                     path_.emplace_back(pn);
                     in_path_[side_x][side_y] = true;
-                    BcdWithFootprint(side_x, side_y);
+                    if (!BcdWithFootprint(side_x, side_y))
+                    {
+                        return false;
+                    }
                 }
             }
             if (!valid)
@@ -113,10 +120,10 @@ namespace algorithm
                 // Dead point
                 env_ptr_->setIntGridValByPlanXY(x, y, 100, 0, 0);
             }
+            return true;
         };
 
-        BcdWithFootprint(start_x_, start_y_);
-        return true;
+        return BcdWithFootprint(start_x_, start_y_);;
     }
 
     environment::Path& BcdWithFootprint::getPath()

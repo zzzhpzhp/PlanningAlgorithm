@@ -89,7 +89,7 @@ namespace algorithm
 
         std::function<bool()> Astar = [&]()->bool
         {
-            while (!node_stack.empty())
+            while (!node_stack.empty() && is_running_.load())
             {
                 std::this_thread::sleep_for(std::chrono::microseconds((int)(env_ptr_->getAlgorithmRunningDelayTime() * 1e6)));
                 cur_ = node_stack.top();
@@ -158,7 +158,6 @@ namespace algorithm
                     side->x = side_x;
                     side->y = side_y;
                     side->h = calc_h_(side);
-                    std::cout << side->h << std::endl;
                     side->parent_node = cur_;
                     side->dist = cur_->dist + side_to_cur_cost;
                     side->in_open_list = true;

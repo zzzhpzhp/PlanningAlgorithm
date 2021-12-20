@@ -27,6 +27,19 @@ namespace algorithm
         virtual environment::Path&
         getPath() = 0;
 
+        virtual void
+        start()
+        {
+            is_running_.store(true);
+        }
+
+        virtual void
+        stop()
+        {
+            is_running_.store(false);
+        }
+
+
     protected:
 
         inline bool
@@ -127,5 +140,6 @@ namespace algorithm
 
     protected:
         std::string name_{};
+        std::atomic_bool is_running_{true};
     };
 }

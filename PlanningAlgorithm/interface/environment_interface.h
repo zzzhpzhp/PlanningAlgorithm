@@ -6,6 +6,7 @@
 #include <tuple>
 #include <unordered_map>
 #include <queue>
+#include <atomic>
 
 #include <boost/bind.hpp>
 

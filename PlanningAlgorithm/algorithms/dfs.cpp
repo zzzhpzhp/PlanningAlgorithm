@@ -71,6 +71,10 @@ namespace algorithm
         std::unordered_map<int, std::unordered_map<int, bool>> visited;
         std::function<bool(int, int)> dfs = [&](int x, int y)->bool
         {
+            if (!is_running_.load())
+            {
+                return false;
+            }
             std::this_thread::sleep_for(std::chrono::microseconds((int)(env_ptr_->getAlgorithmRunningDelayTime() * 1e6)));
             pn.x = x;
             pn.y = y;

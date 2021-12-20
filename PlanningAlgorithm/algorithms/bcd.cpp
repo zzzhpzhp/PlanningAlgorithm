@@ -93,7 +93,7 @@ namespace algorithm
         {
             int sx, sy;
 
-            while (true)
+            while (is_running_.load())
             {
                 std::this_thread::sleep_for(std::chrono::microseconds((int)(env_ptr_->getAlgorithmRunningDelayTime() * 1e6)));
                 // 標記已訪問區域
