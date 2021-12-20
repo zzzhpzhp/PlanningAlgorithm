@@ -171,7 +171,7 @@ namespace algorithm
                 }
             }
 
-            return true;
+            return is_running_.load();
         };
 
         auto result = bcd();

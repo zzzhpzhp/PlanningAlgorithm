@@ -18,6 +18,7 @@
 #define FL_PRINT {std::cout << __FUNCTION__ << " " << __LINE__ << std::endl;};
 namespace environment
 {
+    enum MarkMode {MARK_OBSTACLE, MARK_FREE_SPACE};
     class EnvironmentInterface
     {
     public:
@@ -148,6 +149,9 @@ namespace environment
         markObstacle(int x, int y, int obstacle_radius = 1) = 0;
 
         virtual void
+        markFreeSpace(int x, int y, int radius = 1) = 0;
+
+        virtual void
         showStartGoalPose() = 0;
 
         virtual std::tuple<int, int>
@@ -186,12 +190,37 @@ namespace environment
         virtual void
         fillPoints(const Grids& points) = 0;
 
+        virtual void
+        switchMarkMode()
+        {
+            mark_mode_ = (mark_mode_ + 1) % 2;
+            switch(mark_mode_)
+            {
+                case MARK_OBSTACLE:
+                    std::cout << "Current mark mode is MARK_OBSTACLE" << std::endl;
+                    break;
+                case MARK_FREE_SPACE:
+                    std::cout << "Current mark mode is MARK_FREE_SPACE" << std::endl;
+                    break;
+                default:
+                    std::cerr << "Unknow mark mode." << std::endl;
+                    break;
+            }
+        }
+
+        virtual int
+        getMarkMode()
+        {
+            return mark_mode_;
+        };
+
     protected:
 
         int robot_radius_{5};
         float delay_time_{0.001};
         float display_delay_time_{0.001};
         std::atomic_bool is_running_{false};
+        int mark_mode_{MARK_OBSTACLE};
     };
 
     using EnvironmentInterfacePtr = std::shared_ptr<EnvironmentInterface>;

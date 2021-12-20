@@ -195,6 +195,42 @@ namespace environment
         have_goal_ = true;
     }
 
+    void Environment::markFreeSpace(int x, int y, int radius)
+    {
+        if (free_space_radius_ != radius)
+        {
+            GridPoint p{0};
+            catched_free_space_area_.clear();
+            free_space_radius_ = radius;
+            for (int i = -free_space_radius_+1; i <= free_space_radius_-1; i++)
+            {
+                for (int j = -free_space_radius_+1; j <= free_space_radius_-1; j++)
+                {
+                    if ((i*i + j*j) <= free_space_radius_*free_space_radius_)
+                    {
+                        p.x = i * rect_size_;
+                        p.y = j * rect_size_;
+                        catched_free_space_area_.emplace_back(p);
+                    }
+                }
+            }
+        }
+
+        for (auto p : catched_free_space_area_)
+        {
+            p.x += x;
+            p.y += y;
+            if (!setInteractiveGridValue(p.x, p.y, 255, 255, 255))
+            {
+                continue;
+            }
+            if (!setGridValueFromDisp(p.x, p.y, 255))
+            {
+                continue;
+            }
+        }
+    }
+
     void Environment::markObstacle(int x, int y, int obstacle_radius)
     {
         if (obstacle_radius_ != obstacle_radius)

@@ -14,6 +14,7 @@ float display_delay_time = 0.01;
 bool show_path = true;
 // 障碍物标记的宽度，以给定坐标为中心
 int obstacle_radius = 3;
+int free_radius = 2;
 // 机器人半径
 int robot_radius = 5;
 // 当前运行的算法的索引
@@ -63,7 +64,16 @@ eventCallback(int event, int x, int y, int flags, void *param)
         {
             return;
         }
-        env_ptr->markObstacle(x, y, obstacle_radius);
+
+        switch (env_ptr->getMarkMode())
+        {
+            case environment::MarkMode::MARK_OBSTACLE:
+                env_ptr->markObstacle(x, y, obstacle_radius);
+                break;
+            case environment::MarkMode::MARK_FREE_SPACE:
+                env_ptr->markFreeSpace(x, y, free_radius);
+                break;
+        }
     }
 }
 
@@ -120,13 +130,17 @@ void switch_algorithm(int index)
 
 void print_info()
 {
-    std::cout << "搜索算法演示程序" << std::endl;
+    std::cout << "================= 搜索算法演示程序 =================" << std::endl;
+    std::cout << "鼠标左键标记起点" << std::endl;
+    std::cout << "鼠标右键标记目标点" << std::endl;
+    std::cout << "鼠标中键执行标记，默认标记障碍物图，按数字键3切换标记类型（障碍物标记、清除障碍物标记等）" << std::endl;
     std::cout << "按键A： 切换算法" << std::endl;
     std::cout << "按键S： 启动算法运行" << std::endl;
     std::cout << "按键T： 结束算法运行" << std::endl;
     std::cout << "按键P： 演示算法运行结果" << std::endl;
     std::cout << "数字按键1： 保存当前环境" <<std::endl;
     std::cout << "数字按键2： 加载环境配置文件" <<std::endl;
+    std::cout << "数字按键3： 切换标记类型" <<std::endl;
 }
 
 int
@@ -241,6 +255,10 @@ main(int argc, char* argv[])
                 break;
             case '2':
                 env_ptr->loadEnvironmentFromDisk("../environment.json");
+                break;
+            case '3':
+                env_ptr->switchMarkMode();
+            default:
                 break;
         }
     }

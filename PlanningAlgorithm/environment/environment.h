@@ -93,6 +93,9 @@ namespace environment
         markObstacle(int x, int y, int obstacle_radius = 1) override;
 
         void
+        markFreeSpace(int x, int y, int radius = 1) override;
+
+        void
         showStartGoalPose() override;
 
         std::tuple<int, int>
@@ -163,10 +166,10 @@ namespace environment
             return a->x < b->x;
         };
         int y_min_, y_max_;
-        int obstacle_radius_{0};
+        int obstacle_radius_{0}, free_space_radius_{0};
         std::shared_ptr<Edge> ael_;
         std::vector<std::shared_ptr<Edge>> x_sorted_;
-        std::vector<GridPoint> catched_obstacle_area_;
+        std::vector<GridPoint> catched_obstacle_area_, catched_free_space_area_;
         std::unordered_map<int, std::shared_ptr<Edge>> et_;
 
         void
