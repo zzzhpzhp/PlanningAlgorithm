@@ -3,6 +3,7 @@
 #include <chrono>
 #include <thread>
 #include <mutex>
+#include <fstream>
 
 #include <boost/unordered_map.hpp>
 #include <boost/bind.hpp>
@@ -12,6 +13,7 @@
 #include<opencv2/highgui/highgui.hpp>
 
 #include "environment_interface.h"
+#include <jsoncpp/json/json.h>
 
 namespace environment
 {
@@ -19,6 +21,8 @@ namespace environment
     class Environment : public EnvironmentInterface
     {
     public:
+        const std::string ENVIRONMENT_VERSION{"V1.0"};
+
         void
         initialize(int length, int width, int display_scale) override;
 
@@ -48,6 +52,12 @@ namespace environment
 
         int
         getGridXSizeInCells() override;
+
+        bool
+        saveEnvironmntToDisk(std::string path);
+
+        bool
+        loadEnvironmentFromDisk(std::string path);
 
         int
         getGridYSizeInCells() override;

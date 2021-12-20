@@ -234,11 +234,11 @@ namespace environment
 
     void Environment::showStartGoalPose()
     {
-        if (have_start_)
+//        if (have_start_)
         {
             setInteractiveGridValue(start_x_, start_y_, start_r_, start_g_, start_b_);
         }
-        if (have_goal_)
+//        if (have_goal_)
         {
             setInteractiveGridValue(goal_x_, goal_y_, goal_r_, goal_g_, goal_b_);
         }
@@ -312,6 +312,10 @@ namespace environment
             ny = n.y * rect_size_;
             setInteractiveGridValue(nx, ny, n.r, n.g, n.b, 100);
             std::this_thread::sleep_for(std::chrono::microseconds((int)(getDisplayDelayTime() * 1e6)));
+            if (!is_running_.load())
+            {
+                break;
+            }
         }
     }
 
@@ -776,5 +780,101 @@ namespace environment
     {
         setInteractiveGridValue(x * rect_size_, y * rect_size_, 0);
         setGridValue(x, y, 0);
+    }
+
+    bool Environment::saveEnvironmntToDisk(std::string path)
+    {
+        std::cout << "Saving environment..." << std::endl;
+        //根节点
+        Json::Value root, obstacle;
+
+        root["EnvironmentVersion"] = ENVIRONMENT_VERSION;
+
+        //根节点属性
+        root["start_x"] = start_x_;
+        root["start_y"] = start_y_;
+        root["goal_x"] = goal_x_;
+        root["goal_y"] = goal_y_;
+
+        for (const auto &o : obstacles_)
+        {
+            obstacle[0] = std::get<0>(o);
+            obstacle[1] = std::get<1>(o);
+            root["obstacles"].append(obstacle);
+        }
+//
+//        // 直接输出
+//        std::cout << "FastWriter:" << std::endl;
+//        Json::FastWriter fw;
+//        std::cout << fw.write(root) << std::endl << std::endl;
+
+        //缩进输出
+//        std::cout << "StyledWriter:" << std::endl;
+        Json::StyledWriter sw;
+//        std::cout << sw.write(root) << std::endl << std::endl;
+
+        //输出到文件
+        std::ofstream os;
+        os.open(path, std::ios::out | std::ios::trunc);
+        if (!os.is_open())
+        {
+            std::cerr << "error：can not find or create the file which named \" demo.json\"." << std::endl;
+            return false;
+        }
+        os << sw.write(root);
+        os.close();
+        std::cout << "Save environment finished." << std::endl;
+        return true;
+    }
+
+    bool Environment::loadEnvironmentFromDisk(std::string path)
+    {
+        std::cout << "Loading environment..." << std::endl;
+        Json::Reader reader;
+        Json::Value root;
+
+        //从文件中读取，保证当前文件有demo.json文件
+        std::ifstream in(path, std::ios::in);
+
+        if (!in.is_open())
+        {
+            std::cout << "Error opening file\n";
+            return false;
+        }
+
+        if (!reader.parse(in, root))
+        {
+            std::cerr << "Environment config file parse failed." << std::endl;
+            return false;
+        }
+
+        start_x_ =  root["start_x"].asInt();
+        start_y_ =  root["start_y"].asInt();
+        goal_x_ =  root["goal_x"].asInt();
+        goal_y_ =  root["goal_y"].asInt();
+
+        std::cout << "Start x " << root["start_x"].asInt() << std::endl;
+        std::cout << "Start y " << root["start_y"].asInt() << std::endl;
+        std::cout << "Goal x " << root["goal_x"].asInt() << std::endl;
+        std::cout << "Goal y " << root["goal_y"].asInt() << std::endl;
+        std::cout << "Obstacle grids size " << root["obstacles"].size() << std::endl;
+
+        obstacles_.clear();
+        for (const auto &o: root["obstacles"])
+        {
+            auto x = o[0].asInt();
+            auto y = o[1].asInt();
+            obstacles_.insert(std::tuple<int, int>(x, y));
+            if (!setGridValueFromDisp(x, y, 0))
+            {
+                continue;
+            }
+        }
+
+        in.close();
+        clear();
+        showStartGoalPose();
+        std::cout << "Load finished." << std::endl;
+        return true;
     }
 }

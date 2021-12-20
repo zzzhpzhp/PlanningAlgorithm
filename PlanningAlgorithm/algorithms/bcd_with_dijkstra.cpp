@@ -110,7 +110,7 @@ namespace algorithm
 
             while (is_running_.load())
             {
-                std::this_thread::sleep_for(std::chrono::microseconds(500));
+                std::this_thread::sleep_for(std::chrono::microseconds((int)(env_ptr_->getAlgorithmRunningDelayTime() * 1e6)));
                 // 標記已訪問區域
                 if (cur_x != start_x_ || cur_y != start_y_)
                 {

@@ -7,7 +7,7 @@ int window_height = 100;
 // 一个网格的宽度，单位：像素
 int width = 5;
 // 算法步骤执行延时（秒）
-float running_delay_time = 0.0001;
+float running_delay_time = 0.00001;
 // 算法执行结果演示时的步骤延时（秒）
 float display_delay_time = 0.01;
 // 算法执行成功后，是否显示算法给出的路径
@@ -125,6 +125,8 @@ void print_info()
     std::cout << "按键S： 启动算法运行" << std::endl;
     std::cout << "按键T： 结束算法运行" << std::endl;
     std::cout << "按键P： 演示算法运行结果" << std::endl;
+    std::cout << "数字按键1： 保存当前环境" <<std::endl;
+    std::cout << "数字按键2： 加载环境配置文件" <<std::endl;
 }
 
 int
@@ -169,7 +171,8 @@ main(int argc, char* argv[])
 
     std::shared_ptr<std::thread> future_working;
 
-    while (true)
+    bool running = true;
+    while (running)
     {
         // 更新交互显示
         env_ptr->display();
@@ -179,48 +182,66 @@ main(int argc, char* argv[])
         {
             std::cout << "Terminate algorithm" << std::endl;
             alg_ptr->stop();
+            env_ptr->stop();
         }
         // 如果正在执行,则不做以下操作
         if (busy)
         {
             continue;
         }
-        if (key == 's' || key == 'S')
+        switch (key)
         {
-            // 如果按下s键,执行算法
-            std::cout << "Working..." << std::endl;
-            env_ptr->clear();
-            alg_ptr->start();
-            future_working = std::make_shared<std::thread>(invoke);
-            future_working->detach();
-        }
-        else if (key == 'c' || key == 'C')
-        {
-            // 按下c键,清楚算法的执行痕迹,但是不清除已设定的起点\终点和障碍物信息
-            env_ptr->clear();
-        }
-        else if (key == 'r' || key == 'R')
-        {
-            // 按下r键,清除算法执行痕迹和设定的障碍物信息
-            env_ptr->reset();
-            env_ptr->showStartGoalPose();
-        }
-        else if (key == 'a' || key == 'A')
-        {
-            // 按下a鍵，切換算法
-            selected_algorithm = ++selected_algorithm % algorithms_ptr.size();
-            switch_algorithm(selected_algorithm);
-            auto start = env_ptr->getStart();
-            auto goal = env_ptr->getGoal();
-            alg_ptr->setStart(std::get<0>(start), std::get<1>(start));
-            alg_ptr->setGoal(std::get<0>(goal), std::get<1>(goal));
-        }
-        else if (key == 'p' || key == 'P')
-        {
-            // 启动算法结果演示
-            std::cout << "Playing..." << std::endl;
-            future_working = std::make_shared<std::thread>(play);
-            future_working->detach();
+            case 's': case 'S':
+                {
+                    // 如果按下s键,执行算法
+                    std::cout << "Working..." << std::endl;
+                    env_ptr->clear();
+                    env_ptr->start();
+                    auto start = env_ptr->getStart();
+                    auto goal = env_ptr->getGoal();
+                    alg_ptr->setStart(std::get<0>(start), std::get<1>(start));
+                    alg_ptr->setGoal(std::get<0>(goal), std::get<1>(goal));
+                    alg_ptr->start();
+                    future_working = std::make_shared<std::thread>(invoke);
+                    future_working->detach();
+                }
+                break;
+            case 'c': case 'C':
+                // 按下c键,清楚算法的执行痕迹,但是不清除已设定的起点\终点和障碍物信息
+                env_ptr->clear();
+                break;
+            case 'r': case 'R':
+                // 按下r键,清除算法执行痕迹和设定的障碍物信息
+                env_ptr->reset();
+                env_ptr->showStartGoalPose();
+                break;
+            case 'a': case 'A':
+                // 按下a鍵，切換算法
+                selected_algorithm = ++selected_algorithm % algorithms_ptr.size();
+                switch_algorithm(selected_algorithm);
+                {
+                    auto start = env_ptr->getStart();
+                    auto goal = env_ptr->getGoal();
+                    alg_ptr->setStart(std::get<0>(start), std::get<1>(start));
+                    alg_ptr->setGoal(std::get<0>(goal), std::get<1>(goal));
+                }
+                break;
+            case 'p': case 'P':
+                // 启动算法结果演示
+                std::cout << "Playing..." << std::endl;
+                future_working = std::make_shared<std::thread>(play);
+                future_working->detach();
+                break;
+            case 'q': case 'Q':
+                std::cout << "Exit" << std::endl;
+                running = false;
+                break;
+            case '1':
+                env_ptr->saveEnvironmntToDisk("../environment.json");
+                break;
+            case '2':
+                env_ptr->loadEnvironmentFromDisk("../environment.json");
+                break;
         }
     }
 }

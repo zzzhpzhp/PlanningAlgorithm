@@ -72,6 +72,12 @@ namespace environment
             return delay_time_;
         }
 
+        virtual bool
+        saveEnvironmntToDisk(std::string path) = 0;
+
+        virtual bool
+        loadEnvironmentFromDisk(std::string path) = 0;
+
         /**
          * @brief 交互界面中设置一个网格的颜色
          * */
@@ -113,6 +119,24 @@ namespace environment
 
         virtual void
         reset() = 0;
+
+        virtual void
+        start()
+        {
+            is_running_.store(true);
+        }
+
+        virtual void
+        stop()
+        {
+            is_running_.store(false);
+        }
+
+        virtual bool
+        isRunning()
+        {
+            return is_running_.load();
+        }
 
         virtual void
         markStart(int x, int y, int r = 0, int g = 0, int b = 0) = 0;
@@ -167,6 +191,7 @@ namespace environment
         int robot_radius_{5};
         float delay_time_{0.001};
         float display_delay_time_{0.001};
+        std::atomic_bool is_running_{false};
     };
 
     using EnvironmentInterfacePtr = std::shared_ptr<EnvironmentInterface>;
