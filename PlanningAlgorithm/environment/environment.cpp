@@ -6,8 +6,8 @@ namespace environment
     Environment::initialize(int length, int width, int display_scale)
     {
         rect_size_ = display_scale;
-        width_ = width;
         length_ = length;
+        width_ = width;
         img_length_ = length_ * rect_size_, img_width_ = width_ * rect_size_;
         _initialize_grid();
 
@@ -24,11 +24,10 @@ namespace environment
         {
             throw std::runtime_error("Should initialize first.");
         }
-        std::lock_guard<std::mutex> dlg(display_img_mtx_);
-
         std::lock_guard<std::mutex> plg(planning_grid_mtx_);
         imshow("PlanningGrid", planning_grid_);
         cvMoveWindow("PlanningGrid", 0, 0);
+        std::lock_guard<std::mutex> dlg(display_img_mtx_);
         imshow("InteractiveWindow", display_img_);
         cvMoveWindow("InteractiveWindow", 0, 0);
     }
@@ -831,6 +830,9 @@ namespace environment
         root["start_y"] = start_y_;
         root["goal_x"] = goal_x_;
         root["goal_y"] = goal_y_;
+        root["size_x"] = getGridXSizeInCells();
+        root["size_y"] = getGridYSizeInCells();
+        root["display_scale"] = getScale();
 
         for (const auto &o : obstacles_)
         {
@@ -888,13 +890,18 @@ namespace environment
         start_y_ =  root["start_y"].asInt();
         goal_x_ =  root["goal_x"].asInt();
         goal_y_ =  root["goal_y"].asInt();
+        length_ = root["size_y"].asInt();
+        width_ = root["size_x"].asInt();
+        rect_size_ = root["display_scale"].asInt();
 
+        std::cout << "window length " << length_ << " window width " << width_ << " display scale " << rect_size_ << std::endl;
         std::cout << "Start x " << root["start_x"].asInt() << std::endl;
         std::cout << "Start y " << root["start_y"].asInt() << std::endl;
         std::cout << "Goal x " << root["goal_x"].asInt() << std::endl;
         std::cout << "Goal y " << root["goal_y"].asInt() << std::endl;
         std::cout << "Obstacle grids size " << root["obstacles"].size() << std::endl;
 
+        initialize(length_, width_, rect_size_);
         obstacles_.clear();
         for (const auto &o: root["obstacles"])
         {
