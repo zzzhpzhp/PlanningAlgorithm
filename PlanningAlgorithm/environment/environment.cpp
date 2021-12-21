@@ -926,4 +926,56 @@ namespace environment
         std::cout << "Load finished." << std::endl;
         return true;
     }
+
+    cv::Mat *Environment::_get_planning_container(int x, int y)
+    {
+        if (x >= 0 && y >= 0)
+        {
+            return &pi_pp_;
+        }
+        else if (x >= 0 && y < 0)
+        {
+            return &pi_pn_;
+        }
+        else if (x < 0 && y >= 0)
+        {
+            return &pi_np_;
+        }
+        else if (x < 0 && y < 0)
+        {
+            return &pi_nn_;
+        }
+        else
+        {
+            std::cout << "Should not be here." << std::endl;
+        }
+
+        return nullptr;
+    }
+
+    cv::Mat *Environment::_get_display_container(int x, int y)
+    {
+        if (x >= 0 && y >= 0)
+        {
+            return &di_pp_;
+        }
+        else if (x >= 0 && y < 0)
+        {
+            return &di_pn_;
+        }
+        else if (x < 0 && y >= 0)
+        {
+            return &di_np_;
+        }
+        else if (x < 0 && y < 0)
+        {
+            return &di_nn_;
+        }
+        else
+        {
+            std::cout << "Should not be here." << std::endl;
+        }
+
+        return nullptr;
+    }
 }

@@ -139,7 +139,6 @@ namespace environment
         bool initialized_{false};
         bool have_start_ = false, have_goal_ = false;
 
-        cv::Mat display_img_, planning_grid_;
 
         int rect_size_{5};
         int length_{200}, width_{200};
@@ -170,12 +169,6 @@ namespace environment
         };
         std::set<Obstacle, Comp> obstacles_;
 
-        void
-        _initialize_grid();
-
-        void
-        _normalize_xy(int x, int y, int &nx, int &ny);
-
         static bool edge_cmp(const std::shared_ptr<Edge> &a, const std::shared_ptr<Edge> &b)
         {
             return a->x < b->x;
@@ -186,6 +179,21 @@ namespace environment
         std::vector<std::shared_ptr<Edge>> x_sorted_;
         std::vector<GridPoint> catched_obstacle_area_, catched_free_space_area_;
         std::unordered_map<int, std::shared_ptr<Edge>> et_;
+
+        cv::Mat display_img_, planning_grid_;
+        cv::Mat di_pp_, di_pn_, di_nn_, di_np_, pi_pp_, pi_pn_, pi_nn_, pi_np_;
+
+        cv::Mat *
+        _get_planning_container(int x, int y);
+
+        cv::Mat *
+        _get_display_container(int x, int y);
+
+        void
+        _initialize_grid();
+
+        void
+        _normalize_xy(int x, int y, int &nx, int &ny);
 
         void
         _set_cost(int x, int y);

@@ -226,6 +226,57 @@ namespace environment
             algorithm_index_.store(index);
         }
 
+        virtual void
+        worldToMap(float wx, float wy, int &mx, int &my)
+        {
+            if (wx >= 0)
+            {
+                mx = (int)(wx / resolution_.load() + 0.05f);
+            }
+            else
+            {
+                mx = (int)(wx / resolution_.load() - 0.05f);
+            }
+
+            if (wy >= 0)
+            {
+                my = (int)(wy / resolution_.load() + 0.05f);
+            }
+            else
+            {
+                my = (int)(wy / resolution_.load() - 0.05f);
+            }
+        }
+
+        virtual void
+        mapToWorld(int mx, int my, float &wx, float &wy)
+        {
+            wx = (float)mx * resolution_.load();
+            wy = (float)my * resolution_.load();
+        }
+
+        virtual unsigned char
+        getCost(int x, int y) {};
+
+        virtual void
+        setCost(int x, int y, unsigned char cost) {};
+
+        virtual unsigned char
+        getCost(float x, float y)
+        {
+            int mx, my;
+            worldToMap(x, y, mx, my);
+            return getCost(mx, my);
+        }
+
+        virtual void
+        setCost(float x, float y, unsigned char cost)
+        {
+            int mx, my;
+            worldToMap(x, y, mx, my);
+            setCost(mx, my, cost);
+        }
+        
     protected:
 
         std::atomic<int> robot_radius_{5}, algorithm_index_{0};
@@ -233,6 +284,7 @@ namespace environment
         std::atomic<float> display_delay_time_{0.001};
         std::atomic_bool is_running_{false};
         std::atomic<int> mark_mode_{MARK_OBSTACLE};
+        std::atomic<float> resolution_{0.05f};
     };
 
     using EnvironmentInterfacePtr = std::shared_ptr<EnvironmentInterface>;

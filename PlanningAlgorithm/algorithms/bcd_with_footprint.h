@@ -44,12 +44,32 @@ namespace algorithm
         int goal_x_{0}, goal_y_{0};
 
         environment::EnvironmentInterfacePtr env_ptr_;
-        std::vector<std::function<bool(environment::EnvironmentInterfacePtr&, int, int, int&, int&)>> side_points_;
+        std::vector<std::function<bool(environment::EnvironmentInterfacePtr&, int, int, int&, int&)>> side_points_, dijkstra_side_points_;
         environment::Path path_;
 
         std::unordered_map<int, std::unordered_map<int, bool>> visited_, cleaned_, in_path_;
 
+        struct Node
+        {
+            int x, y;
+            int id;
+            int dist;
+            Node *parent_node;
+            bool in_open_list = false;
+            bool in_close_list = false;
+            bool is_obstacle = false;
+
+            bool operator()(const Node* a, const Node* n) const
+            {
+                return a->dist > n->dist;
+            };
+        };
+        std::vector<Node> nodes_;
+
         bool _position_validation(int x, int y, int &limiting_index_l, int &limiting_index_h);
-        void _mark_cleaned(int x, int y, int limiting_l, int limiting_h);
+        void _mark_cleaned(int x, int y, int limiting_l, int limiting_h);        using VisitedTable = std::unordered_map<int, std::unordered_map<int, bool>>;
+
+        bool _dijkstra(int start_x, int start_y, int &goal_x, int &goal_y,
+                       VisitedTable& visited, std::vector<environment::PathNode> &path);
     };
 }
