@@ -14,10 +14,10 @@
 
 namespace algorithm
 {
-    class Astar : public AlgorithmInterface
+    class AStar : public AlgorithmInterface
     {
     public:
-        Astar(environment::EnvironmentInterfacePtr &env, std::string name)
+        AStar(environment::EnvironmentInterfacePtr &env, std::string name)
         {
             initialize(env, std::move(name));
         }

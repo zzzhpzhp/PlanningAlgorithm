@@ -93,6 +93,7 @@ invoke()
     }
     if (result)
     {
+        std::cout << "Path node size " << alg_ptr->getPath().size() << std::endl;
         if (show_path)
         {
             auto path = alg_ptr->getPath();
@@ -157,7 +158,7 @@ main(int argc, char* argv[])
     algorithms_ptr.emplace_back(std::make_shared<algorithm::Dfs>(env_ptr, "Dfs"));
     algorithms_ptr.emplace_back(std::make_shared<algorithm::Bfs>(env_ptr, "Bfs"));
     algorithms_ptr.emplace_back(std::make_shared<algorithm::Bcd>(env_ptr, "Bcd"));
-    algorithms_ptr.emplace_back(std::make_shared<algorithm::Astar>(env_ptr, "AStar"));
+    algorithms_ptr.emplace_back(std::make_shared<algorithm::AStar>(env_ptr, "AStar"));
     algorithms_ptr.emplace_back(std::make_shared<algorithm::Dijkstra>(env_ptr, "Dijkstra"));
     algorithms_ptr.emplace_back(std::make_shared<algorithm::BcdWidthDijkstra>(env_ptr, "BcdWithDijkstra"));
     algorithms_ptr.emplace_back(std::make_shared<algorithm::BcdWithFootprint>(env_ptr, "BcdWithFootprint"));
@@ -245,7 +246,7 @@ main(int argc, char* argv[])
                 break;
             case 'a': case 'A':
                 // 按下a鍵，切換算法
-                selected_algorithm = ++selected_algorithm % algorithms_ptr.size();
+                selected_algorithm = ++selected_algorithm % (int)algorithms_ptr.size();
                 if (switch_algorithm(selected_algorithm))
                 {
                     env_ptr->setCurrentAlgorithmIndex(selected_algorithm);

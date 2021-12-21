@@ -111,7 +111,6 @@ namespace algorithm
         };
 
         auto result = dfs(start_x_, start_y_);
-        std::cout << "Path node size " << path_.size() << std::endl;
         return result;
     }
 

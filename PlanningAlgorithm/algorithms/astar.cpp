@@ -2,27 +2,27 @@
 
 namespace algorithm
 {
-    void Astar::initialize(environment::EnvironmentInterfacePtr &env, std::string name)
+    void AStar::initialize(environment::EnvironmentInterfacePtr &env, std::string name)
     {
         env_ptr_ = env;
         name_ = name;
 
         reference_length_ = env_ptr_->getGridXSizeInCells() + env_ptr_->getGridYSizeInCells();
 
-        side_points_.emplace_back(boost::bind(&Astar::_get_right, this, _1, _2, _3, _4, _5, 1));
-        side_points_.emplace_back(boost::bind(&Astar::_get_middle_higher, this, _1, _2, _3, _4, _5, 1));
-        side_points_.emplace_back(boost::bind(&Astar::_get_left, this, _1, _2, _3, _4, _5, 1));
-        side_points_.emplace_back(boost::bind(&Astar::_get_middle_lower, this, _1, _2, _3, _4, _5, 1));
+        side_points_.emplace_back(boost::bind(&AStar::_get_right, this, _1, _2, _3, _4, _5, 1));
+        side_points_.emplace_back(boost::bind(&AStar::_get_middle_higher, this, _1, _2, _3, _4, _5, 1));
+        side_points_.emplace_back(boost::bind(&AStar::_get_left, this, _1, _2, _3, _4, _5, 1));
+        side_points_.emplace_back(boost::bind(&AStar::_get_middle_lower, this, _1, _2, _3, _4, _5, 1));
 
-        side_points_.emplace_back(boost::bind(&Astar::_get_higher_right, this, _1, _2, _3, _4, _5, 1));
-        side_points_.emplace_back(boost::bind(&Astar::_get_higher_left, this, _1, _2, _3, _4, _5, 1));
-        side_points_.emplace_back(boost::bind(&Astar::_get_lower_left, this, _1, _2, _3, _4, _5, 1));
-        side_points_.emplace_back(boost::bind(&Astar::_get_lower_right, this, _1, _2, _3, _4, _5, 1));
+        side_points_.emplace_back(boost::bind(&AStar::_get_higher_right, this, _1, _2, _3, _4, _5, 1));
+        side_points_.emplace_back(boost::bind(&AStar::_get_higher_left, this, _1, _2, _3, _4, _5, 1));
+        side_points_.emplace_back(boost::bind(&AStar::_get_lower_left, this, _1, _2, _3, _4, _5, 1));
+        side_points_.emplace_back(boost::bind(&AStar::_get_lower_right, this, _1, _2, _3, _4, _5, 1));
 
         initialized_ = true;
     }
 
-    void Astar::setGoal(int x, int y)
+    void AStar::setGoal(int x, int y)
     {
         int tx, ty;
         if (!env_ptr_->displayXY2PlanningXY(x, y, tx, ty))
@@ -34,7 +34,7 @@ namespace algorithm
         std::cout << "Set goal to ["<< goal_x_ << ", " << goal_y_ << "]" << std::endl;
     }
 
-    void Astar::setStart(int x, int y)
+    void AStar::setStart(int x, int y)
     {
         int tx, ty;
         if (!env_ptr_->displayXY2PlanningXY(x, y, tx, ty))
@@ -47,7 +47,7 @@ namespace algorithm
         std::cout << "Set start to ["<< start_x_ << ", " << start_y_ << "]" << std::endl;
     }
 
-    bool Astar::planning()
+    bool AStar::planning()
     {
         if (!initialized_)
         {
@@ -181,11 +181,12 @@ namespace algorithm
                 cur_ = cur_->parent_node;
             }
         }
+        std::reverse(path_.begin(), path_.end());
 
         return result;
     }
 
-    environment::Path &Astar::getPath()
+    environment::Path &AStar::getPath()
     {
         return path_;
     }
