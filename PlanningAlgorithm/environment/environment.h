@@ -17,7 +17,6 @@
 
 namespace environment
 {
-
     class Environment : public EnvironmentInterface
     {
     public:
@@ -53,14 +52,14 @@ namespace environment
         int
         getGridXSizeInCells() override;
 
+        int
+        getGridYSizeInCells() override;
+
         bool
         saveEnvironmntToDisk(std::string path);
 
         bool
         loadEnvironmentFromDisk(std::string path);
-
-        int
-        getGridYSizeInCells() override;
 
         bool
         insideGrid(int x, int y) override;
@@ -153,7 +152,23 @@ namespace environment
         std::mutex display_img_mtx_, planning_grid_mtx_;
 
         using Obstacle = std::tuple<int, int>;
-        std::set<Obstacle> obstacles_;
+        struct Comp
+        {
+            template<typename T>
+            bool operator()(const T& l, const T& r) const
+            {
+                if (std::get<0>(l) == std::get<0>(r))
+                {
+                    if (std::get<1>(l) == std::get<1>(r))
+                    {
+                        return false;
+                    }
+                    return std::get<1>(l) > std::get<1>(r);
+                }
+                return std::get<0>(l) > std::get<0>(r);
+            }
+        };
+        std::set<Obstacle, Comp> obstacles_;
 
         void
         _initialize_grid();

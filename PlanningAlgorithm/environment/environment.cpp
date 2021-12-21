@@ -227,6 +227,8 @@ namespace environment
             {
                 continue;
             }
+            _normalize_xy(p.x, p.y, p.x, p.y);
+            obstacles_.erase(std::tuple<int, int>(p.x, p.y));
         }
     }
 
@@ -263,7 +265,8 @@ namespace environment
             {
                 continue;
             }
-            obstacles_.insert(std::make_tuple(p.x, p.y));
+            _normalize_xy(p.x, p.y, p.x, p.y);
+            obstacles_.insert(std::tuple<int, int>(p.x, p.y));
         }
     }
 
