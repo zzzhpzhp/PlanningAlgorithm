@@ -26,7 +26,7 @@ namespace environment
         }
         std::lock_guard<std::mutex> plg(planning_grid_mtx_);
         imshow("PlanningGrid", planning_grid_);
-        cvMoveWindow("PlanningGrid", 0, 0);
+        cvMoveWindow("PlanningGrid", img_width_+100, 0);
         std::lock_guard<std::mutex> dlg(display_img_mtx_);
         imshow("InteractiveWindow", display_img_);
         cvMoveWindow("InteractiveWindow", 0, 0);
@@ -836,6 +836,7 @@ namespace environment
         root["size_x"] = getGridXSizeInCells();
         root["size_y"] = getGridYSizeInCells();
         root["display_scale"] = getScale();
+        root["algorithm_index"] = getCurrentAlgorithmIndex();
 
         for (const auto &o : obstacles_)
         {
@@ -896,13 +897,15 @@ namespace environment
         length_ = root["size_y"].asInt();
         width_ = root["size_x"].asInt();
         rect_size_ = root["display_scale"].asInt();
+        algorithm_index_ = root["algorithm_index"].asInt();
 
         std::cout << "window length " << length_ << " window width " << width_ << " display scale " << rect_size_ << std::endl;
-        std::cout << "Start x " << root["start_x"].asInt() << std::endl;
-        std::cout << "Start y " << root["start_y"].asInt() << std::endl;
-        std::cout << "Goal x " << root["goal_x"].asInt() << std::endl;
-        std::cout << "Goal y " << root["goal_y"].asInt() << std::endl;
+        std::cout << "Start x " << start_x_ << std::endl;
+        std::cout << "Start y " << start_y_ << std::endl;
+        std::cout << "Goal x " << goal_x_ << std::endl;
+        std::cout << "Goal y " << goal_y_ << std::endl;
         std::cout << "Obstacle grids size " << root["obstacles"].size() << std::endl;
+        std::cout << "Current algorithm index " << algorithm_index_ << std::endl;
 
         initialize(length_, width_, rect_size_);
         obstacles_.clear();

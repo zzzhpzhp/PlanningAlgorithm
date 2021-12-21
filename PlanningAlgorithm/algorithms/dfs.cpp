@@ -80,10 +80,10 @@ namespace algorithm
             pn.y = y;
             path_.emplace_back(pn);
 
-            if (x == goal_x_ && y == goal_y_)
-            {
-                return true;
-            }
+//            if (x == goal_x_ && y == goal_y_)
+//            {
+//                return true;
+//            }
             if (x != start_x_ || y != start_y_)
             {
                 env_ptr_->setIntGridValByPlanXY(x, y, 100, 100, 100);
@@ -104,16 +104,14 @@ namespace algorithm
                     continue;
                 }
 
-                if (dfs(side_x, side_y))
-                {
-                    return true;
-                }
+                dfs(side_x, side_y);
             }
 
-            return false;
+            return true;
         };
 
         auto result = dfs(start_x_, start_y_);
+        std::cout << "Path node size " << path_.size() << std::endl;
         return result;
     }
 

@@ -9,9 +9,20 @@ namespace algorithm
         name_ = name;
         name_ = name;
 
+        dijkstra_side_points_.emplace_back(boost::bind(&BcdWidthDijkstra::_get_right, this, _1, _2, _3, _4, _5, 1));
+        dijkstra_side_points_.emplace_back(boost::bind(&BcdWidthDijkstra::_get_middle_higher, this, _1, _2, _3, _4, _5, 1));
+        dijkstra_side_points_.emplace_back(boost::bind(&BcdWidthDijkstra::_get_left, this, _1, _2, _3, _4, _5, 1));
+        dijkstra_side_points_.emplace_back(boost::bind(&BcdWidthDijkstra::_get_middle_lower, this, _1, _2, _3, _4, _5, 1));
+
+        dijkstra_side_points_.emplace_back(boost::bind(&BcdWidthDijkstra::_get_higher_right, this, _1, _2, _3, _4, _5, 1));
+        dijkstra_side_points_.emplace_back(boost::bind(&BcdWidthDijkstra::_get_higher_left, this, _1, _2, _3, _4, _5, 1));
+        dijkstra_side_points_.emplace_back(boost::bind(&BcdWidthDijkstra::_get_lower_left, this, _1, _2, _3, _4, _5, 1));
+        dijkstra_side_points_.emplace_back(boost::bind(&BcdWidthDijkstra::_get_lower_right, this, _1, _2, _3, _4, _5, 1));
+
+
         side_points_.emplace_back(boost::bind(&BcdWidthDijkstra::_get_right, this, _1, _2, _3, _4, _5, 1));
-        side_points_.emplace_back(boost::bind(&BcdWidthDijkstra::_get_middle_higher, this, _1, _2, _3, _4, _5, 1));
         side_points_.emplace_back(boost::bind(&BcdWidthDijkstra::_get_left, this, _1, _2, _3, _4, _5, 1));
+        side_points_.emplace_back(boost::bind(&BcdWidthDijkstra::_get_middle_higher, this, _1, _2, _3, _4, _5, 1));
         side_points_.emplace_back(boost::bind(&BcdWidthDijkstra::_get_middle_lower, this, _1, _2, _3, _4, _5, 1));
 
 //        side_points_.emplace_back(boost::bind(&BcdWidthDijkstra::_get_higher_right, this, _1, _2, _3, _4, _5, 1));
@@ -64,118 +75,94 @@ namespace algorithm
         std::cout << "Start pose: [" << start_x_ << ", " << start_y_ << "]" << std::endl;
         std::cout << "Goal pose: [" << goal_x_ << ", " << goal_y_ << "]" << std::endl;
 
-        path_.clear();
-        visited_.clear();
-
+        std::stack<std::pair<int,int>> node_stack;
         environment::PathNode pn{};
         pn.g = 255;
         pn.a = 255;
-        auto feasible = [&](int x, int y)->bool
+        path_.clear();
+        pn.x = start_x_;
+        pn.y = start_y_;
+        path_.emplace_back(pn);
+
+        std::unordered_map<int, std::unordered_map<int, bool>> visited;
+        std::function<bool(int, int)> dfs = [&](int x, int y)->bool
         {
-            if (x < 0 || x >= env_ptr_->getGridXSizeInCells() ||
-                y < 0 || y >= env_ptr_->getGridYSizeInCells())
+            if (!is_running_.load())
             {
                 return false;
             }
+            std::this_thread::sleep_for(std::chrono::microseconds((int)(env_ptr_->getAlgorithmRunningDelayTime() * 1e6)));
 
-            auto side_val = env_ptr_->getGridValue(x, y);
-            return !(visited_[x][y] || side_val == 0);
-        };
 
-        auto save_path = [&](int x, int y)
-        {
-            pn.x = x;
-            pn.y = y;
-            path_.emplace_back(pn);
-        };
-
-        auto cur_x = start_x_;
-        auto cur_y = start_y_;
-
-        auto visit = [&](int x, int y)
-        {
-            visited_[x][y] = true;
-            cur_x = x;
-            cur_y = y;
-        };
-
-        visited_[cur_x][cur_y] = true;
-
-        enum Dir {X_POSITIVE, X_NEGATIVE};
-        Dir dir = Dir::X_POSITIVE;
-
-        std::function<bool()> bcd = [&]()->bool
-        {
-            int sx, sy;
-
-            while (is_running_.load())
+//            if (x == goal_x_ && y == goal_y_)
+//            {
+//                return true;
+//            }
+            if (x != start_x_ || y != start_y_)
             {
-                std::this_thread::sleep_for(std::chrono::microseconds((int)(env_ptr_->getAlgorithmRunningDelayTime() * 1e6)));
-                // 標記已訪問區域
-                if (cur_x != start_x_ || cur_y != start_y_)
-                {
-                    env_ptr_->setIntGridValByPlanXY(cur_x, cur_y, 100, 100, 100);
-                }
-                // 存儲路徑
-                save_path(cur_x, cur_y);
-
-                if (dir == Dir::X_POSITIVE)
-                {
-                    // 尝试往x轴正方向移动
-                    sx = cur_x + 1;
-                    sy = cur_y;
-                    if (feasible(sx, sy))
-                    {
-                        visit(sx, sy);
-                        continue;
-                    }
-                    else
-                    {
-                        dir = Dir::X_NEGATIVE;
-                    }
-                }
-                else if (dir == Dir::X_NEGATIVE)
-                {
-                    // 尝试往x轴负方向移动
-                    sx = cur_x - 1;
-                    sy = cur_y;
-
-                    if (feasible(sx, sy))
-                    {
-                        visit(sx, sy);
-                        continue;
-                    }
-                    else
-                    {
-                        dir = Dir::X_POSITIVE;
-                    }
-                }
-
-                // 尝试往y轴负方向移动
-                sx = cur_x;
-                sy = cur_y - 1;
-
-                if (feasible(sx, sy))
-                {
-                    visit(sx, sy);
-                    continue;
-                }
-                else
-                {
-                    if (!_dijkstra(cur_x, cur_y, cur_x, cur_y, visited_, path_))
-                    {
-                        break;
-                    }
-                    visit(cur_x, cur_y);
-                    continue;
-                }
+                env_ptr_->setIntGridValByPlanXY(x, y, 100, 100, 100);
             }
 
-            return is_running_.load();
+            visited[x][y] = true;
+            int side_x, side_y;
+            uint8_t side_val;
+            bool find = false;
+            side_points_.clear();
+            if (y > start_y_)
+            {
+                side_points_.emplace_back(boost::bind(&BcdWidthDijkstra::_get_left, this, _1, _2, _3, _4, _5, 1));
+                side_points_.emplace_back(boost::bind(&BcdWidthDijkstra::_get_right, this, _1, _2, _3, _4, _5, 1));
+            }
+            else
+            {
+                side_points_.emplace_back(boost::bind(&BcdWidthDijkstra::_get_right, this, _1, _2, _3, _4, _5, 1));
+                side_points_.emplace_back(boost::bind(&BcdWidthDijkstra::_get_left, this, _1, _2, _3, _4, _5, 1));
+            }
+            if (x > start_x_)
+            {
+                side_points_.emplace_back(boost::bind(&BcdWidthDijkstra::_get_middle_lower, this, _1, _2, _3, _4, _5, 1));
+                side_points_.emplace_back(boost::bind(&BcdWidthDijkstra::_get_middle_higher, this, _1, _2, _3, _4, _5, 1));
+            }
+            else
+            {
+                side_points_.emplace_back(boost::bind(&BcdWidthDijkstra::_get_middle_higher, this, _1, _2, _3, _4, _5, 1));
+                side_points_.emplace_back(boost::bind(&BcdWidthDijkstra::_get_middle_lower, this, _1, _2, _3, _4, _5, 1));
+            }
+            for (auto &side_node : side_points_)
+            {
+                if (!side_node(env_ptr_, x, y, side_x, side_y))
+                {
+                    continue;
+                }
+                side_val = env_ptr_->getGridValue(side_x, side_y);
+                if (visited[side_x][side_y] || side_val == 0)
+                {
+                    continue;
+                }
+                find = true;
+
+                pn.x = side_x;
+                pn.y = side_y;
+                path_.emplace_back(pn);
+                dfs(side_x, side_y);
+            }
+
+            if (!find)
+            {
+                // Dead point
+                env_ptr_->setIntGridValByPlanXY(x, y, 100, 0, 0);
+                if (!_dijkstra(x, y, x, y, visited, path_))
+                {
+                    return false;
+                }
+                dfs(x, y);
+            }
+
+            return true;
         };
 
-        auto result = bcd();
-
+        auto result = dfs(start_x_, start_y_);
+        std::cout << "Path node size " << path_.size() << std::endl;
         return result;
     }
 
@@ -225,7 +212,7 @@ namespace algorithm
                 break;
             }
 
-            for (auto &side_node : side_points_)
+            for (auto &side_node : dijkstra_side_points_)
             {
                 if (!side_node(env_ptr_, cur_->x, cur_->y, side_x, side_y))
                 {
@@ -293,8 +280,13 @@ namespace algorithm
                 t_path.emplace_back(pn);
                 cur_ = cur_->parent_node;
             }
-            std::reverse(t_path.begin(), t_path.end());
-            path.insert(path.end(), t_path.begin(), t_path.end());
+            if (!t_path.empty())
+            {
+                // 去掉起点
+                t_path.pop_back();
+                std::reverse(t_path.begin(), t_path.end());
+                path.insert(path.end(), t_path.begin(), t_path.end());
+            }
         }
 
         return find;

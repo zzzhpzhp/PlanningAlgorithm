@@ -194,7 +194,7 @@ namespace environment
         switchMarkMode()
         {
             mark_mode_ = (mark_mode_ + 1) % 2;
-            switch(mark_mode_)
+            switch (mark_mode_.load())
             {
                 case MARK_OBSTACLE:
                     std::cout << "Current mark mode is MARK_OBSTACLE" << std::endl;
@@ -214,13 +214,25 @@ namespace environment
             return mark_mode_;
         };
 
+        virtual int
+        getCurrentAlgorithmIndex()
+        {
+            return algorithm_index_.load();
+        }
+
+        virtual void
+        setCurrentAlgorithmIndex(int index)
+        {
+            algorithm_index_.store(index);
+        }
+
     protected:
 
-        int robot_radius_{5};
-        float delay_time_{0.001};
-        float display_delay_time_{0.001};
+        std::atomic<int> robot_radius_{5}, algorithm_index_{0};
+        std::atomic<float> delay_time_{0.001};
+        std::atomic<float> display_delay_time_{0.001};
         std::atomic_bool is_running_{false};
-        int mark_mode_{MARK_OBSTACLE};
+        std::atomic<int> mark_mode_{MARK_OBSTACLE};
     };
 
     using EnvironmentInterfacePtr = std::shared_ptr<EnvironmentInterface>;

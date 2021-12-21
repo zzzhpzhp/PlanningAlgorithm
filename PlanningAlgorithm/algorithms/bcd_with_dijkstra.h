@@ -45,7 +45,7 @@ namespace algorithm
         int goal_x_{0}, goal_y_{0};
 
         environment::EnvironmentInterfacePtr env_ptr_;
-        std::vector<std::function<bool(environment::EnvironmentInterfacePtr&, int, int, int&, int&)>> side_points_;
+        std::vector<std::function<bool(environment::EnvironmentInterfacePtr&, int, int, int&, int&)>> side_points_, dijkstra_side_points_;
         environment::Path path_;
         using VisitedTable = std::unordered_map<int, std::unordered_map<int, bool>>;
 
@@ -65,7 +65,6 @@ namespace algorithm
             };
         };
         std::vector<Node> nodes_;
-        VisitedTable visited_;
 
         bool _dijkstra(int start_x, int start_y, int &goal_x, int &goal_y,
             VisitedTable& visited, std::vector<environment::PathNode> &path);

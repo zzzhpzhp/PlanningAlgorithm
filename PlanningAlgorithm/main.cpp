@@ -116,16 +116,17 @@ void play()
 }
 
 // 算法切换函数
-void switch_algorithm(int index)
+bool switch_algorithm(int index)
 {
     if (index >= algorithms_ptr.size())
     {
         std::cerr << "Algorithm index \"" << index << "\" dose not exist." << std::endl;
-        return;
+        return false;
     }
 
     alg_ptr = algorithms_ptr[index];
     std::cout << "Selected algorithm is " << alg_ptr->getName() << std::endl;
+    return true;
 }
 
 void print_info()
@@ -158,7 +159,7 @@ main(int argc, char* argv[])
     algorithms_ptr.emplace_back(std::make_shared<algorithm::Bcd>(env_ptr, "Bcd"));
     algorithms_ptr.emplace_back(std::make_shared<algorithm::Astar>(env_ptr, "AStar"));
     algorithms_ptr.emplace_back(std::make_shared<algorithm::Dijkstra>(env_ptr, "Dijkstra"));
-    algorithms_ptr.emplace_back(std::make_shared<algorithm::BcdWidthDijkstra>(env_ptr, "BcdWidthDijkstra"));
+    algorithms_ptr.emplace_back(std::make_shared<algorithm::BcdWidthDijkstra>(env_ptr, "BcdWithDijkstra"));
     algorithms_ptr.emplace_back(std::make_shared<algorithm::BcdWithFootprint>(env_ptr, "BcdWithFootprint"));
 
     std::cout << "Obstacle radius: " << obstacle_radius << " " << "robot radius: " << robot_radius << std::endl;
@@ -192,12 +193,25 @@ main(int argc, char* argv[])
         env_ptr->display();
         // 读取键盘值
         auto key = cv::waitKey(2);
-        if (key == 't' || key == 'T')
+        switch (key)
         {
-            std::cout << "Terminate algorithm" << std::endl;
-            alg_ptr->stop();
-            env_ptr->stop();
+            case 't': case 'T':
+                std::cout << "Terminate algorithm" << std::endl;
+                alg_ptr->stop();
+                env_ptr->stop();
+                break;
+            case '+': case'=':
+                display_delay_time *= 2.0f;
+                env_ptr->setDisplayDelayTime(display_delay_time);
+                std::cout << "Increase display delay time: " << display_delay_time << std::endl;
+                break;
+            case '-': case '_':
+                display_delay_time /= 2.0f;
+                env_ptr->setDisplayDelayTime(display_delay_time);
+                std::cout << "Decrease display delay time: " << display_delay_time << std::endl;
+                break;
         }
+
         // 如果正在执行,则不做以下操作
         if (busy)
         {
@@ -232,8 +246,9 @@ main(int argc, char* argv[])
             case 'a': case 'A':
                 // 按下a鍵，切換算法
                 selected_algorithm = ++selected_algorithm % algorithms_ptr.size();
-                switch_algorithm(selected_algorithm);
+                if (switch_algorithm(selected_algorithm))
                 {
+                    env_ptr->setCurrentAlgorithmIndex(selected_algorithm);
                     auto start = env_ptr->getStart();
                     auto goal = env_ptr->getGoal();
                     alg_ptr->setStart(std::get<0>(start), std::get<1>(start));
@@ -251,10 +266,14 @@ main(int argc, char* argv[])
                 running = false;
                 break;
             case '1':
+                env_ptr->setCurrentAlgorithmIndex(selected_algorithm);
                 env_ptr->saveEnvironmntToDisk("../environment.json");
                 break;
             case '2':
                 env_ptr->loadEnvironmentFromDisk("../environment.json");
+                selected_algorithm = env_ptr->getCurrentAlgorithmIndex();
+                alg_ptr = algorithms_ptr[env_ptr->getCurrentAlgorithmIndex()];
+                std::cout << "Current algorithm: " << alg_ptr->getName() <<std::endl;
                 break;
             case '3':
                 env_ptr->switchMarkMode();
