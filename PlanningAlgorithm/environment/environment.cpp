@@ -290,12 +290,12 @@ namespace environment
         return true;
     }
 
-    bool Environment::setIntGridValByPlanXY(int x, int y, uint8_t r, uint8_t g, uint8_t b)
+    bool Environment::setIntGridValByPlanXY(int x, int y, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
     {
         auto ix = x * rect_size_;
         auto iy = y * rect_size_;
 
-        return setInteractiveGridValue(ix, iy, r, g, b);
+        return setInteractiveGridValue(ix, iy, r, g, b, a);
     }
 
     void Environment::clear()
@@ -348,7 +348,7 @@ namespace environment
         {
             nx = n.x * rect_size_;
             ny = n.y * rect_size_;
-            setInteractiveGridValue(nx, ny, n.r, n.g, n.b, 100);
+            setInteractiveGridValue(nx, ny, n.r, n.g, n.b, 50);
             std::this_thread::sleep_for(std::chrono::microseconds((int)(getDisplayDelayTime() * 1e6)));
             if (!is_running_.load())
             {

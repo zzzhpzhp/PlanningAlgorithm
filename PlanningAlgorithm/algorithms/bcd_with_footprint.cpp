@@ -76,7 +76,6 @@ namespace algorithm
         path_.clear();
         visited_.clear();
         cleaned_.clear();
-        in_path_.clear();
 
         auto val = env_ptr_->getGridValue(start_x_, start_y_);
         if (val == 0)
@@ -87,75 +86,84 @@ namespace algorithm
         {
             _mark_cleaned(start_x_, start_y_, limiting_index_l, limiting_index_h);
             env_ptr_->setIntGridValByPlanXY(start_x_, start_y_, 100, 100, 100);
-            in_path_[start_x_][start_y_] = true;
         }
-        pn.x = start_x_;
-        pn.y = start_y_;
-        path_.emplace_back(pn);
 
-        std::function<bool(int, int)> BcdWithFootprint = [&](int x, int y)->bool
+        std::function<bool()> BcdWithFootprint = [&]()->bool
         {
-            if (!is_running_)
-            {
-                return false;
-            }
-            visited_[x][y] = true;
-            in_path_[x][y] = true;
-            std::this_thread::sleep_for(std::chrono::microseconds((int)(env_ptr_->getAlgorithmRunningDelayTime() * 1e6)));
+            std::deque<std::tuple<int, int>> node_stack, storage_queue;
+            node_stack.emplace_back(start_x_, start_y_);
+            visited_[start_x_][start_y_] = true;
+
             int side_x, side_y;
             uint8_t side_val;
-            bool valid = false;
-            for (auto &side_node : side_points_)
+            bool valid = true;
+            int x{start_x_}, y{start_y_};
+            while(!node_stack.empty() && is_running_.load())
             {
-                if (!side_node(env_ptr_, x, y, side_x, side_y))
+                std::this_thread::sleep_for(
+                        std::chrono::microseconds((int)(env_ptr_->getAlgorithmRunningDelayTime() * 1e6)));
+                if (!valid)
                 {
-                    continue;
+                    env_ptr_->setIntGridValByPlanXY(x, y, 100, 0, 0);
+
+                    if (!_dijkstra(x, y, x, y, visited_, path_))
+                    {
+                        break;
+                    }
+                    env_ptr_->setIntGridValByPlanXY(x, y, 100, 100, 100);
+                    visited_[x][y] = true;
+                    pn.x = x;
+                    pn.y = y;
+                    path_.emplace_back(pn);
+
+//                        auto top = node_stack.back();
+//                        node_stack.pop_back();
+////                        storage_queue.push_front(top);
+//
+//                        x = std::get<0>(top);
+//                        y = std::get<1>(top);
                 }
-                side_val = env_ptr_->getGridValue(side_x, side_y);
-                if (side_val == 0 || visited_[side_x][side_y])
+                valid = false;
+                for (auto &side_node : side_points_)
                 {
-                    continue;
-                }
-                if (side_y != y)
-                {
-                    // 从高y开始检查
-                    auto h = std::max(side_y, y);
-                    if (!_position_validation(side_x, h, limiting_index_l, limiting_index_h))
+                    if (!side_node(env_ptr_, x, y, side_x, side_y))
                     {
                         continue;
                     }
-                }
+                    side_val = env_ptr_->getGridValue(side_x, side_y);
+                    if (side_val == 0 || visited_[side_x][side_y])
+                    {
+                        continue;
+                    }
+                    if (side_y != y)
+                    {
+                        // 从高y开始检查
+                        auto h = std::max(side_y, y);
+                        if (!_position_validation(side_x, h, limiting_index_l, limiting_index_h))
+                        {
+                            continue;
+                        }
+                    }
 
-                valid = true;
-                _mark_cleaned(side_x, side_y, limiting_index_l, limiting_index_h);
-                env_ptr_->setIntGridValByPlanXY(side_x, side_y, 100, 100, 100);
-                pn.x = side_x;
-                pn.y = side_y;
-                path_.emplace_back(pn);
-                if (!BcdWithFootprint(side_x, side_y))
-                {
-                    return false;
+                    valid = true;
+                    _mark_cleaned(side_x, side_y, limiting_index_l, limiting_index_h);
+                    env_ptr_->setIntGridValByPlanXY(side_x, side_y, 100, 100, 100);
+                    node_stack.emplace_back(side_x, side_y);
+                    visited_[side_x][side_y] = true;
+
+                    x = side_x;
+                    y = side_y;
+
+                    pn.x = x;
+                    pn.y = y;
+                    path_.emplace_back(pn);
+                    break;
                 }
             }
-            if (!valid)
-            {
-                // Dead point
-                env_ptr_->setIntGridValByPlanXY(x, y, 100, 0, 0);
-                if (!_dijkstra(x, y, x, y, visited_, path_))
-                {
-                    FL_PRINT
-                    return false;
-                }
-                if (!BcdWithFootprint(x, y))
-                {
-                    return false;
-                }
-            }
-            return true;
         };
 
-         BcdWithFootprint(start_x_, start_y_);
-         return true;
+        BcdWithFootprint();
+        return true;
     }
 
     bool BcdWithFootprint::_dijkstra(int start_x, int start_y, int &goal_x, int &goal_y,
@@ -192,7 +200,7 @@ namespace algorithm
             // 避免覆盖起始位置标志
             if (cur_->x != start_x || cur_->y != start_y)
             {
-//                env_ptr_->setIntGridValByPlanXY(cur_->x, cur_->y, 150, 150, 150);
+                env_ptr_->setIntGridValByPlanXY(cur_->x, cur_->y, 150, 150, 150, 50);
             }
 
             int limit_x, limit_y;
@@ -336,33 +344,33 @@ namespace algorithm
 
     void BcdWithFootprint::_mark_cleaned(int x, int y, int limiting_l, int limiting_h)
     {
-        for (int i = limiting_l; i <= 0; i++)
-        {
-            auto tx = x;
-            auto ty = i + y;
-            if (!env_ptr_->insideGrid(tx, ty))
-            {
-                continue;
-            }
-//            cleaned_[tx][ty] = true;
-            if (!in_path_[tx][ty])
-            {
-                env_ptr_->setIntGridValByPlanXY(tx, ty, 150, 150, 150);
-            }
-        }
-
-        for (int i = 1; i <= limiting_h; i++)
-        {
-            auto tx = x;
-            auto ty = i + y;
-            if (!env_ptr_->insideGrid(tx, ty))
-            {
-                continue;
-            }
-            if (!in_path_[tx][ty])
-            {
-                env_ptr_->setIntGridValByPlanXY(tx, ty, 150, 150, 150);
-            }
-        }
+//        for (int i = limiting_l; i <= 0; i++)
+//        {
+//            auto tx = x;
+//            auto ty = i + y;
+//            if (!env_ptr_->insideGrid(tx, ty))
+//            {
+//                continue;
+//            }
+////            cleaned_[tx][ty] = true;
+//            if (!in_path_[tx][ty])
+//            {
+//                env_ptr_->setIntGridValByPlanXY(tx, ty, 150, 150, 150);
+//            }
+//        }
+//
+//        for (int i = 1; i <= limiting_h; i++)
+//        {
+//            auto tx = x;
+//            auto ty = i + y;
+//            if (!env_ptr_->insideGrid(tx, ty))
+//            {
+//                continue;
+//            }
+//            if (!in_path_[tx][ty])
+//            {
+//                env_ptr_->setIntGridValByPlanXY(tx, ty, 150, 150, 150);
+//            }
+//        }
     }
 }

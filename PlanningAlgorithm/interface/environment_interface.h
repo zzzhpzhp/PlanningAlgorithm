@@ -86,7 +86,7 @@ namespace environment
         setInteractiveGridValue(int x, int y, uint8_t r = 0, uint8_t g = 0, uint8_t b = 0, uint8_t a = 0) = 0;
 
         virtual bool
-        setIntGridValByPlanXY(int x, int y, uint8_t r = 0, uint8_t g = 0, uint8_t b = 0) = 0;
+        setIntGridValByPlanXY(int x, int y, uint8_t r = 0, uint8_t g = 0, uint8_t b = 0, uint8_t a = 70) = 0;
 
         virtual void
         drawPath(const Path &path) = 0;
@@ -276,7 +276,7 @@ namespace environment
             worldToMap(x, y, mx, my);
             setCost(mx, my, cost);
         }
-        
+
     protected:
 
         std::atomic<int> robot_radius_{5}, algorithm_index_{0};
