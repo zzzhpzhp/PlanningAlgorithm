@@ -84,6 +84,10 @@ namespace algorithm
         pn.y = start_y_;
         path_.emplace_back(pn);
 
+        if (env_ptr_->getGridValue(start_x_, start_y_) == 0)
+        {
+            return false;
+        }
         std::unordered_map<int, std::unordered_map<int, bool>> visited;
         std::function<bool(int, int)> dfs = [&](int x, int y)->bool
         {
@@ -171,7 +175,7 @@ namespace algorithm
     {
         auto size_x = env_ptr_->getGridXSizeInCells(), size_y = env_ptr_->getGridYSizeInCells();
         nodes_ = std::vector<Node>(size_x * size_y);
-        std::priority_queue<Node*, std::vector<Node*>> nodes_queue;
+        std::priority_queue<Node*, std::vector<Node*>, Node> nodes_queue;
         int id_index = start_y * size_x + start_x;
         Node *cur_ = &nodes_[id_index];
         cur_->x = start_x;

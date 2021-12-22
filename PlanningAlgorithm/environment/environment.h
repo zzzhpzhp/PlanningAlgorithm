@@ -181,6 +181,7 @@ namespace environment
         std::unordered_map<int, std::shared_ptr<Edge>> et_;
 
         cv::Mat display_img_, planning_grid_;
+        // di: display image pi: planning image
         cv::Mat di_pp_, di_pn_, di_nn_, di_np_, pi_pp_, pi_pn_, pi_nn_, pi_np_;
 
         cv::Mat *

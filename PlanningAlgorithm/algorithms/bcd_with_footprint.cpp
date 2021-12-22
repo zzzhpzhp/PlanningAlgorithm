@@ -78,13 +78,17 @@ namespace algorithm
         cleaned_.clear();
         in_path_.clear();
 
+        auto val = env_ptr_->getGridValue(start_x_, start_y_);
+        if (val == 0)
+        {
+            return false;
+        }
         if (_position_validation(start_x_, start_y_, limiting_index_l, limiting_index_h))
         {
             _mark_cleaned(start_x_, start_y_, limiting_index_l, limiting_index_h);
             env_ptr_->setIntGridValByPlanXY(start_x_, start_y_, 100, 100, 100);
             in_path_[start_x_][start_y_] = true;
         }
-        visited_[start_x_][start_y_] = true;
         pn.x = start_x_;
         pn.y = start_y_;
         path_.emplace_back(pn);
@@ -95,6 +99,8 @@ namespace algorithm
             {
                 return false;
             }
+            visited_[x][y] = true;
+            in_path_[x][y] = true;
             std::this_thread::sleep_for(std::chrono::microseconds((int)(env_ptr_->getAlgorithmRunningDelayTime() * 1e6)));
             int side_x, side_y;
             uint8_t side_val;
@@ -110,31 +116,46 @@ namespace algorithm
                 {
                     continue;
                 }
-                visited_[side_x][side_y] = true;
-                if (_position_validation(side_x, side_y, limiting_index_l, limiting_index_h))
+                if (side_y != y)
                 {
-                    valid = true;
-                    _mark_cleaned(side_x, side_y, limiting_index_l, limiting_index_h);
-                    env_ptr_->setIntGridValByPlanXY(side_x, side_y, 100, 100, 100);
-                    pn.x = side_x;
-                    pn.y = side_y;
-                    path_.emplace_back(pn);
-                    in_path_[side_x][side_y] = true;
-                    if (!BcdWithFootprint(side_x, side_y))
+                    // 从高y开始检查
+                    auto h = std::max(side_y, y);
+                    if (!_position_validation(side_x, h, limiting_index_l, limiting_index_h))
                     {
-                        return false;
+                        continue;
                     }
+                }
+
+                valid = true;
+                _mark_cleaned(side_x, side_y, limiting_index_l, limiting_index_h);
+                env_ptr_->setIntGridValByPlanXY(side_x, side_y, 100, 100, 100);
+                pn.x = side_x;
+                pn.y = side_y;
+                path_.emplace_back(pn);
+                if (!BcdWithFootprint(side_x, side_y))
+                {
+                    return false;
                 }
             }
             if (!valid)
             {
                 // Dead point
                 env_ptr_->setIntGridValByPlanXY(x, y, 100, 0, 0);
+                if (!_dijkstra(x, y, x, y, visited_, path_))
+                {
+                    FL_PRINT
+                    return false;
+                }
+                if (!BcdWithFootprint(x, y))
+                {
+                    return false;
+                }
             }
             return true;
         };
 
-        return BcdWithFootprint(start_x_, start_y_);;
+         BcdWithFootprint(start_x_, start_y_);
+         return true;
     }
 
     bool BcdWithFootprint::_dijkstra(int start_x, int start_y, int &goal_x, int &goal_y,
@@ -171,10 +192,12 @@ namespace algorithm
             // 避免覆盖起始位置标志
             if (cur_->x != start_x || cur_->y != start_y)
             {
-                env_ptr_->setIntGridValByPlanXY(cur_->x, cur_->y, 150, 150, 150);
+//                env_ptr_->setIntGridValByPlanXY(cur_->x, cur_->y, 150, 150, 150);
             }
 
-            if (!visited[cur_->x][cur_->y])
+            int limit_x, limit_y;
+            if (!visited[cur_->x][cur_->y] && _position_validation(cur_->x, cur_->y, limit_x, limit_y) &&
+                abs(cur_->y - start_y) % robot_radius_ == 0)
             {
                 // 找到未被遍历的网格，退出
                 goal_x = cur_->x;
@@ -272,7 +295,7 @@ namespace algorithm
     {
         limiting_index_l = limiting_index_h = 0;
         bool res{false};
-        for (int i = 0; i > -robot_radius_; i--)
+        for (int i = -0; i >= -robot_radius_; i--)
         {
             auto tx = x;
             auto ty = i + y;
@@ -282,8 +305,9 @@ namespace algorithm
             }
 
             auto val = env_ptr_->getGridValue(tx, ty);
-            if (cleaned_[tx][ty] || val == 0)
+            if (val == 0)
             {
+                res = false;
                 break;
             }
             res = true;
@@ -320,7 +344,7 @@ namespace algorithm
             {
                 continue;
             }
-            cleaned_[tx][ty] = true;
+//            cleaned_[tx][ty] = true;
             if (!in_path_[tx][ty])
             {
                 env_ptr_->setIntGridValByPlanXY(tx, ty, 150, 150, 150);
