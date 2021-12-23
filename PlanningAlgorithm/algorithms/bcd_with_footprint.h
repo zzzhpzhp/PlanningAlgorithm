@@ -72,7 +72,9 @@ namespace algorithm
         std::atomic_bool search_leap_{false};
 
         bool _position_validation(int x, int y);
-        void _mark_cleaned(int x, int y);
+        void _mark_up_down_covered(int x, int y);
+        void _mark_footprint_covered(int x, int y);
+        void _mark_footprint_covered(const environment::Path& path);
         bool _goal_reached(int x, int y);
         bool _dijkstra(int start_x, int start_y, int &goal_x, int &goal_y,
                        VisitedTable& visited, std::vector<environment::PathNode> &path);

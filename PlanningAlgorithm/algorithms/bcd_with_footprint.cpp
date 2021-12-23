@@ -2,18 +2,25 @@
 
 // 在遇到死区时是否使用Dijkstra算法找到新的起点
 #define USE_DIJKSTRA 1
-// 是否显示Dijkstra的搜索过程
-#define DIJKSTRA_SEARCH_DISPLAY 1
-// 是否显示Dijkstra搜索得到的链接各个覆盖区域的桥接路径
-#define DISPLAY_BRIDGE_PATH 1
-// 在常规覆盖结束后是否进行未覆盖区域搜索覆盖
-#define LEAP_SEARCH_ENABLE 1
-// 是否使能漏覆盖区域尺寸过滤
-#define LEAP_THRESHOLD_ENABLE 1
 
-#if LEAP_THRESHOLD_ENABLE
-// 漏覆盖区域面积尺寸阈值
-const int leap_threshold = 3;
+#if USE_DIJKSTRA
+    // 是否显示Dijkstra的搜索过程
+    #define DIJKSTRA_SEARCH_DISPLAY 1
+    // 是否显示Dijkstra搜索得到的链接各个覆盖区域的桥接路径
+    #define DISPLAY_BRIDGE_PATH 1
+
+    // 在常规覆盖结束后是否进行未覆盖区域搜索覆盖
+    #define LEAP_SEARCH_ENABLE 1
+
+    #if LEAP_SEARCH_ENABLE
+        // 是否使能漏覆盖区域尺寸过滤
+        #define LEAP_THRESHOLD_ENABLE 1
+
+        #if LEAP_THRESHOLD_ENABLE
+        // 漏覆盖区域面积尺寸阈值
+        const int leap_threshold = 5;
+        #endif
+    #endif
 #endif
 
 namespace algorithm
@@ -103,7 +110,7 @@ namespace algorithm
             return false;
         }
         _position_validation(start_x_, start_y_);
-        _mark_cleaned(start_x_, start_y_);
+        _mark_up_down_covered(start_x_, start_y_);
 
         std::deque<std::tuple<int, int>> node_queue;
         node_queue.emplace_back(start_x_, start_y_);
@@ -154,6 +161,10 @@ namespace algorithm
                 if (!_dijkstra(x, y, x, y, visited_, last_bridge_path_))
                 {
 #if LEAP_SEARCH_ENABLE
+                    if (!search_leap_)
+                    {
+                        _mark_footprint_covered(path_);
+                    }
                     search_leap_ = true;
                     // 切换颜色
                     pn.b = 255;
@@ -178,7 +189,7 @@ namespace algorithm
                 y = std::get<1>(top);
 #endif
                 _position_validation(x, y);
-                _mark_cleaned(x, y);
+                _mark_up_down_covered(x, y);
             }
             valid = false;
 
@@ -193,10 +204,13 @@ namespace algorithm
                 {
                     continue;
                 }
+#if LEAP_SEARCH_ENABLE
+                // 在漏覆盖检查时，需要检测是否已经清扫
                 if (search_leap_ && cleaned_[side_x][side_y])
                 {
                     continue;
                 }
+#endif
                 if (side_y != y)
                 {
                     // 从高y开始检查
@@ -206,13 +220,9 @@ namespace algorithm
                         continue;
                     }
                 }
-                else
-                {
-                    _position_validation(side_x, side_y);
-                }
 
                 valid = true;
-                _mark_cleaned(side_x, side_y);
+                _mark_up_down_covered(side_x, side_y);
                 env_ptr_->setIntGridValByPlanXY(side_x, side_y, 100, 100, 100);
                 node_queue.emplace_back(side_x, side_y);
                 visited_[side_x][side_y] = true;
@@ -410,7 +420,7 @@ namespace algorithm
         return res;
     }
 
-    void BcdWithFootprint::_mark_cleaned(int x, int y)
+    void BcdWithFootprint::_mark_up_down_covered(int x, int y)
     {
         for (int i = -1; i > -robot_radius_ ; i--)
         {
@@ -468,6 +478,43 @@ namespace algorithm
         else
         {
             return !visited_[x][y] && !cleaned_[x][y];
+        }
+    }
+
+    void BcdWithFootprint::_mark_footprint_covered(int x, int y)
+    {
+        for (auto p : env_ptr_->getFootprint())
+        {
+            p.x += x;
+            p.y += y;
+
+
+            if (!env_ptr_->insideGrid(p.x, p.y))
+            {
+                continue;
+            }
+            if (cleaned_[p.x][p.y])
+            {
+                continue;
+            }
+            if (!visited_[p.x][p.y])
+            {
+                auto val = env_ptr_->getGridValue(p.x, p.y);
+                if (val == 0)
+                {
+                    continue;
+                }
+                env_ptr_->setIntGridValByPlanXY(p.x, p.y, 0, 0, 255);
+            }
+            cleaned_[p.x][p.y] = true;
+        }
+    }
+
+    void BcdWithFootprint::_mark_footprint_covered(const environment::Path &path)
+    {
+        for (const auto &p : path)
+        {
+            _mark_footprint_covered(p.x, p.y);
         }
     }
 }
