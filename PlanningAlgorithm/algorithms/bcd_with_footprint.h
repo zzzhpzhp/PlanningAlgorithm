@@ -47,7 +47,8 @@ namespace algorithm
         std::vector<std::function<bool(environment::EnvironmentInterfacePtr&, int, int, int&, int&)>> side_points_, dijkstra_side_points_;
         environment::Path path_;
 
-        std::unordered_map<int, std::unordered_map<int, bool>> visited_;
+        using VisitedTable = std::unordered_map<int, std::unordered_map<int, bool>>;
+        std::unordered_map<int, std::unordered_map<int, bool>> visited_, cleaned_;
 
         struct Node
         {
@@ -65,9 +66,12 @@ namespace algorithm
         };
         std::vector<Node> nodes_;
 
-        bool _position_validation(int x, int y, int &limiting_index_l, int &limiting_index_h);
-        void _mark_cleaned(int x, int y, int limiting_l, int limiting_h);        using VisitedTable = std::unordered_map<int, std::unordered_map<int, bool>>;
+        std::function<bool(int, int)> reach_judge_;
+        std::atomic_bool search_leap_{false};
 
+        bool _position_validation(int x, int y, int &limiting_index_l, int &limiting_index_h);
+        void _mark_cleaned(int x, int y, int limiting_l, int limiting_h);
+        bool _goal_reached(int x, int y);
         bool _dijkstra(int start_x, int start_y, int &goal_x, int &goal_y,
                        VisitedTable& visited, std::vector<environment::PathNode> &path);
     };

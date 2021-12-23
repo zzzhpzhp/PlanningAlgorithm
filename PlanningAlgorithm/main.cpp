@@ -1,19 +1,19 @@
 #include "main.h"
 
 // 交互窗口宽度（网格）
-int window_width = 162;
+int window_width = 220;
 // 交互窗口高度（网格）
-int window_length = 100;
+int window_length = 150;
 // 一个网格的宽度，单位：像素
 int width = 5;
 // 算法步骤执行延时（秒）
-float running_delay_time = 0.0000;
+float running_delay_time = 0.000;
 // 算法执行结果演示时的步骤延时（秒）
 float display_delay_time = 0.001;
 // 算法执行成功后，是否显示算法给出的路径
 bool show_path = true;
 // 障碍物标记的宽度，以给定坐标为中心
-int obstacle_radius = 3;
+int obstacle_radius = 5;
 int free_radius = 2;
 // 机器人半径
 int robot_radius = 5;

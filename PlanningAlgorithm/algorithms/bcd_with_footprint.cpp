@@ -1,5 +1,7 @@
 #include "bcd_with_footprint.h"
-
+#define USE_DIJKSTRA 1
+#define DIJKSTRA_SEARCH_DISPLAY 0
+#define LEAP_SEARCH_ENABLE 1
 namespace algorithm
 {
     void BcdWithFootprint::initialize(environment::EnvironmentInterfacePtr &env, std::string name)
@@ -53,13 +55,13 @@ namespace algorithm
 
     bool BcdWithFootprint::planning()
     {
-#define USE_DIJKSTRA 1
         if (!initialized_)
         {
             std::cerr << "Should initialize first." << std::endl;
             return false;
         }
 
+        reach_judge_ = boost::bind(&BcdWithFootprint::_goal_reached, this, _1, _2);
         if (!env_ptr_->insideGrid(goal_x_, goal_y_) || !env_ptr_->insideGrid(start_x_, start_y_))
         {
             std::cerr << "Start or Goal pose out of bound." << std::endl;
@@ -76,6 +78,8 @@ namespace algorithm
         pn.a = 255;
         path_.clear();
         visited_.clear();
+        cleaned_.clear();
+        search_leap_ = false;
 
         auto val = env_ptr_->getGridValue(start_x_, start_y_);
         if (val == 0)
@@ -88,6 +92,7 @@ namespace algorithm
         std::deque<std::tuple<int, int>> node_queue;
         node_queue.emplace_back(start_x_, start_y_);
         visited_[start_x_][start_y_] = true;
+        cleaned_[start_x_][start_y_] = true;
 
         int side_x, side_y;
         uint8_t side_val;
@@ -101,13 +106,21 @@ namespace algorithm
             {
                 env_ptr_->setIntGridValByPlanXY(x, y, 100, 0, 0);
 #if USE_DIJKSTRA
-
                 if (!_dijkstra(x, y, x, y, visited_, path_))
                 {
+#if LEAP_SEARCH_ENABLE
+                    search_leap_ = true;
+                    if (!_dijkstra(x, y, x, y, visited_, path_))
+                    {
+                        break;
+                    }
+#else
                     break;
+#endif
                 }
                 env_ptr_->setIntGridValByPlanXY(x, y, 100, 100, 100);
                 visited_[x][y] = true;
+                cleaned_[x][y] = true;
                 pn.x = x;
                 pn.y = y;
                 path_.emplace_back(pn);
@@ -132,6 +145,10 @@ namespace algorithm
                 {
                     continue;
                 }
+                if (search_leap_ && cleaned_[side_x][side_y])
+                {
+                    continue;
+                }
                 if (side_y != y)
                 {
                     // 从高y开始检查
@@ -151,6 +168,7 @@ namespace algorithm
                 env_ptr_->setIntGridValByPlanXY(side_x, side_y, 100, 100, 100);
                 node_queue.emplace_back(side_x, side_y);
                 visited_[side_x][side_y] = true;
+                cleaned_[side_x][side_y] = true;
 
                 x = side_x;
                 y = side_y;
@@ -177,8 +195,16 @@ namespace algorithm
         cur->dist = 0;
         nodes_queue.push(cur);
         environment::PathNode pn{};
-        pn.r = 255;
-        pn.a = 255;
+        if (!search_leap_)
+        {
+            pn.r = 255;
+        }
+        else
+        {
+            pn.r = 0;
+            pn.b = 255;
+        }
+        pn.a = 50;
         bool find = false;
         int side_to_cur_cost{0};
         int through_cur_cost{0};
@@ -194,16 +220,14 @@ namespace algorithm
             cur->in_close_list = true;
             cur->in_open_list = false;
 
+#if DIJKSTRA_SEARCH_DISPLAY
             // 避免覆盖起始位置标志
             if (cur->x != start_x || cur->y != start_y)
             {
-//                env_ptr_->setIntGridValByPlanXY(cur->x, cur->y, 150, 150, 150, 50);
+                env_ptr_->setIntGridValByPlanXY(cur->x, cur->y, 100, 100, 100, 50);
             }
-
-            int limit_x, limit_y;
-            auto val = env_ptr_->getGridValue(cur->x, cur->y);
-            if (!visited[cur->x][cur->y] && val != 0 &&
-                abs(cur->y - start_y) % robot_radius_ == 0)
+#endif
+            if (reach_judge_(cur->x, cur->y))
             {
                 // 找到未被遍历的网格，退出
                 goal_x = cur->x;
@@ -353,6 +377,7 @@ namespace algorithm
             {
                 env_ptr_->setIntGridValByPlanXY(tx, ty, 150, 150, 150);
             }
+            cleaned_[tx][ty] = true;
         }
 
         for (int i = 1; i <= limiting_h; i++)
@@ -367,6 +392,25 @@ namespace algorithm
             {
                 env_ptr_->setIntGridValByPlanXY(tx, ty, 150, 150, 150);
             }
+            cleaned_[tx][ty] = true;
+        }
+    }
+
+    bool BcdWithFootprint::_goal_reached(int x, int y)
+    {
+        auto val = env_ptr_->getGridValue(x, y);
+        if (val == 0)
+        {
+            return false;
+        }
+
+        if (!search_leap_)
+        {
+            return (!visited_[x][y] && !cleaned_[x][y] && abs(y - start_y_) % robot_radius_ == 0);
+        }
+        else
+        {
+            return !visited_[x][y] && !cleaned_[x][y];
         }
     }
 }
