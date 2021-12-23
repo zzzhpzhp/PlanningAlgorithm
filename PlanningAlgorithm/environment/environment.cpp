@@ -972,4 +972,35 @@ namespace environment
 
         return nullptr;
     }
+
+    bool Environment::generateFootprintByRadius()
+    {
+        if (robot_radius_ <= 0.0f)
+        {
+            std::cerr << "Robot radius too small, can't generate footprint." << std::endl;
+            return false;
+        }
+        GridPoint p{0};
+        footprint_.clear();
+        std::cout << "Robot radius " << robot_radius_ <<std::endl;
+        for (int i = -robot_radius_+1; i < robot_radius_; i++)
+        {
+            for (int j = -robot_radius_+1; j < robot_radius_; j++)
+            {
+                if ((i*i + j*j) <= robot_radius_*robot_radius_)
+                {
+                    p.x = i;
+                    p.y = j;
+                    footprint_.emplace_back(p);
+                }
+            }
+        }
+        std::cout << "Robot footprint points size " << footprint_.size() << std::endl;
+        return true;
+    }
+
+    const Footprint &Environment::getFootprint()
+    {
+        return footprint_;
+    }
 }

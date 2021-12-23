@@ -109,6 +109,12 @@ namespace environment
         void
         setFootprint(Footprint footprint) override;
 
+        const Footprint&
+        getFootprint() override;
+
+        bool
+        generateFootprintByRadius() override;
+
         void
         drawPolygon(const GridPolygon &polygon) override;
 

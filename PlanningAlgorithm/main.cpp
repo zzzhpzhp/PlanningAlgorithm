@@ -1,13 +1,13 @@
 #include "main.h"
 
 // 交互窗口宽度（网格）
-int window_width = 180;
+int window_width = 380;
 // 交互窗口高度（网格）
-int window_length = 140;
+int window_length = 240;
 // 一个网格的宽度，单位：像素
 int width = 4;
 // 算法步骤执行延时（秒）
-float running_delay_time = 0.000001;
+float running_delay_time = 0.0;
 // 算法执行结果演示时的步骤延时（秒）
 float display_delay_time = 0.001;
 // 算法执行成功后，是否显示算法给出的路径
@@ -154,6 +154,7 @@ main(int argc, char* argv[])
     env_ptr->setRobotRadius(robot_radius);
     env_ptr->setAlgorithmRunningDelayTime(running_delay_time);
     env_ptr->setDisplayDelayTime(display_delay_time);
+    env_ptr->generateFootprintByRadius();
 
     algorithms_ptr.emplace_back(std::make_shared<algorithm::Dfs>(env_ptr, "Dfs"));
     algorithms_ptr.emplace_back(std::make_shared<algorithm::Bfs>(env_ptr, "Bfs"));

@@ -35,12 +35,8 @@ namespace environment
     using Polygon = std::vector<Point>;
     using GridPolygon = std::vector<GridPoint>;
     using Grids = std::vector<GridPoint>;
+    using Footprint = std::vector<GridPoint>;
 
-    struct Footprint
-    {
-        Point center;
-        std::vector<Point> footprint;
-    };
 
     struct Edge
     {

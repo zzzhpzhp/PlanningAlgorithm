@@ -166,6 +166,12 @@ namespace environment
         virtual void
         setFootprint(Footprint footprint) = 0;
 
+        virtual const Footprint&
+        getFootprint() = 0;
+
+        virtual bool
+        generateFootprintByRadius() = 0;
+
         virtual void
         drawPolygon(const GridPolygon &polygon) = 0;
 
