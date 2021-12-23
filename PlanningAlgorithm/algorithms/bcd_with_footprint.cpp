@@ -4,8 +4,17 @@
 #define USE_DIJKSTRA 1
 // 是否显示Dijkstra的搜索过程
 #define DIJKSTRA_SEARCH_DISPLAY 1
+// 是否显示Dijkstra搜索得到的链接各个覆盖区域的桥接路径
+#define DISPLAY_BRIDGE_PATH 1
 // 在常规覆盖结束后是否进行未覆盖区域搜索覆盖
 #define LEAP_SEARCH_ENABLE 1
+// 是否使能漏覆盖区域尺寸过滤
+#define LEAP_THRESHOLD_ENABLE 1
+
+#if LEAP_THRESHOLD_ENABLE
+// 漏覆盖区域面积尺寸阈值
+const int leap_threshold = 3;
+#endif
 
 namespace algorithm
 {
@@ -83,7 +92,10 @@ namespace algorithm
         path_.clear();
         visited_.clear();
         cleaned_.clear();
+        last_cover_path_.clear();
+        last_bridge_path_.clear();
         search_leap_ = false;
+        std::tuple<int, int> last_dead_pose_{0,0};
 
         auto val = env_ptr_->getGridValue(start_x_, start_y_);
         if (val == 0)
@@ -109,15 +121,43 @@ namespace algorithm
             if (!valid)
             {
                 env_ptr_->setIntGridValByPlanXY(x, y, 100, 0, 0);
+                std::cout << "Last cover points " << last_cover_path_.size() << std::endl;
+
+                if (!last_bridge_path_.empty())
+                {
+#if LEAP_THRESHOLD_ENABLE & LEAP_SEARCH_ENABLE
+                    if (last_cover_path_.size() > leap_threshold || !search_leap_)
+#endif
+                    {
+                        path_.insert(path_.end(), last_bridge_path_.begin(), last_bridge_path_.end());
+                        last_bridge_path_.clear();
+                        path_.insert(path_.end(), last_cover_path_.begin(), last_cover_path_.end());
+                        last_cover_path_.clear();
+                    }
+#if LEAP_THRESHOLD_ENABLE & LEAP_SEARCH_ENABLE
+                    else
+                    {
+                        last_bridge_path_.clear();
+                        last_cover_path_.clear();
+                        x = std::get<0>(last_dead_pose_);
+                        y = std::get<1>(last_dead_pose_);
+                    }
+#endif
+                }
+                else
+                {
+                    path_.insert(path_.end(), last_cover_path_.begin(), last_cover_path_.end());
+                    last_cover_path_.clear();
+                }
 #if USE_DIJKSTRA
-                if (!_dijkstra(x, y, x, y, visited_, path_))
+                last_dead_pose_ = std::make_tuple(x, y);
+                if (!_dijkstra(x, y, x, y, visited_, last_bridge_path_))
                 {
 #if LEAP_SEARCH_ENABLE
                     search_leap_ = true;
                     // 切换颜色
                     pn.b = 255;
-//                    pn.b = 255;
-                    if (!_dijkstra(x, y, x, y, visited_, path_))
+                    if (!_dijkstra(x, y, x, y, visited_, last_bridge_path_))
                     {
                         break;
                     }
@@ -130,7 +170,7 @@ namespace algorithm
                 cleaned_[x][y] = true;
                 pn.x = x;
                 pn.y = y;
-                path_.emplace_back(pn);
+                last_cover_path_.emplace_back(pn);
 #else
                 auto top = node_queue.back();
                 node_queue.pop_back();
@@ -183,7 +223,7 @@ namespace algorithm
 
                 pn.x = x;
                 pn.y = y;
-                path_.emplace_back(pn);
+                last_cover_path_.emplace_back(pn);
                 break;
             }
         }
@@ -311,6 +351,7 @@ namespace algorithm
                 t_path.emplace_back(pn);
                 cur = cur->parent_node;
             }
+#if DISPLAY_BRIDGE_PATH
             if (!t_path.empty())
             {
                 // 去掉起点
@@ -318,6 +359,7 @@ namespace algorithm
                 std::reverse(t_path.begin(), t_path.end());
                 path.insert(path.end(), t_path.begin(), t_path.end());
             }
+#endif
         }
 
         return find;

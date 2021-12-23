@@ -46,6 +46,8 @@ namespace algorithm
         environment::EnvironmentInterfacePtr env_ptr_;
         std::vector<std::function<bool(environment::EnvironmentInterfacePtr&, int, int, int&, int&)>> side_points_, dijkstra_side_points_;
         environment::Path path_;
+        environment::Path last_cover_path_;
+        environment::Path last_bridge_path_;
 
         using VisitedTable = std::unordered_map<int, std::unordered_map<int, bool>>;
         std::unordered_map<int, std::unordered_map<int, bool>> visited_, cleaned_;
