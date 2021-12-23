@@ -47,12 +47,11 @@ namespace algorithm
         std::vector<std::function<bool(environment::EnvironmentInterfacePtr&, int, int, int&, int&)>> side_points_, dijkstra_side_points_;
         environment::Path path_;
 
-        std::unordered_map<int, std::unordered_map<int, bool>> visited_, cleaned_, in_path_, in_queue_;
+        std::unordered_map<int, std::unordered_map<int, bool>> visited_;
 
         struct Node
         {
             int x, y;
-            int id;
             int dist;
             Node *parent_node;
             bool in_open_list = false;
