@@ -21,9 +21,9 @@ namespace algorithm
 
 
         side_points_.emplace_back(boost::bind(&BcdWidthDijkstra::_get_right, this, _1, _2, _3, _4, _5, 1));
+        side_points_.emplace_back(boost::bind(&BcdWidthDijkstra::_get_left, this, _1, _2, _3, _4, _5, 1));
         side_points_.emplace_back(boost::bind(&BcdWidthDijkstra::_get_middle_higher, this, _1, _2, _3, _4, _5, 1));
         side_points_.emplace_back(boost::bind(&BcdWidthDijkstra::_get_middle_lower, this, _1, _2, _3, _4, _5, 1));
-        side_points_.emplace_back(boost::bind(&BcdWidthDijkstra::_get_left, this, _1, _2, _3, _4, _5, 1));
 
 //        side_points_.emplace_back(boost::bind(&BcdWidthDijkstra::_get_higher_right, this, _1, _2, _3, _4, _5, 1));
 //        side_points_.emplace_back(boost::bind(&BcdWidthDijkstra::_get_higher_left, this, _1, _2, _3, _4, _5, 1));
@@ -111,28 +111,6 @@ namespace algorithm
             int side_x, side_y;
             uint8_t side_val;
             bool find = false;
-
-            side_points_.clear();
-            if (y > start_y_)
-            {
-                side_points_.emplace_back(boost::bind(&BcdWidthDijkstra::_get_left, this, _1, _2, _3, _4, _5, 1));
-                side_points_.emplace_back(boost::bind(&BcdWidthDijkstra::_get_right, this, _1, _2, _3, _4, _5, 1));
-            }
-            else
-            {
-                side_points_.emplace_back(boost::bind(&BcdWidthDijkstra::_get_right, this, _1, _2, _3, _4, _5, 1));
-                side_points_.emplace_back(boost::bind(&BcdWidthDijkstra::_get_left, this, _1, _2, _3, _4, _5, 1));
-            }
-            if (x > start_x_)
-            {
-                side_points_.emplace_back(boost::bind(&BcdWidthDijkstra::_get_middle_lower, this, _1, _2, _3, _4, _5, 1));
-                side_points_.emplace_back(boost::bind(&BcdWidthDijkstra::_get_middle_higher, this, _1, _2, _3, _4, _5, 1));
-            }
-            else
-            {
-                side_points_.emplace_back(boost::bind(&BcdWidthDijkstra::_get_middle_higher, this, _1, _2, _3, _4, _5, 1));
-                side_points_.emplace_back(boost::bind(&BcdWidthDijkstra::_get_middle_lower, this, _1, _2, _3, _4, _5, 1));
-            }
 
             for (auto &side_node : side_points_)
             {

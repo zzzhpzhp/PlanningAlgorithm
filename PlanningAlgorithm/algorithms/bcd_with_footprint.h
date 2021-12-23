@@ -69,8 +69,8 @@ namespace algorithm
         std::function<bool(int, int)> reach_judge_;
         std::atomic_bool search_leap_{false};
 
-        bool _position_validation(int x, int y, int &limiting_index_l, int &limiting_index_h);
-        void _mark_cleaned(int x, int y, int limiting_l, int limiting_h);
+        bool _position_validation(int x, int y);
+        void _mark_cleaned(int x, int y);
         bool _goal_reached(int x, int y);
         bool _dijkstra(int start_x, int start_y, int &goal_x, int &goal_y,
                        VisitedTable& visited, std::vector<environment::PathNode> &path);

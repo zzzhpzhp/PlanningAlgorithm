@@ -9,7 +9,7 @@ namespace algorithm
         env_ptr_ = env;
         name_ = name;
         robot_radius_ = env_ptr_->getRobotRadius();
-        
+
         side_points_.emplace_back(boost::bind(&BcdWithFootprint::_get_right, this, _1, _2, _3, _4, _5, 1));
         side_points_.emplace_back(boost::bind(&BcdWithFootprint::_get_left, this, _1, _2, _3, _4, _5, 1));
         side_points_.emplace_back(boost::bind(&BcdWithFootprint::_get_middle_higher, this, _1, _2, _3, _4, _5, robot_radius_));
@@ -86,8 +86,8 @@ namespace algorithm
         {
             return false;
         }
-        _position_validation(start_x_, start_y_, limiting_index_l, limiting_index_h);
-        _mark_cleaned(start_x_, start_y_, limiting_index_l, limiting_index_h);
+        _position_validation(start_x_, start_y_);
+        _mark_cleaned(start_x_, start_y_);
 
         std::deque<std::tuple<int, int>> node_queue;
         node_queue.emplace_back(start_x_, start_y_);
@@ -130,10 +130,31 @@ namespace algorithm
                 x = std::get<0>(top);
                 y = std::get<1>(top);
 #endif
-                _position_validation(x, y, limiting_index_l, limiting_index_h);
-                _mark_cleaned(x, y, limiting_index_l, limiting_index_h);
+                _position_validation(x, y);
+                _mark_cleaned(x, y);
             }
             valid = false;
+//            side_points_.clear();
+//            if (y > start_y_)
+//            {
+//                side_points_.emplace_back(boost::bind(&BcdWithFootprint::_get_left, this, _1, _2, _3, _4, _5, 1));
+//                side_points_.emplace_back(boost::bind(&BcdWithFootprint::_get_right, this, _1, _2, _3, _4, _5, 1));
+//            }
+//            else
+//            {
+//                side_points_.emplace_back(boost::bind(&BcdWithFootprint::_get_right, this, _1, _2, _3, _4, _5, 1));
+//                side_points_.emplace_back(boost::bind(&BcdWithFootprint::_get_left, this, _1, _2, _3, _4, _5, 1));
+//            }
+//            if (x > start_x_)
+//            {
+//                side_points_.emplace_back(boost::bind(&BcdWithFootprint::_get_middle_lower, this, _1, _2, _3, _4, _5, robot_radius_));
+//                side_points_.emplace_back(boost::bind(&BcdWithFootprint::_get_middle_higher, this, _1, _2, _3, _4, _5, robot_radius_));
+//            }
+//            else
+//            {
+//                side_points_.emplace_back(boost::bind(&BcdWithFootprint::_get_middle_higher, this, _1, _2, _3, _4, _5, robot_radius_));
+//                side_points_.emplace_back(boost::bind(&BcdWithFootprint::_get_middle_lower, this, _1, _2, _3, _4, _5, robot_radius_));
+//            }
             for (auto &side_node : side_points_)
             {
                 if (!side_node(env_ptr_, x, y, side_x, side_y))
@@ -153,18 +174,18 @@ namespace algorithm
                 {
                     // 从高y开始检查
                     auto h = std::max(side_y, y);
-                    if (!_position_validation(side_x, h, limiting_index_l, limiting_index_h))
+                    if (!_position_validation(side_x, h))
                     {
                         continue;
                     }
                 }
                 else
                 {
-                    _position_validation(side_x, side_y, limiting_index_l, limiting_index_h);
+                    _position_validation(side_x, side_y);
                 }
 
                 valid = true;
-                _mark_cleaned(side_x, side_y, limiting_index_l, limiting_index_h);
+                _mark_cleaned(side_x, side_y);
                 env_ptr_->setIntGridValByPlanXY(side_x, side_y, 100, 100, 100);
                 node_queue.emplace_back(side_x, side_y);
                 visited_[side_x][side_y] = true;
@@ -320,11 +341,11 @@ namespace algorithm
         return path_;
     }
 
-    bool BcdWithFootprint::_position_validation(int x, int y, int &limiting_index_l, int &limiting_index_h)
+    bool BcdWithFootprint::_position_validation(int x, int y)
     {
-        limiting_index_l = limiting_index_h = 0;
+//        limiting_index_l = limiting_index_h = 0;
         bool res{false};
-        for (int i = -0; i >= -robot_radius_; i--)
+        for (int i = -1; i > -robot_radius_; i--)
         {
             auto tx = x;
             auto ty = i + y;
@@ -340,7 +361,7 @@ namespace algorithm
                 break;
             }
             res = true;
-            limiting_index_l = i;
+//            limiting_index_l = i;
         }
 
         // 以下部分的判断仅仅是为了得到另一边的覆盖情况，以便完善显示信息，不影响此点的可通行判断
@@ -358,14 +379,14 @@ namespace algorithm
             {
                 break;
             }
-            limiting_index_h = i;
+//            limiting_index_h = i;
         }
         return res;
     }
 
-    void BcdWithFootprint::_mark_cleaned(int x, int y, int limiting_l, int limiting_h)
+    void BcdWithFootprint::_mark_cleaned(int x, int y)
     {
-        for (int i = limiting_l; i < 0; i++)
+        for (int i = -1; i > -robot_radius_ ; i--)
         {
             auto tx = x;
             auto ty = i + y;
@@ -375,12 +396,17 @@ namespace algorithm
             }
             if (!visited_[tx][ty])
             {
+                auto val = env_ptr_->getGridValue(tx, ty);
+                if (val == 0)
+                {
+                    break;
+                }
                 env_ptr_->setIntGridValByPlanXY(tx, ty, 150, 150, 150);
             }
             cleaned_[tx][ty] = true;
         }
 
-        for (int i = 1; i <= limiting_h; i++)
+        for (int i = 1; i < robot_radius_; i++)
         {
             auto tx = x;
             auto ty = i + y;
@@ -390,6 +416,11 @@ namespace algorithm
             }
             if (!visited_[tx][ty])
             {
+                auto val = env_ptr_->getGridValue(tx, ty);
+                if (val == 0)
+                {
+                    break;
+                }
                 env_ptr_->setIntGridValByPlanXY(tx, ty, 150, 150, 150);
             }
             cleaned_[tx][ty] = true;
