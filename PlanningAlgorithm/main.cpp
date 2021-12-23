@@ -1,13 +1,13 @@
 #include "main.h"
 
 // 交互窗口宽度（网格）
-int window_width = 80;
+int window_width = 180;
 // 交互窗口高度（网格）
-int window_length = 40;
+int window_length = 140;
 // 一个网格的宽度，单位：像素
-int width = 8;
+int width = 4;
 // 算法步骤执行延时（秒）
-float running_delay_time = 0.0001;
+float running_delay_time = 0.000001;
 // 算法执行结果演示时的步骤延时（秒）
 float display_delay_time = 0.001;
 // 算法执行成功后，是否显示算法给出的路径

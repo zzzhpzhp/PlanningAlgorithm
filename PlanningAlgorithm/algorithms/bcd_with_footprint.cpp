@@ -1,7 +1,12 @@
 #include "bcd_with_footprint.h"
+
+// 在遇到死区时是否使用Dijkstra算法找到新的起点
 #define USE_DIJKSTRA 1
-#define DIJKSTRA_SEARCH_DISPLAY 0
+// 是否显示Dijkstra的搜索过程
+#define DIJKSTRA_SEARCH_DISPLAY 1
+// 在常规覆盖结束后是否进行未覆盖区域搜索覆盖
 #define LEAP_SEARCH_ENABLE 1
+
 namespace algorithm
 {
     void BcdWithFootprint::initialize(environment::EnvironmentInterfacePtr &env, std::string name)
@@ -72,8 +77,7 @@ namespace algorithm
         std::cout << "Goal pose: [" << goal_x_ << ", " << goal_y_ << "]" << std::endl;
 
         std::stack<std::pair<int,int>> node_stack;
-        environment::PathNode pn{};
-        int limiting_index_l{0}, limiting_index_h{0};
+        environment::PathNode pn{0};
         pn.g = 255;
         pn.a = 255;
         path_.clear();
@@ -110,6 +114,9 @@ namespace algorithm
                 {
 #if LEAP_SEARCH_ENABLE
                     search_leap_ = true;
+                    // 切换颜色
+                    pn.b = 255;
+//                    pn.b = 255;
                     if (!_dijkstra(x, y, x, y, visited_, path_))
                     {
                         break;
@@ -134,27 +141,7 @@ namespace algorithm
                 _mark_cleaned(x, y);
             }
             valid = false;
-//            side_points_.clear();
-//            if (y > start_y_)
-//            {
-//                side_points_.emplace_back(boost::bind(&BcdWithFootprint::_get_left, this, _1, _2, _3, _4, _5, 1));
-//                side_points_.emplace_back(boost::bind(&BcdWithFootprint::_get_right, this, _1, _2, _3, _4, _5, 1));
-//            }
-//            else
-//            {
-//                side_points_.emplace_back(boost::bind(&BcdWithFootprint::_get_right, this, _1, _2, _3, _4, _5, 1));
-//                side_points_.emplace_back(boost::bind(&BcdWithFootprint::_get_left, this, _1, _2, _3, _4, _5, 1));
-//            }
-//            if (x > start_x_)
-//            {
-//                side_points_.emplace_back(boost::bind(&BcdWithFootprint::_get_middle_lower, this, _1, _2, _3, _4, _5, robot_radius_));
-//                side_points_.emplace_back(boost::bind(&BcdWithFootprint::_get_middle_higher, this, _1, _2, _3, _4, _5, robot_radius_));
-//            }
-//            else
-//            {
-//                side_points_.emplace_back(boost::bind(&BcdWithFootprint::_get_middle_higher, this, _1, _2, _3, _4, _5, robot_radius_));
-//                side_points_.emplace_back(boost::bind(&BcdWithFootprint::_get_middle_lower, this, _1, _2, _3, _4, _5, robot_radius_));
-//            }
+
             for (auto &side_node : side_points_)
             {
                 if (!side_node(env_ptr_, x, y, side_x, side_y))
@@ -343,7 +330,6 @@ namespace algorithm
 
     bool BcdWithFootprint::_position_validation(int x, int y)
     {
-//        limiting_index_l = limiting_index_h = 0;
         bool res{false};
         for (int i = -1; i > -robot_radius_; i--)
         {
@@ -361,7 +347,6 @@ namespace algorithm
                 break;
             }
             res = true;
-//            limiting_index_l = i;
         }
 
         // 以下部分的判断仅仅是为了得到另一边的覆盖情况，以便完善显示信息，不影响此点的可通行判断
@@ -379,7 +364,6 @@ namespace algorithm
             {
                 break;
             }
-//            limiting_index_h = i;
         }
         return res;
     }

@@ -837,6 +837,7 @@ namespace environment
         root["size_y"] = getGridYSizeInCells();
         root["display_scale"] = getScale();
         root["algorithm_index"] = getCurrentAlgorithmIndex();
+        root["display_delay_time"] = getDisplayDelayTime();
 
         for (const auto &o : obstacles_)
         {
@@ -844,16 +845,8 @@ namespace environment
             obstacle[1] = std::get<1>(o);
             root["obstacles"].append(obstacle);
         }
-//
-//        // 直接输出
-//        std::cout << "FastWriter:" << std::endl;
-//        Json::FastWriter fw;
-//        std::cout << fw.write(root) << std::endl << std::endl;
 
-        //缩进输出
-//        std::cout << "StyledWriter:" << std::endl;
         Json::StyledWriter sw;
-//        std::cout << sw.write(root) << std::endl << std::endl;
 
         //输出到文件
         std::ofstream os;
@@ -898,6 +891,7 @@ namespace environment
         width_ = root["size_x"].asInt();
         rect_size_ = root["display_scale"].asInt();
         algorithm_index_ = root["algorithm_index"].asInt();
+        display_delay_time_ = root["display_delay_time"].asFloat();
 
         std::cout << "window length " << length_ << " window width " << width_ << " display scale " << rect_size_ << std::endl;
         std::cout << "Start x " << start_x_ << std::endl;
