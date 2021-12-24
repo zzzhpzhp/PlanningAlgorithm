@@ -1,4 +1,5 @@
 #include "environment.h"
+#include <utility.h>
 
 namespace environment
 {
@@ -345,15 +346,18 @@ namespace environment
 
     void Environment::play(Path &path)
     {
+        Path tpath;
+        adjustPlanResolution(path, tpath, 0.5);
+        std::cout << path.size() << " " << tpath.size() <<std::endl;
         int x, y;
-        cv::Mat display_copy = cv::Mat(img_length_, img_width_, CV_8UC4, cv::Scalar(255, 255, 255, 255));
+        cv::Mat display_copy;
         display_img_mtx_.lock();
         display_img_.copyTo(display_copy);
         display_img_mtx_.unlock();
         cv::Mat covered_mark = cv::Mat(img_length_, img_width_, CV_8UC4, cv::Scalar(255, 255, 255, 255));
         cv::Mat robot_pos = cv::Mat(img_length_, img_width_, CV_8UC4, cv::Scalar(255, 255, 255, 255));
         cv::Mat temp_img = cv::Mat(img_length_, img_width_, CV_8UC4, cv::Scalar(255, 255, 255, 255));
-        for (const auto& n : path)
+        for (const auto& n : tpath)
         {
             x = n.x * rect_size_;
             y = n.y * rect_size_;
