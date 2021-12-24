@@ -199,26 +199,26 @@ namespace environment
 
     void Environment::markFreeSpace(int x, int y, int radius)
     {
-        if (free_space_radius_ != radius)
+        if (free_brush_radius_ != radius)
         {
             GridPoint p{0};
-            catched_free_space_area_.clear();
-            free_space_radius_ = radius;
-            for (int i = -free_space_radius_+1; i <= free_space_radius_-1; i++)
+            free_brush_area_.clear();
+            free_brush_radius_ = radius;
+            for (int i = -free_brush_radius_ + 1; i <= free_brush_radius_ - 1; i++)
             {
-                for (int j = -free_space_radius_+1; j <= free_space_radius_-1; j++)
+                for (int j = -free_brush_radius_ + 1; j <= free_brush_radius_ - 1; j++)
                 {
-                    if ((i*i + j*j) <= free_space_radius_*free_space_radius_)
+                    if ((i*i + j*j) <= free_brush_radius_ * free_brush_radius_)
                     {
                         p.x = i * rect_size_;
                         p.y = j * rect_size_;
-                        catched_free_space_area_.emplace_back(p);
+                        free_brush_area_.emplace_back(p);
                     }
                 }
             }
         }
 
-        for (auto p : catched_free_space_area_)
+        for (auto p : free_brush_area_)
         {
             p.x += x;
             p.y += y;
@@ -237,34 +237,15 @@ namespace environment
 
     void Environment::markObstacle(int x, int y, int obstacle_radius)
     {
-        if (obstacle_radius_ != obstacle_radius)
-        {
-            GridPoint p{0};
-            catched_obstacle_area_.clear();
-            obstacle_radius_ = obstacle_radius;
-            for (int i = -obstacle_radius_+1; i <= obstacle_radius_-1; i++)
-            {
-                for (int j = -obstacle_radius_+1; j <= obstacle_radius_-1; j++)
-                {
-                    if ((i*i + j*j) <= obstacle_radius_*obstacle_radius_)
-                    {
-                        p.x = i * rect_size_;
-                        p.y = j * rect_size_;
-                        catched_obstacle_area_.emplace_back(p);
-                    }
-                }
-            }
-        }
-
-        for (auto p : catched_obstacle_area_)
+        for (auto p : inscribed_area_)
         {
             p.x += x;
             p.y += y;
-            if (!setInteractiveGridValue(p.x, p.y, 0, 0, 0))
+            if (!setInteractiveGridValue(p.x, p.y, 0, 0, p.cost))
             {
                 continue;
             }
-            if (!setGridValueFromDisp(p.x, p.y, 0))
+            if (!setGridValueFromDisp(p.x, p.y, p.cost))
             {
                 continue;
             }

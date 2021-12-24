@@ -25,6 +25,7 @@ namespace environment
     struct GridPoint
     {
         int x, y;
+        unsigned char cost;
     };
 
     struct Pose

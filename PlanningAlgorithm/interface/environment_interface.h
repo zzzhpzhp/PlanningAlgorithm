@@ -44,10 +44,7 @@ namespace environment
         }
 
         virtual void
-        setRobotRadius(int robot_radius)
-        {
-            robot_radius_ = robot_radius;
-        }
+        setRobotRadius(int robot_radius) = 0;
 
         virtual void
         setAlgorithmRunningDelayTime(float second)

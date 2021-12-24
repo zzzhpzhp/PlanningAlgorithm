@@ -5,18 +5,19 @@ int window_width = 380;
 // 交互窗口高度（网格）
 int window_length = 240;
 // 一个网格的宽度，单位：像素
-int width = 4;
+int width = 5;
 // 算法步骤执行延时（秒）
 float running_delay_time = 0.0;
 // 算法执行结果演示时的步骤延时（秒）
 float display_delay_time = 0.001;
 // 算法执行成功后，是否显示算法给出的路径
 bool show_path = true;
-// 障碍物标记的宽度，以给定坐标为中心
-int obstacle_radius = 8;
-int free_radius = 5;
 // 机器人半径
-int robot_radius = 8;
+int robot_radius = 4;
+// 障碍物标记的宽度，以给定坐标为中心
+int obstacle_radius = robot_radius;
+// 障碍物清除刷的尺寸
+int free_radius = 5;
 // 当前运行的算法的索引
 int selected_algorithm = 3;
 // 当前运行算法的指针
