@@ -13,8 +13,8 @@ float display_delay_time = 0.001;
 // 算法执行成功后，是否显示算法给出的路径
 bool show_path = true;
 // 障碍物标记的宽度，以给定坐标为中心
-int obstacle_radius = 5;
-int free_radius = 2;
+int obstacle_radius = 8;
+int free_radius = 5;
 // 机器人半径
 int robot_radius = 8;
 // 当前运行的算法的索引

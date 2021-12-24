@@ -11,8 +11,10 @@ namespace environment
         img_length_ = length_ * rect_size_, img_width_ = width_ * rect_size_;
         _initialize_grid();
 
-        cv::namedWindow("InteractiveWindow");
         cv::namedWindow("PlanningGrid");
+        cvMoveWindow("PlanningGrid", img_width_+100, 0);
+        cv::namedWindow("InteractiveWindow");
+        cvMoveWindow("InteractiveWindow", 0, 0);
 
         initialized_ = true;
     }
@@ -26,10 +28,10 @@ namespace environment
         }
         std::lock_guard<std::mutex> plg(planning_grid_mtx_);
         imshow("PlanningGrid", planning_grid_);
-        cvMoveWindow("PlanningGrid", img_width_+100, 0);
+//        cvMoveWindow("PlanningGrid", img_width_+100, 0);
         std::lock_guard<std::mutex> dlg(display_img_mtx_);
         imshow("InteractiveWindow", display_img_);
-        cvMoveWindow("InteractiveWindow", 0, 0);
+//        cvMoveWindow("InteractiveWindow", 0, 0);
     }
 
     uint8_t
@@ -302,7 +304,7 @@ namespace environment
     {
         {
             std::lock_guard<std::mutex> lg(display_img_mtx_);
-            display_img_ = cv::Mat(img_length_, img_width_, CV_8UC3, cv::Scalar(255, 255, 255));
+            display_img_ = cv::Mat(img_length_, img_width_, CV_8UC4, cv::Scalar(255, 255, 255, 255));
         }
         showStartGoalPose();
         for (auto &o : obstacles_)
@@ -326,7 +328,7 @@ namespace environment
     void Environment::_initialize_grid()
     {
         std::lock_guard<std::mutex> dlg(display_img_mtx_);
-        display_img_ = cv::Mat(img_length_, img_width_, CV_8UC3, cv::Scalar(255, 255, 255));
+        display_img_ = cv::Mat(img_length_, img_width_, CV_8UC4, cv::Scalar(255, 255, 255, 255));
         std::lock_guard<std::mutex> plg(planning_grid_mtx_);
         planning_grid_ = cv::Mat(length_, width_, CV_8UC1, cv::Scalar(255, 255, 255));
     }
@@ -343,12 +345,42 @@ namespace environment
 
     void Environment::play(Path &path)
     {
-        int nx, ny;
+        int x, y;
+        cv::Mat display_copy = cv::Mat(img_length_, img_width_, CV_8UC4, cv::Scalar(255, 255, 255, 255));
+        display_img_mtx_.lock();
+        display_img_.copyTo(display_copy);
+        display_img_mtx_.unlock();
+        cv::Mat covered_mark = cv::Mat(img_length_, img_width_, CV_8UC4, cv::Scalar(255, 255, 255, 255));
+        cv::Mat robot_pos = cv::Mat(img_length_, img_width_, CV_8UC4, cv::Scalar(255, 255, 255, 255));
+        cv::Mat temp_img = cv::Mat(img_length_, img_width_, CV_8UC4, cv::Scalar(255, 255, 255, 255));
         for (const auto& n : path)
         {
-            nx = n.x * rect_size_;
-            ny = n.y * rect_size_;
-            setInteractiveGridValue(nx, ny, n.r, n.g, n.b, 50);
+            x = n.x * rect_size_;
+            y = n.y * rect_size_;
+//            setInteractiveGridValue(nx, ny, n.r, n.g, n.b, 50);
+
+            _normalize_xy(x, y, x, y);
+
+            // 标记已覆盖区域
+            circle(covered_mark, cv::Point(x, y), robot_radius_ * rect_size_,
+                   cv::Scalar(n.b, n.g, n.r, n.a), -1);
+            // 标记已当前航点
+            rectangle(display_copy, cv::Rect(x, y, rect_size_, rect_size_),
+                      cv::Scalar(n.b, n.g, n.r, n.a), -1);
+            // 绘制机器人
+            circle(robot_pos, cv::Point(x, y), robot_radius_ * rect_size_,
+                   cv::Scalar(0, 0, 255, 0), 3);
+            // 融合交互图像与已覆盖区域图像
+            cv::addWeighted(display_copy, 0.8, covered_mark, 0.2, 0.0, temp_img, -1);
+            // 继续融合机器人图像
+            display_img_mtx_.lock();
+            cv::addWeighted(temp_img, 0.8, robot_pos, 0.2, 0.0, display_img_,  -1);
+            display_img_mtx_.unlock();
+
+            // 清除上一次的机器人位置图像
+            circle(robot_pos, cv::Point(x, y), robot_radius_ * rect_size_,
+                   cv::Scalar(255, 255, 255, 255), 3);
+
             std::this_thread::sleep_for(std::chrono::microseconds((int)(getDisplayDelayTime() * 1e6)));
             if (!is_running_.load())
             {

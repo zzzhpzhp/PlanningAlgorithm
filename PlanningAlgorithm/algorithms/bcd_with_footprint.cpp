@@ -5,7 +5,7 @@
 
 #if USE_DIJKSTRA
     // 是否显示Dijkstra的搜索过程
-    #define DIJKSTRA_SEARCH_DISPLAY 1
+    #define DIJKSTRA_SEARCH_DISPLAY 0
     // 是否显示Dijkstra搜索得到的链接各个覆盖区域的桥接路径
     #define DISPLAY_BRIDGE_PATH 1
 
@@ -504,7 +504,7 @@ namespace algorithm
                 {
                     continue;
                 }
-                env_ptr_->setIntGridValByPlanXY(p.x, p.y, 0, 0, 255);
+                env_ptr_->setIntGridValByPlanXY(p.x, p.y, 255, 255, 0);
             }
             cleaned_[p.x][p.y] = true;
         }
