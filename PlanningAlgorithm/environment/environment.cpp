@@ -1053,7 +1053,6 @@ namespace environment
                     {
                         continue;
                     }
-                    std::cout << square << std::endl;
                     p.x = i * rect_size_;
                     p.y = j * rect_size_;
                     _normalize_xy(p.x, p.y, p.x, p.y);
