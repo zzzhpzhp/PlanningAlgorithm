@@ -20,7 +20,7 @@ namespace environment
     class Environment : public EnvironmentInterface
     {
     public:
-        const std::string ENVIRONMENT_VERSION{"V1.2"};
+        const std::string ENVIRONMENT_VERSION{"V1.3"};
 
         void
         initialize(int length, int width, int display_scale) override;
