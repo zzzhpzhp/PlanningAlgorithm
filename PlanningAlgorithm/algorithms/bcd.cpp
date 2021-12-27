@@ -69,7 +69,7 @@ namespace algorithm
             }
 
             auto side_val = env_ptr_->getGridValue(x, y);
-            return !(visited[x][y] || side_val == 0);
+            return !(visited[x][y] || side_val <= environment::INSCRIBED_INFLATED_OBSTACLE);
         };
 
         auto save_path = [&](int x, int y)

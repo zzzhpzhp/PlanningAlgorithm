@@ -105,7 +105,7 @@ namespace algorithm
         std::tuple<int, int> last_dead_pose_{0,0};
 
         auto val = env_ptr_->getGridValue(start_x_, start_y_);
-        if (val == 0)
+        if (val <= environment::INSCRIBED_INFLATED_OBSTACLE)
         {
             return false;
         }
@@ -200,7 +200,7 @@ namespace algorithm
                     continue;
                 }
                 side_val = env_ptr_->getGridValue(side_x, side_y);
-                if (side_val == 0 || visited_[side_x][side_y])
+                if (side_val <= environment::INSCRIBED_INFLATED_OBSTACLE || visited_[side_x][side_y])
                 {
                     continue;
                 }
@@ -334,7 +334,7 @@ namespace algorithm
                 }
 
                 side_val = env_ptr_->getGridValue(side_x, side_y);
-                if (side_val == 0)
+                if (side_val <= environment::INSCRIBED_INFLATED_OBSTACLE)
                 {
                     // 如果此點是障礙物，則跳過
                     side->is_obstacle = true;
@@ -393,7 +393,7 @@ namespace algorithm
             }
 
             auto val = env_ptr_->getGridValue(tx, ty);
-            if (val == 0)
+            if (val <= environment::INSCRIBED_INFLATED_OBSTACLE)
             {
                 res = false;
                 break;
@@ -412,7 +412,7 @@ namespace algorithm
             }
 
             auto val = env_ptr_->getGridValue(tx, ty);
-            if (val == 0)
+            if (val <= environment::INSCRIBED_INFLATED_OBSTACLE)
             {
                 break;
             }
@@ -433,7 +433,7 @@ namespace algorithm
             if (!visited_[tx][ty])
             {
                 auto val = env_ptr_->getGridValue(tx, ty);
-                if (val == 0)
+                if (val <= environment::INSCRIBED_INFLATED_OBSTACLE)
                 {
                     break;
                 }
@@ -453,7 +453,7 @@ namespace algorithm
             if (!visited_[tx][ty])
             {
                 auto val = env_ptr_->getGridValue(tx, ty);
-                if (val == 0)
+                if (val <= environment::INSCRIBED_INFLATED_OBSTACLE)
                 {
                     break;
                 }
@@ -466,7 +466,7 @@ namespace algorithm
     bool BcdWithFootprint::_goal_reached(int x, int y)
     {
         auto val = env_ptr_->getGridValue(x, y);
-        if (val == 0)
+        if (val <= environment::INSCRIBED_INFLATED_OBSTACLE)
         {
             return false;
         }
@@ -500,7 +500,7 @@ namespace algorithm
             if (!visited_[p.x][p.y])
             {
                 auto val = env_ptr_->getGridValue(p.x, p.y);
-                if (val == 0)
+                if (val <= environment::INSCRIBED_INFLATED_OBSTACLE)
                 {
                     continue;
                 }

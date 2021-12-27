@@ -148,7 +148,7 @@ namespace algorithm
 
                     // 此点是新节点
                     side_val = env_ptr_->getGridValue(side_x, side_y);
-                    if (side_val == 0)
+                    if (side_val <= environment::INSCRIBED_INFLATED_OBSTACLE)
                     {
                         // 如果此點是障礙物，則跳過
                         side->is_obstacle = true;
@@ -159,7 +159,7 @@ namespace algorithm
                     side->y = side_y;
                     side->h = calc_h_(side);
                     side->parent_node = cur_;
-                    side->dist = cur_->dist + side_to_cur_cost;
+                    side->dist = cur_->dist + side_to_cur_cost + 255 - side_val;
                     side->in_open_list = true;
 
                     node_stack.push(side);

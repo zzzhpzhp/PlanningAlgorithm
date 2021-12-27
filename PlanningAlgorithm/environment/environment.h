@@ -103,6 +103,12 @@ namespace environment
         std::tuple<int, int>
         getGoal() override;
 
+        unsigned char
+        getCost(int x, int y) override
+        {
+            return getGridValueFromDisp(x, y);
+        }
+
         void
         play(Path &path) override;
 
@@ -110,49 +116,9 @@ namespace environment
         setFootprint(Footprint footprint) override;
 
         void
-        setRobotRadius(int robot_radius) override
-        {
-            inscribed_area_.clear();
-            if (robot_radius_ != robot_radius)
-            {
-                robot_radius_ = robot_radius;
-                GridPoint p{0};
-                inscribed_area_.clear();
-                cost_area_.clear();
-                for (int i = -cost_radius_+1; i <= cost_radius_-1; i++)
-                {
-                    for (int j = -cost_radius_+1; j <= cost_radius_-1; j++)
-                    {
-                        auto square = i*i + j*j;
-                        if (square <= robot_radius_*robot_radius_)
-                        {
-                            p.x = i * rect_size_;
-                            p.y = j * rect_size_;
-                            if (p.x == 0 && p.y == 0)
-                            {
-                                p.cost = LETHAL_OBSTACLE;
-                            }
-                            else
-                            {
-                                p.cost = INSCRIBED_INFLATED_OBSTACLE;
-                            }
-                            inscribed_area_.emplace_back(p);
-                        }
-                        else
-                        {
-                            p.cost = exp(-1.0 * cost_scaling_factor * (sqrt(square) - robot_radius_)) * (PENALTY_COST);
-                            inscribed_area_.emplace_back(p);
-                        }
-                    }
-                }
-            }
-        }
-        const int NO_INFORMATION = 255;
-        const int LETHAL_OBSTACLE = 254;
-        const int INSCRIBED_INFLATED_OBSTACLE = 200;
-        const int PENALTY_COST = 100;
-        const int FREE_SPACE = 0;
-        float cost_scaling_factor = 20;
+        setRobotRadius(int robot_radius) override;
+
+        float cost_scaling_factor = 0.1;
         const Footprint&
         getFootprint() override;
 
@@ -189,7 +155,6 @@ namespace environment
         bool initialized_{false};
         bool have_start_ = false, have_goal_ = false;
 
-
         int rect_size_{5};
         int length_{200}, width_{200};
         int img_length_ = length_ * rect_size_, img_width_ = width_ * rect_size_;
@@ -200,7 +165,7 @@ namespace environment
 
         std::mutex display_img_mtx_, planning_grid_mtx_;
 
-        using Obstacle = std::tuple<int, int>;
+        using Obstacle = std::tuple<int, int, unsigned char>;
         struct Comp
         {
             template<typename T>
@@ -228,7 +193,7 @@ namespace environment
         std::shared_ptr<Edge> ael_;
         std::vector<std::shared_ptr<Edge>> x_sorted_;
         std::unordered_map<int, std::shared_ptr<Edge>> et_;
-        std::vector<GridPoint> inscribed_area_, free_brush_area_, cost_area_;
+        std::vector<GridPoint> cost_area_, free_brush_area_;
 
         cv::Mat display_img_, planning_grid_;
         // di: display image pi: planning image

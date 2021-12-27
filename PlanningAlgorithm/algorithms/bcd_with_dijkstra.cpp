@@ -84,7 +84,7 @@ namespace algorithm
         pn.y = start_y_;
         path_.emplace_back(pn);
 
-        if (env_ptr_->getGridValue(start_x_, start_y_) == 0)
+        if (env_ptr_->getGridValue(start_x_, start_y_) <= environment::INSCRIBED_INFLATED_OBSTACLE)
         {
             return false;
         }
@@ -119,7 +119,7 @@ namespace algorithm
                     continue;
                 }
                 side_val = env_ptr_->getGridValue(side_x, side_y);
-                if (visited[side_x][side_y] || side_val == 0)
+                if (visited[side_x][side_y] || side_val <= environment::INSCRIBED_INFLATED_OBSTACLE)
                 {
                     continue;
                 }
@@ -234,7 +234,7 @@ namespace algorithm
                 }
 
                 side_val = env_ptr_->getGridValue(side_x, side_y);
-                if (side_val == 0)
+                if (side_val <= environment::INSCRIBED_INFLATED_OBSTACLE)
                 {
                     // 如果此點是障礙物，則跳過
                     side->is_obstacle = true;

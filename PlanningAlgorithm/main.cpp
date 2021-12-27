@@ -1,9 +1,9 @@
 #include "main.h"
 
 // 交互窗口宽度（网格）
-int window_width = 380;
+int window_width = 180;
 // 交互窗口高度（网格）
-int window_length = 240;
+int window_length = 140;
 // 一个网格的宽度，单位：像素
 int width = 5;
 // 算法步骤执行延时（秒）

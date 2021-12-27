@@ -42,6 +42,10 @@ namespace environment
         {
             throw std::runtime_error("Should initialize first.");
         }
+        if (!insideGridFromDisp(x, y))
+        {
+            return -1;
+        }
         int tx = (x / rect_size_), ty = (y / rect_size_);
 
         return getGridValue(tx, ty);
@@ -231,17 +235,23 @@ namespace environment
                 continue;
             }
             _normalize_xy(p.x, p.y, p.x, p.y);
-            obstacles_.erase(std::tuple<int, int>(p.x, p.y));
+            obstacles_.erase(Obstacle (p.x, p.y, p.cost));
         }
     }
 
     void Environment::markObstacle(int x, int y, int obstacle_radius)
     {
-        for (auto p : inscribed_area_)
+        for (auto p : cost_area_)
         {
             p.x += x;
             p.y += y;
-            if (!setInteractiveGridValue(p.x, p.y, 0, 0, p.cost))
+            _normalize_xy(p.x, p.y, p.x, p.y);
+            auto val = getCost(p.x, p.y);
+            if (val <= p.cost)
+            {
+                continue;
+            }
+            if (!setInteractiveGridValue(p.x, p.y, p.cost, p.cost, p.cost))
             {
                 continue;
             }
@@ -249,8 +259,13 @@ namespace environment
             {
                 continue;
             }
-            _normalize_xy(p.x, p.y, p.x, p.y);
-            obstacles_.insert(std::tuple<int, int>(p.x, p.y));
+
+            auto tobst = Obstacle (p.x, p.y, p.cost);
+            if ( obstacles_.find(tobst) != obstacles_.end())
+            {
+                obstacles_.erase(tobst);
+            }
+            obstacles_.insert(tobst);
         }
     }
 
@@ -291,7 +306,7 @@ namespace environment
         showStartGoalPose();
         for (auto &o : obstacles_)
         {
-            setInteractiveGridValue(std::get<0>(o), std::get<1>(o), 0, 0, 0);
+            setInteractiveGridValue(std::get<0>(o), std::get<1>(o), std::get<2>(o), std::get<2>(o), std::get<2>(o));
         }
     }
 
@@ -860,6 +875,7 @@ namespace environment
         {
             obstacle[0] = std::get<0>(o);
             obstacle[1] = std::get<1>(o);
+            obstacle[2] = std::get<2>(o);
             root["obstacles"].append(obstacle);
         }
 
@@ -870,7 +886,7 @@ namespace environment
         os.open(path, std::ios::out | std::ios::trunc);
         if (!os.is_open())
         {
-            std::cerr << "error：can not find or create the file which named \" demo.json\"." << std::endl;
+            std::cerr << "Error：can not find or create the file which named \" environment.json\"." << std::endl;
             return false;
         }
         os << sw.write(root);
@@ -924,11 +940,13 @@ namespace environment
         {
             auto x = o[0].asInt();
             auto y = o[1].asInt();
-            obstacles_.insert(std::tuple<int, int>(x, y));
-            if (!setGridValueFromDisp(x, y, 0))
+            unsigned char cost = o[2].asUInt();
+            obstacles_.insert(Obstacle(x, y, cost));
+            if (!setGridValueFromDisp(x, y, cost))
             {
                 continue;
             }
+            setInteractiveGridValue(x, y, cost);
         }
 
         in.close();
@@ -1019,5 +1037,45 @@ namespace environment
     const Footprint &Environment::getFootprint()
     {
         return footprint_;
+    }
+
+    void Environment::setRobotRadius(int robot_radius)
+    {
+            robot_radius_ = robot_radius;
+            GridPoint p{0};
+            cost_area_.clear();
+            for (int i = -cost_radius_; i <= cost_radius_; i++)
+            {
+                for (int j = -cost_radius_; j <= cost_radius_; j++)
+                {
+                    auto square = (i*i + j*j);
+                    if (square > cost_radius_*cost_radius_)
+                    {
+                        continue;
+                    }
+                    std::cout << square << std::endl;
+                    p.x = i * rect_size_;
+                    p.y = j * rect_size_;
+                    _normalize_xy(p.x, p.y, p.x, p.y);
+                    if (square <= robot_radius_*robot_radius_)
+                    {
+                        if (p.x == 0 && p.y == 0)
+                        {
+                            p.cost = LETHAL_OBSTACLE;
+                        }
+                        else
+                        {
+                            p.cost = INSCRIBED_INFLATED_OBSTACLE;
+                        }
+                        cost_area_.emplace_back(p);
+                    }
+                    else
+                    {
+                        p.cost = 255 - exp(-1.0 * cost_scaling_factor * (sqrt(square) - robot_radius_)) * (PENALTY_COST);
+                        cost_area_.emplace_back(p);
+                    }
+                }
+            }
+
     }
 }

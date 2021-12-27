@@ -126,7 +126,7 @@ namespace algorithm
                     }
 
                     side_val = env_ptr_->getGridValue(side_x, side_y);
-                    if (visited[side_x][side_y] || side_val == 0)
+                    if (visited[side_x][side_y] || side_val <= environment::INSCRIBED_INFLATED_OBSTACLE)
                     {
                         // 如果此點已被訪問過或是障礙物，則跳過
                         continue;

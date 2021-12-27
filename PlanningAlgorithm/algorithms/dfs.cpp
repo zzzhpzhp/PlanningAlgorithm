@@ -99,7 +99,7 @@ namespace algorithm
                     continue;
                 }
                 side_val = env_ptr_->getGridValue(side_x, side_y);
-                if (visited[side_x][side_y] || side_val == 0)
+                if (visited[side_x][side_y] || side_val <= environment::INSCRIBED_INFLATED_OBSTACLE)
                 {
                     continue;
                 }

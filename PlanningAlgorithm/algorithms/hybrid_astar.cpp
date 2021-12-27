@@ -145,7 +145,7 @@ namespace algorithm
 
                     // 此点是新节点
                     side_val = env_ptr_->getGridValue(side_x, side_y);
-                    if (side_val == 0)
+                    if (side_val <= environment::INSCRIBED_INFLATED_OBSTACLE)
                     {
                         // 如果此點是障礙物，則跳過
                         side->is_obstacle = true;

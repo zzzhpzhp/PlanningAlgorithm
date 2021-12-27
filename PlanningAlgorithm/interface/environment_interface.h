@@ -18,6 +18,11 @@
 #define FL_PRINT {std::cout << __FUNCTION__ << " " << __LINE__ << std::endl;};
 namespace environment
 {
+    const int NO_INFORMATION = 150;
+    const int LETHAL_OBSTACLE = 0;
+    const int INSCRIBED_INFLATED_OBSTACLE = 50;
+    const int PENALTY_COST = 100;
+    const int FREE_SPACE = 255;
     enum MarkMode {MARK_OBSTACLE, MARK_FREE_SPACE};
     class EnvironmentInterface
     {
