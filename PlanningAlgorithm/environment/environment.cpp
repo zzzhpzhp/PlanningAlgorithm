@@ -1041,40 +1041,39 @@ namespace environment
 
     void Environment::setRobotRadius(int robot_radius)
     {
-            robot_radius_ = robot_radius;
-            GridPoint p{0};
-            cost_area_.clear();
-            for (int i = -cost_radius_; i <= cost_radius_; i++)
+        robot_radius_ = robot_radius;
+        GridPoint p{0};
+        cost_area_.clear();
+        for (int i = -cost_radius_; i <= cost_radius_; i++)
+        {
+            for (int j = -cost_radius_; j <= cost_radius_; j++)
             {
-                for (int j = -cost_radius_; j <= cost_radius_; j++)
+                auto square = (i*i + j*j);
+                if (square > cost_radius_*cost_radius_)
                 {
-                    auto square = (i*i + j*j);
-                    if (square > cost_radius_*cost_radius_)
+                    continue;
+                }
+                p.x = i * rect_size_;
+                p.y = j * rect_size_;
+                _normalize_xy(p.x, p.y, p.x, p.y);
+                if (square <= robot_radius_*robot_radius_)
+                {
+                    if (p.x == 0 && p.y == 0)
                     {
-                        continue;
-                    }
-                    p.x = i * rect_size_;
-                    p.y = j * rect_size_;
-                    _normalize_xy(p.x, p.y, p.x, p.y);
-                    if (square <= robot_radius_*robot_radius_)
-                    {
-                        if (p.x == 0 && p.y == 0)
-                        {
-                            p.cost = LETHAL_OBSTACLE;
-                        }
-                        else
-                        {
-                            p.cost = INSCRIBED_INFLATED_OBSTACLE;
-                        }
-                        cost_area_.emplace_back(p);
+                        p.cost = LETHAL_OBSTACLE;
                     }
                     else
                     {
-                        p.cost = 255 - exp(-1.0 * cost_scaling_factor * (sqrt(square) - robot_radius_)) * (PENALTY_COST);
-                        cost_area_.emplace_back(p);
+                        p.cost = INSCRIBED_INFLATED_OBSTACLE;
                     }
+                    cost_area_.emplace_back(p);
+                }
+                else
+                {
+                    p.cost = 255 - exp(-1.0 * cost_scaling_factor * (sqrt(square) - robot_radius_)) * (PENALTY_COST);
+                    cost_area_.emplace_back(p);
                 }
             }
-
+        }
     }
 }

@@ -37,6 +37,12 @@ namespace environment
         bool
         setGridValueFromDisp(int x, int y, uint8_t value) override;
 
+        float
+        getResolution() override
+        {
+            return resolution_;
+        }
+
         bool
         setGridValue(int x, int y, uint8_t value) override;
 
@@ -118,7 +124,6 @@ namespace environment
         void
         setRobotRadius(int robot_radius) override;
 
-        float cost_scaling_factor = 0.1;
         const Footprint&
         getFootprint() override;
 
@@ -148,6 +153,17 @@ namespace environment
 
         void
         fillPoints(const Grids& points) override;
+
+        void
+        drawCircle(int x, int y, int radius, int line_width) override
+        {
+            std::lock_guard<std::mutex> lg(display_img_mtx_);
+//            CVAPI(void)  cvCircle( CvArr* img, CvPoint center, int radius,
+//                                   CvScalar color, int thickness CV_DEFAULT(1),
+//                                   int line_type CV_DEFAULT(8), int shift CV_DEFAULT(0));
+            cv::circle(display_img_, cv::Point(x * rect_size_, y * rect_size_), radius,
+                 cv::Scalar(0, 0, 0, 0), line_width, 0);
+        }
 
     private:
 
@@ -194,6 +210,8 @@ namespace environment
         std::vector<std::shared_ptr<Edge>> x_sorted_;
         std::unordered_map<int, std::shared_ptr<Edge>> et_;
         std::vector<GridPoint> cost_area_, free_brush_area_;
+
+        float cost_scaling_factor = 0.5;
 
         cv::Mat display_img_, planning_grid_;
         // di: display image pi: planning image

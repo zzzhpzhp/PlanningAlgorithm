@@ -48,6 +48,9 @@ namespace environment
             return robot_radius_;
         }
 
+        virtual float
+        getResolution() = 0;
+
         virtual void
         setRobotRadius(int robot_radius) = 0;
 
@@ -264,7 +267,10 @@ namespace environment
         }
 
         virtual unsigned char
-        getCost(int x, int y) {};
+        getCost(int x, int y)
+        {
+            return getGridValueFromDisp(x, y);
+        };
 
         virtual void
         setCost(int x, int y, unsigned char cost) {};
@@ -284,6 +290,9 @@ namespace environment
             worldToMap(x, y, mx, my);
             setCost(mx, my, cost);
         }
+
+        virtual void
+        drawCircle(int x, int y, int radius, int line_width = 1) = 0;
 
     protected:
 
