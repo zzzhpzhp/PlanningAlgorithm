@@ -136,7 +136,7 @@ namespace algorithm
 
     bool RegionManager::_is_boundary(int x, int y)
     {
-        if ((x - region_origin_.x) % region_size_ == 0 && (y - region_origin_.y) % region_size_ == 0)
+        if (x % region_size_ == 0 || y % region_size_ == 0)
         {
             return true;
         }
@@ -175,5 +175,122 @@ namespace algorithm
             return true;
         }
         return false;
+    }
+
+    RegionManager::RegionManager(environment::EnvironmentInterfacePtr &env, std::string name)
+    {
+        initialize(env, std::move(name));
+    }
+
+    void RegionManager::initialize(environment::EnvironmentInterfacePtr &env, std::string name)
+    {
+        env_ptr_ = env;
+        name_ = name;
+
+        side_points_.emplace_back(boost::bind(&RegionManager::_get_right, this, _1, _2, _3, _4, _5, 1));
+        side_points_.emplace_back(boost::bind(&RegionManager::_get_higher_right, this, _1, _2, _3, _4, _5, 1));
+        side_points_.emplace_back(boost::bind(&RegionManager::_get_middle_higher, this, _1, _2, _3, _4, _5, 1));
+        side_points_.emplace_back(boost::bind(&RegionManager::_get_higher_left, this, _1, _2, _3, _4, _5, 1));
+        side_points_.emplace_back(boost::bind(&RegionManager::_get_left, this, _1, _2, _3, _4, _5, 1));
+        side_points_.emplace_back(boost::bind(&RegionManager::_get_lower_left, this, _1, _2, _3, _4, _5, 1));
+        side_points_.emplace_back(boost::bind(&RegionManager::_get_middle_lower, this, _1, _2, _3, _4, _5, 1));
+        side_points_.emplace_back(boost::bind(&RegionManager::_get_lower_right, this, _1, _2, _3, _4, _5, 1));
+
+        initialized_ = true;
+    }
+
+    const RegionManager::Region &RegionManager::getCurrentRegion(int x, int y)
+    {
+        for (const auto &reg : regions_)
+        {
+            const auto& r = reg.second;
+            if (x < r.xh && y < r.yh && x >= r.xl && y >= r.yl)
+            {
+                return r;
+            }
+        }
+
+        return empty_region_;
+    }
+
+    void RegionManager::setStart(int x, int y)
+    {
+        start_x_ = x;
+        start_y_ = y;
+        showCurrentRegion(x, y);
+        env_ptr_->toGrid(x, y, x, y);
+    }
+
+    void RegionManager::showCurrentRegion(int x, int y)
+    {
+        env_ptr_->toGrid(x, y, x, y);
+        if (_get_region_id(x, y).empty())
+        {
+            addRegion(x, y);
+        }
+        const Region& cur_region = getCurrentRegion(x, y);
+        showRegion(cur_region);
+        std::cout << "Start xy " << x << " " << y << std::endl;
+    }
+
+    void RegionManager::showRegion(const RegionManager::Region &r)
+    {
+        env_ptr_->drawLine(r.xl, r.yl, r.xl, r.yh);
+        env_ptr_->drawLine(r.xl, r.yl, r.xh, r.yl);
+        env_ptr_->drawLine(r.xh, r.yh, r.xl, r.yh);
+        env_ptr_->drawLine(r.xh, r.yh, r.xh, r.yl);
+    }
+
+    const RegionManager::Region &RegionManager::generateHigherRegion(const RegionManager::Region &cur_region)
+    {
+        Region res;
+        res.xh = cur_region.xh;
+        res.xl = cur_region.xl;
+        res.yh = cur_region.yl;
+        res.yl = cur_region.yl - region_size_;
+        _gen_id_for_region(res);
+        regions_[res.id] = res;
+        return regions_[res.id];
+    }
+
+    const RegionManager::Region &RegionManager::generateLowerRegion(const RegionManager::Region &cur_region)
+    {
+        Region res;
+        res.xh = cur_region.xh;
+        res.xl = cur_region.xl;
+        res.yh = cur_region.yh + region_size_;
+        res.yl = cur_region.yl;
+        _gen_id_for_region(res);
+        regions_[res.id] = res;
+        return regions_[res.id];
+    }
+
+    const RegionManager::Region &RegionManager::generateLeftRegion(const RegionManager::Region &cur_region)
+    {
+        Region res;
+        res.xh = cur_region.xl;
+        res.xl = cur_region.xl - region_size_;
+        res.yh = cur_region.yh;
+        res.yl = cur_region.yl;
+        _gen_id_for_region(res);
+        regions_[res.id] = res;
+        return regions_[res.id];
+    }
+
+    const RegionManager::Region &RegionManager::generateRightRegion(const RegionManager::Region &cur_region)
+    {
+        Region res;
+        res.xh = cur_region.xh + region_size_;
+        res.xl = cur_region.xh;
+        res.yh = cur_region.yh;
+        res.yl = cur_region.yl;
+        _gen_id_for_region(res);
+        regions_[res.id] = res;
+        return regions_[res.id];
+    }
+
+    void RegionManager::setGoal(int x, int y)
+    {
+
     }
 }

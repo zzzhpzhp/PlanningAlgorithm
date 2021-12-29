@@ -17,3 +17,4 @@
 #include "astar.h"
 #include "bcd_with_dijkstra.h"
 #include "bcd_with_footprint.h"
+#include "region_manager.h"

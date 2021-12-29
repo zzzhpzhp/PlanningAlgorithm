@@ -1,11 +1,11 @@
 #include "main.h"
 
 // 交互窗口宽度（网格）
-int window_width = 180;
+int window_width = 330;
 // 交互窗口高度（网格）
-int window_length = 140;
+int window_length = 280;
 // 一个网格的宽度，单位：像素
-int width = 5;
+int width = 3;
 // 算法步骤执行延时（秒）
 float running_delay_time = 0.0;
 // 算法执行结果演示时的步骤延时（秒）
@@ -157,14 +157,17 @@ main(int argc, char* argv[])
     env_ptr->setDisplayDelayTime(display_delay_time);
     env_ptr->generateFootprintByRadius();
 
-    algorithms_ptr.emplace_back(std::make_shared<algorithm::Dfs>(env_ptr, "Dfs"));
+//    algorithms_ptr.emplace_back(std::make_shared<algorithm::Dfs>(env_ptr, "Dfs"));
     algorithms_ptr.emplace_back(std::make_shared<algorithm::Bfs>(env_ptr, "Bfs"));
     algorithms_ptr.emplace_back(std::make_shared<algorithm::Bcd>(env_ptr, "Bcd"));
     algorithms_ptr.emplace_back(std::make_shared<algorithm::AStar>(env_ptr, "AStar"));
     algorithms_ptr.emplace_back(std::make_shared<algorithm::Dijkstra>(env_ptr, "Dijkstra"));
-    algorithms_ptr.emplace_back(std::make_shared<algorithm::BcdWidthDijkstra>(env_ptr, "BcdWithDijkstra"));
+//    algorithms_ptr.emplace_back(std::make_shared<algorithm::BcdWidthDijkstra>(env_ptr, "BcdWithDijkstra"));
     algorithms_ptr.emplace_back(std::make_shared<algorithm::BcdWithFootprint>(env_ptr, "BcdWithFootprint"));
-
+    algorithms_ptr.emplace_back(std::make_shared<algorithm::RegionManager>(env_ptr, "RegionManager"));
+//    std::shared_ptr<algorithm::RegionManager> rm_;
+//    rm_ = std::make_shared<algorithm::RegionManager>(env_ptr, "RegionManager");
+//    rm_->showCurrentRegion(149, 149);
     std::cout << "Obstacle radius: " << obstacle_radius << " " << "robot radius: " << robot_radius << std::endl;
     std::cout << "Algorithms number: " << algorithms_ptr.size() << std::endl;
     for (const auto &a : algorithms_ptr)

@@ -25,33 +25,13 @@ namespace algorithm
             std::string id;
         };
 
-        RegionManager(environment::EnvironmentInterfacePtr &env, std::string name)
-        {
-            initialize(env, std::move(name));
-        }
+        RegionManager(environment::EnvironmentInterfacePtr &env, std::string name);
 
-        void initialize(environment::EnvironmentInterfacePtr &env, std::string name)
-        {
-            env_ptr_ = env;
-            name_ = name;
+        void initialize(environment::EnvironmentInterfacePtr &env, std::string name) override;
 
-            side_points_.emplace_back(boost::bind(&RegionManager::_get_right, this, _1, _2, _3, _4, _5, 1));
-            side_points_.emplace_back(boost::bind(&RegionManager::_get_higher_right, this, _1, _2, _3, _4, _5, 1));
-            side_points_.emplace_back(boost::bind(&RegionManager::_get_middle_higher, this, _1, _2, _3, _4, _5, 1));
-            side_points_.emplace_back(boost::bind(&RegionManager::_get_higher_left, this, _1, _2, _3, _4, _5, 1));
-            side_points_.emplace_back(boost::bind(&RegionManager::_get_left, this, _1, _2, _3, _4, _5, 1));
-            side_points_.emplace_back(boost::bind(&RegionManager::_get_lower_left, this, _1, _2, _3, _4, _5, 1));
-            side_points_.emplace_back(boost::bind(&RegionManager::_get_middle_lower, this, _1, _2, _3, _4, _5, 1));
-            side_points_.emplace_back(boost::bind(&RegionManager::_get_lower_right, this, _1, _2, _3, _4, _5, 1));
+        bool planning() override;
 
-            initialized_ = true;
-        }
-
-        std::tuple<int, int, int, int> getNextRegion();
-
-        bool planning();
-
-        environment::Path &getPath();
+        environment::Path &getPath() override;
 
         /**
          * @return true 生成并插入了新Region
@@ -59,160 +39,37 @@ namespace algorithm
          * */
         bool addRegion(int x, int y);
 
-        const Region& getCurrentRegion(int x, int y)
-        {
-            for (const auto &reg : regions_)
-            {
-                const auto& r = reg.second;
-                if (x < r.xh && y < r.yh && x >= r.xl && y >= r.yl)
-                {
-                    return r;
-                }
-            }
+        const Region& getCurrentRegion(int x, int y);
 
-            return Region{0};
-        }
+        void setGoal(int x, int y) override;;
 
-        void
-        setGoal(int x, int y) {};
+        void setStart(int x, int y) override;
 
-        void
-        setStart(int x, int y) override
-        {
-            start_x_ = x;
-            start_y_ = y;
-        }
+        void showCurrentRegion(int x, int y);
 
+        void showRegion(const Region& r);
 
-        void showCurrentRegion(int x, int y)
-        {
-            if (_get_region_id(x, y).empty())
-            {
-                addRegion(x, y);
-            }
-            env_ptr_->drawCircle(x, y, 3, -1);
-            const Region& cur_region = getCurrentRegion(x, y);
-            showRegion(cur_region);
-//
-//            {
-//                const Region& new_region = generateHigherRegion(cur_region);
-//                showRegion(new_region);
-//            }
-//
-//            {
-//                const Region& new_region = generateLowerRegion(cur_region);
-//                showRegion(new_region);
-//            }
-//
-//            {
-//                const Region& new_region = generateLeftRegion(cur_region);
-//                showRegion(new_region);
-//            }
-//
-//            {
-//                const Region& new_region = generateRightRegion(cur_region);
-//                showRegion(new_region);
-//
-//                auto r = generateRightRegion(new_region);
-//                showRegion(r);
-//                auto l = generateLeftRegion(new_region);
-//                showRegion(l);
-//                auto low = generateLowerRegion(new_region);
-//                showRegion(low);
-//                auto h = generateHigherRegion(new_region);
-//                showRegion(h);
-//            }
-        }
+        const Region& generateHigherRegion(const Region& cur_region);
 
-        void showRegion(const Region& r)
-        {
-            env_ptr_->drawLine(r.xl, r.yl, r.xl, r.yh);
-            env_ptr_->drawLine(r.xl, r.yl, r.xh, r.yl);
-            env_ptr_->drawLine(r.xh, r.yh, r.xl, r.yh);
-            env_ptr_->drawLine(r.xh, r.yh, r.xh, r.yl);
-        }
+        const Region& generateLowerRegion(const Region& cur_region);
 
-        const Region& generateHigherRegion(const Region& cur_region)
-        {
-            Region res;
-            res.xh = cur_region.xh;
-            res.xl = cur_region.xl;
-            res.yh = cur_region.yl;
-            res.yl = cur_region.yl - region_size_;
-            _gen_id_for_region(res);
-            regions_[res.id] = res;
-            return regions_[res.id];
-        }
+        const Region& generateLeftRegion(const Region& cur_region);
 
-        const Region& generateLowerRegion(const Region& cur_region)
-        {
-            Region res;
-            res.xh = cur_region.xh;
-            res.xl = cur_region.xl;
-            res.yh = cur_region.yh + region_size_;
-            res.yl = cur_region.yl;
-            _gen_id_for_region(res);
-            regions_[res.id] = res;
-            return regions_[res.id];
-        }
-
-        const Region& generateLeftRegion(const Region& cur_region)
-        {
-            Region res;
-            res.xh = cur_region.xl;
-            res.xl = cur_region.xl - region_size_;
-            res.yh = cur_region.yh;
-            res.yl = cur_region.yl;
-            _gen_id_for_region(res);
-            regions_[res.id] = res;
-            return regions_[res.id];
-        }
-
-        const Region& generateRightRegion(const Region& cur_region)
-        {
-            Region res;
-            res.xh = cur_region.xh + region_size_;
-            res.xl = cur_region.xh;
-            res.yh = cur_region.yh;
-            res.yl = cur_region.yl;
-            _gen_id_for_region(res);
-            regions_[res.id] = res;
-            return regions_[res.id];
-        }
+        const Region& generateRightRegion(const Region& cur_region);
 
     private:
 
         bool initialized_{false};
         environment::EnvironmentInterfacePtr env_ptr_;
         environment::GridPoint region_origin_;
-        int region_size_{50};
+        int region_size_{100};
         int start_x_{0}, start_y_{0};
-        struct RegionCmp
-        {
-            bool operator()(const Region &a, const Region &b) const
-            {
-                if (a.xl == b.xl && a.yl == b.yl && a.xh == b.xh && a.yh == b.yh)
-                {
-                    return false;
-                }
-
-                if (a.xl >= b.xl)
-                {
-                    return true;
-                }
-
-                if (a.yl >= b.yl)
-                {
-                    return true;
-                }
-                return false;
-            }
-        };
         std::unordered_map<std::string, Region> regions_;
         Region *current_region_;
 
         std::vector<std::function<bool(environment::EnvironmentInterfacePtr&, int, int, int&, int&)>> side_points_;
         environment::Path path_;
+        Region empty_region_{0};
 
     private:
 
