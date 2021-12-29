@@ -1076,4 +1076,16 @@ namespace environment
             }
         }
     }
+
+    void Environment::toGrid(int x, int y, int &outx, int &outy)
+    {
+        outx = x / rect_size_;
+        outy = y / rect_size_;
+    }
+
+    void Environment::fromGrid(int x, int y, int &outx, int &outy)
+    {
+        outx = x * rect_size_;
+        outy = y * rect_size_;
+    }
 }

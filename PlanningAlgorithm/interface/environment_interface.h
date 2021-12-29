@@ -42,6 +42,12 @@ namespace environment
         virtual bool
         setGridValue(int x, int y, uint8_t value) = 0;
 
+        virtual void
+        toGrid(int x, int y, int &outx, int &outy) = 0;
+
+        virtual void
+        fromGrid(int x, int y, int &outx, int &outy) = 0;
+
         virtual int
         getRobotRadius()
         {
@@ -292,7 +298,7 @@ namespace environment
         }
 
         virtual void
-        drawCircle(int x, int y, int radius, int line_width = 1) = 0;
+        drawCircleFromDisp(int x, int y, int radius, int line_width = 1, int r = 0, int g = 0, int b = 0, int a = 255) = 0;
 
     protected:
 

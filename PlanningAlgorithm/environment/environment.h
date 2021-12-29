@@ -46,6 +46,12 @@ namespace environment
         bool
         setGridValue(int x, int y, uint8_t value) override;
 
+        void
+        toGrid(int x, int y, int &outx, int &outy) override;
+
+        void
+        fromGrid(int x, int y, int &outx, int &outy) override;
+
         bool
         setInteractiveGridValue(int x, int y, uint8_t r = 0, uint8_t g = 0, uint8_t b = 0, uint8_t a = 255) override;
 
@@ -155,13 +161,13 @@ namespace environment
         fillPoints(const Grids& points) override;
 
         void
-        drawCircle(int x, int y, int radius, int line_width) override
+        drawCircleFromDisp(int x, int y, int radius, int line_width, int r = 0, int g = 0, int b = 0, int a = 255) override
         {
             std::lock_guard<std::mutex> lg(display_img_mtx_);
 //            CVAPI(void)  cvCircle( CvArr* img, CvPoint center, int radius,
 //                                   CvScalar color, int thickness CV_DEFAULT(1),
 //                                   int line_type CV_DEFAULT(8), int shift CV_DEFAULT(0));
-            cv::circle(display_img_, cv::Point(x * rect_size_, y * rect_size_), radius,
+            cv::circle(display_img_, cv::Point(x, y ), radius,
                  cv::Scalar(0, 0, 0, 0), line_width, 0);
         }
 
