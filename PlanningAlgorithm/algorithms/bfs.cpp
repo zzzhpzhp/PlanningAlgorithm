@@ -105,11 +105,6 @@ namespace algorithm
                     return true;
                 }
 
-                if (cur_->x == goal_x_ && cur_->y == goal_y_)
-                {
-                    return true;
-                }
-
                 if (cur_->x != start_x_ || cur_->y != start_y_)
                 {
                     env_ptr_->setIntGridValByPlanXY(cur_->x, cur_->y, 100, 100, 100);

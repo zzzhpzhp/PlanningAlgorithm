@@ -61,6 +61,9 @@ namespace algorithm
             bool in_close_list = false;
             bool is_obstacle = false;
 
+        };
+        struct NodeCmp
+        {
             bool operator()(const Node* a, const Node* n) const
             {
                 return a->dist > n->dist;

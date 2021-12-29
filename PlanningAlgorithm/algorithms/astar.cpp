@@ -126,7 +126,8 @@ namespace algorithm
                         side_to_cur_cost = 10;
                     }
 
-                    through_cur_cost = side_to_cur_cost + cur_->dist;
+                    side_val = env_ptr_->getGridValue(side_x, side_y);
+                    through_cur_cost = side_to_cur_cost + cur_->dist + 255 - side_val;
                     if (side->in_open_list)
                     {
                         if (through_cur_cost < side->dist)
@@ -147,7 +148,6 @@ namespace algorithm
                     }
 
                     // 此点是新节点
-                    side_val = env_ptr_->getGridValue(side_x, side_y);
                     if (side_val <= environment::INSCRIBED_INFLATED_OBSTACLE)
                     {
                         // 如果此點是障礙物，則跳過

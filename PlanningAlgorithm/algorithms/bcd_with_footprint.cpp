@@ -1,5 +1,6 @@
 #include "bcd_with_footprint.h"
 
+#define DISPLAY_COVER_PROCESS 0
 // 在遇到死区时是否使用Dijkstra算法找到新的起点
 #define USE_DIJKSTRA 1
 
@@ -128,7 +129,6 @@ namespace algorithm
             if (!valid)
             {
                 env_ptr_->setIntGridValByPlanXY(x, y, 100, 0, 0);
-                std::cout << "Last cover points " << last_cover_path_.size() << std::endl;
 
                 if (!last_bridge_path_.empty())
                 {
@@ -245,7 +245,7 @@ namespace algorithm
     {
         auto size_x = env_ptr_->getGridXSizeInCells(), size_y = env_ptr_->getGridYSizeInCells();
         nodes_ = std::vector<Node>(size_x * size_y);
-        std::priority_queue<Node*, std::vector<Node*>, Node> nodes_queue;
+        std::priority_queue<Node*, std::vector<Node*>, NodeCmp> nodes_queue;
         int id_index = start_y * size_x + start_x;
         Node *cur = &nodes_[id_index];
         cur->x = start_x;
@@ -437,7 +437,9 @@ namespace algorithm
                 {
                     break;
                 }
+#if DISPLAY_COVER_PROCESS
                 env_ptr_->setIntGridValByPlanXY(tx, ty, 150, 150, 150);
+#endif
             }
             cleaned_[tx][ty] = true;
         }
@@ -457,7 +459,9 @@ namespace algorithm
                 {
                     break;
                 }
+#if DISPLAY_COVER_PROCESS
                 env_ptr_->setIntGridValByPlanXY(tx, ty, 150, 150, 150);
+#endif
             }
             cleaned_[tx][ty] = true;
         }
