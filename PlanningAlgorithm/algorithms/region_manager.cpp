@@ -2,131 +2,8 @@
 
 namespace algorithm
 {
-
     bool RegionManager::planning()
     {
-        if (!initialized_)
-        {
-            std::cerr << "Should initialize first." << std::endl;
-            return false;
-        }
-
-        if (!env_ptr_->insideGrid(start_x_, start_y_))
-        {
-            std::cerr << "Start or Goal pose out of bound." << std::endl;
-            return false;
-        }
-
-        std::cout << "Start pose: [" << start_x_ << ", " << start_y_ << "]" << std::endl;
-
-        struct Node
-        {
-            int x, y;
-            int id;
-            int dist;
-            Node *parent_node;
-
-            bool operator()(const Node* a, const Node* n) const
-            {
-                return a->dist > n->dist;
-            };
-        };
-
-        struct NodeCmp
-        {
-            bool operator()(const Node* a, const Node* n) const
-            {
-                return a->dist > n->dist;
-            };
-        };
-
-        std::priority_queue<Node*, std::vector<Node*>, NodeCmp> node_stack;
-        int id_index = 0;
-        std::vector<Node> nodes(env_ptr_->getGridXSizeInCells() * env_ptr_->getGridYSizeInCells());
-        Node *cur_ = &nodes[id_index];
-        cur_->x = start_x_;
-        cur_->y = start_y_;
-        cur_->dist = 0;
-        cur_->id = id_index;
-        id_index++;
-        node_stack.push(cur_);
-        std::unordered_map<int, std::unordered_map<int, bool>> visited;
-        environment::PathNode pn{};
-        pn.g = 255;
-        pn.a = 255;
-        path_.clear();
-
-        visited[cur_->x][cur_->y] = true;
-
-        std::function<bool()> bfs = [&]()->bool
-        {
-            while (!node_stack.empty() && is_running_.load())
-            {
-                std::this_thread::sleep_for(std::chrono::microseconds((int)(env_ptr_->getAlgorithmRunningDelayTime() * 1e6)));
-                cur_ = node_stack.top();
-                node_stack.pop();
-
-                if (cur_->x != start_x_ || cur_->y != start_y_)
-                {
-                    env_ptr_->setIntGridValByPlanXY(cur_->x, cur_->y, 100, 100, 100);
-                }
-
-                int side_x, side_y;
-                uint8_t side_val;
-                Node *side;
-                for (auto &side_node : side_points_)
-                {
-                    if (!side_node(env_ptr_, cur_->x, cur_->y, side_x, side_y))
-                    {
-                        continue;
-                    }
-
-                    side_val = env_ptr_->getGridValue(side_x, side_y);
-                    if (visited[side_x][side_y] || side_val <= environment::INSCRIBED_INFLATED_OBSTACLE)
-                    {
-                        // 如果此點已被訪問過或是障礙物，則跳過
-                        continue;
-                    }
-
-                    visited[side_x][side_y] = true;
-
-                    auto id = id_index++;
-                    side = &nodes[id];
-                    side->id = id;
-                    side->x = side_x;
-                    side->y = side_y;
-                    side->parent_node = cur_;
-
-                    if (side->x != cur_->x && side->y != cur_->y)
-                    {
-                        side->dist = cur_->dist + 14;
-                    }
-                    else
-                    {
-                        side->dist = cur_->dist + 10;
-                    }
-
-                    node_stack.push(side);
-                }
-            }
-
-            return false;
-        };
-
-        auto result = bfs();
-
-        if (result)
-        {
-            while (cur_)
-            {
-                pn.x = cur_->x;
-                pn.y = cur_->y;
-                path_.emplace_back(pn);
-                cur_ = cur_->parent_node;
-            }
-        }
-
-        return result;
     }
 
     environment::Path &RegionManager::getPath()
@@ -134,7 +11,7 @@ namespace algorithm
         return path_;
     }
 
-    bool RegionManager::_is_boundary(int x, int y)
+    bool RegionManager::_is_boundary(int x, int y) const
     {
         if (x % region_size_ == 0 || y % region_size_ == 0)
         {
@@ -157,7 +34,7 @@ namespace algorithm
         return std::string{};
     }
 
-    bool RegionManager::addRegion(int x, int y)
+    RegionManager::Region &RegionManager::addRegion(int x, int y)
     {
         Region r;
         int x_normalize = x / region_size_;
@@ -172,9 +49,9 @@ namespace algorithm
         if (regions_.find(id) == regions_.end())
         {
             regions_[id] = r;
-            return true;
         }
-        return false;
+
+        return regions_[id];
     }
 
     RegionManager::RegionManager(environment::EnvironmentInterfacePtr &env, std::string name)
@@ -186,6 +63,8 @@ namespace algorithm
     {
         env_ptr_ = env;
         name_ = name;
+        expander_.initialize(env, name + "Expander");
+        expander_.setShouldTerminate(boost::bind(&RegionManager::_is_boundary, this, _1, _2));
 
         side_points_.emplace_back(boost::bind(&RegionManager::_get_right, this, _1, _2, _3, _4, _5, 1));
         side_points_.emplace_back(boost::bind(&RegionManager::_get_higher_right, this, _1, _2, _3, _4, _5, 1));
@@ -199,38 +78,40 @@ namespace algorithm
         initialized_ = true;
     }
 
-    const RegionManager::Region &RegionManager::getCurrentRegion(int x, int y)
+    RegionManager::Region &RegionManager::getRegionById(int x, int y)
     {
-        for (const auto &reg : regions_)
+        for (auto &reg : regions_)
         {
-            const auto& r = reg.second;
+            auto& r = reg.second;
             if (x < r.xh && y < r.yh && x >= r.xl && y >= r.yl)
             {
                 return r;
             }
         }
 
-        return empty_region_;
+        return addRegion(x, y);
     }
 
     void RegionManager::setStart(int x, int y)
     {
+        env_ptr_->displayXY2PlanningXY(x, y, x, y);
         start_x_ = x;
         start_y_ = y;
-        showCurrentRegion(x, y);
-        env_ptr_->toGrid(x, y, x, y);
+
+        setCurrentRegion(&addRegion(x, y));
+        showCurrentRegion();
+        expander_.setStart(x, y);
     }
 
-    void RegionManager::showCurrentRegion(int x, int y)
+    void RegionManager::showCurrentRegion()
     {
-        env_ptr_->toGrid(x, y, x, y);
-        if (_get_region_id(x, y).empty())
+        expander_.expand();
+        if (!expander_.getPath().empty())
         {
-            addRegion(x, y);
+            env_ptr_->drawPath(expander_.getPath());
         }
-        const Region& cur_region = getCurrentRegion(x, y);
-        showRegion(cur_region);
-        std::cout << "Start xy " << x << " " << y << std::endl;
+        showRegion(*getCurrentRegion());
+//        std::cout << "Start xy " << x << " " << y << std::endl;
     }
 
     void RegionManager::showRegion(const RegionManager::Region &r)
@@ -292,5 +173,25 @@ namespace algorithm
     void RegionManager::setGoal(int x, int y)
     {
 
+    }
+
+    std::string RegionManager::_gen_id_for_region(const RegionManager::Region& reg)
+    {
+        std::string res;
+        res = std::to_string(reg.xl) + ':' + std::to_string(reg.xh) + ':' +
+              std::to_string(reg.yl) + ':' + std::to_string(reg.yh);
+        return res;
+    }
+
+    std::string RegionManager::_gen_id_for_point(int x, int y)
+    {
+        std::string res;
+        res = std::to_string(x) + ':' + std::to_string(y);
+        return res;
+    }
+
+    void RegionManager::setCurrentRegion(Region *r)
+    {
+        current_region_ = r;
     }
 }
