@@ -167,20 +167,18 @@ main(int argc, char* argv[])
     algorithms_ptr.emplace_back(std::make_shared<algorithm::RegionManager>(env_ptr, "RegionManager"));
 //    std::shared_ptr<algorithm::RegionManager> rm_;
 //    rm_ = std::make_shared<algorithm::RegionManager>(env_ptr, "RegionManager");
-//    rm_->showCurrentRegion(149, 149);
+//    rm_->showCurrentRegion(149 * 3, 149 * 3);
+//    rm_->expander_.expand();
     std::cout << "Obstacle radius: " << obstacle_radius << " " << "robot radius: " << robot_radius << std::endl;
     std::cout << "Algorithms number: " << algorithms_ptr.size() << std::endl;
     for (const auto &a : algorithms_ptr)
     {
         std::cout << a->getName() << std::endl;
     }
-    std::cout << "Arguments number: " << argc << std::endl;
-    if (argc > 1)
-    {
-        selected_algorithm = std::stoi(argv[1]);
-    }
 
+    selected_algorithm = algorithms_ptr.size() - 1;
     switch_algorithm(selected_algorithm);
+
 
     if (!alg_ptr)
     {

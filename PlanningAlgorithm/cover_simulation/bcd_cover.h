@@ -13,14 +13,15 @@
 
 namespace algorithm
 {
-    class BcdWithFootprint : public AlgorithmInterface
+    class BcdCover : public AlgorithmInterface
     {
     public:
-
-        BcdWithFootprint(environment::EnvironmentInterfacePtr &env, std::string name)
+        BcdCover(environment::EnvironmentInterfacePtr &env, std::string name)
         {
             initialize(env, std::move(name));
         }
+
+        BcdCover(){}
 
         void
         initialize(environment::EnvironmentInterfacePtr &env, std::string name={}) override;
@@ -30,6 +31,15 @@ namespace algorithm
 
         void
         setStart(int x, int y) override;
+
+        void
+        setStepProcess(std::function<bool(int x, int y, unsigned char cost)> fun);
+
+        void
+        setPoseValidation(std::function<bool(int x, int y, unsigned char cost)> fun);
+
+        void
+        setShouldTerminate(std::function<bool(int x, int y, unsigned char cost)> fun);
 
         bool
         planning() override;
@@ -52,6 +62,10 @@ namespace algorithm
         environment::Path path_;
         environment::Path last_cover_path_;
         environment::Path last_bridge_path_;
+
+        std::function<bool(int x, int y, unsigned char cost)> step_process_{nullptr};
+        std::function<bool(int x, int y, unsigned char cost)> pose_validation_{nullptr};
+        std::function<bool(int x, int y, unsigned char cost)> should_terminate_{nullptr};
 
         using VisitedTable = std::unordered_map<int, std::unordered_map<int, bool>>;
         std::unordered_map<int, std::unordered_map<int, bool>> visited_, cleaned_;

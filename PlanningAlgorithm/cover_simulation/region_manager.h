@@ -14,7 +14,8 @@
 #include "algorithm_interface.h"
 #include "environment_interface.h"
 
-#include <region_manager_expander.h>
+#include <cover_simulation/expander.h>
+#include <cover_simulation/bcd_cover.h>
 
 namespace algorithm
 {
@@ -37,8 +38,7 @@ namespace algorithm
         environment::Path &getPath() override;
 
         /**
-         * @return true 生成并插入了新Region
-         * @return false 已存在包含此点的Region
+         * @return 此坐标所在的Region
          * */
         Region& addRegion(int x, int y);
 
@@ -54,10 +54,9 @@ namespace algorithm
 
         void setCurrentRegion(Region *r);
 
-        Region *getCurrentRegion()
-        {
-            return current_region_;
-        }
+        Region *getCurrentRegion();
+
+        bool isInsideCurrentRegion(int x, int y);
 
         const Region& generateHigherRegion(const Region& cur_region);
 
@@ -66,6 +65,8 @@ namespace algorithm
         const Region& generateLeftRegion(const Region& cur_region);
 
         const Region& generateRightRegion(const Region& cur_region);
+
+        void getCurrentRegionEdge();
 
     private:
 
@@ -81,6 +82,7 @@ namespace algorithm
         environment::Path path_;
         Region empty_region_{0};
         std::unordered_map<std::string, bool> is_reachable_boundary_;
+        BcdCover cover_;
 
     private:
 
@@ -92,9 +94,8 @@ namespace algorithm
 
         static std::string _gen_id_for_region(const Region& reg);
 
-        int _update_boundary_reachability()
-        {
+        static bool _is_inside(int x, int y, Region *r);
 
-        }
+        int _update_boundary_reachability() {}
     };
 }

@@ -2,36 +2,58 @@
 
 namespace algorithm
 {
+    void RegionManager::initialize(environment::EnvironmentInterfacePtr &env, std::string name)
+    {
+        env_ptr_ = env;
+        name_ = name;
+        expander_.initialize(env, name + "Expander");
+//        expander_.setShouldTerminate(boost::bind(&RegionManager::_is_boundary, this, _1, _2));
+        expander_.setPoseValidation(boost::bind(&RegionManager::isInsideCurrentRegion, this, _1, _2));
+        cover_.initialize(env, name + "Cover");
+        cover_.setPoseValidation(boost::bind(&RegionManager::isInsideCurrentRegion, this, _1, _2));
+
+        side_points_.emplace_back(boost::bind(&RegionManager::_get_right, this, _1, _2, _3, _4, _5, 1));
+        side_points_.emplace_back(boost::bind(&RegionManager::_get_higher_right, this, _1, _2, _3, _4, _5, 1));
+        side_points_.emplace_back(boost::bind(&RegionManager::_get_middle_higher, this, _1, _2, _3, _4, _5, 1));
+        side_points_.emplace_back(boost::bind(&RegionManager::_get_higher_left, this, _1, _2, _3, _4, _5, 1));
+        side_points_.emplace_back(boost::bind(&RegionManager::_get_left, this, _1, _2, _3, _4, _5, 1));
+        side_points_.emplace_back(boost::bind(&RegionManager::_get_lower_left, this, _1, _2, _3, _4, _5, 1));
+        side_points_.emplace_back(boost::bind(&RegionManager::_get_middle_lower, this, _1, _2, _3, _4, _5, 1));
+        side_points_.emplace_back(boost::bind(&RegionManager::_get_lower_right, this, _1, _2, _3, _4, _5, 1));
+
+        initialized_ = true;
+    }
+
     bool RegionManager::planning()
     {
+//        expander_.expand();
+//        if (!expander_.getPath().empty())
+//        {
+//            env_ptr_->drawPath(expander_.getPath());
+//        }
+        cover_.planning();
+        getCurrentRegionEdge();
+    }
+
+    void RegionManager::setCurrentRegion(Region *r)
+    {
+        current_region_ = r;
+    }
+
+    RegionManager::Region *RegionManager::getCurrentRegion()
+    {
+        return current_region_;
+    }
+
+    bool RegionManager::isInsideCurrentRegion(int x, int y)
+    {
+        return _is_inside(x, y, current_region_);
     }
 
     environment::Path &RegionManager::getPath()
     {
+//        return cover_.getPath();
         return path_;
-    }
-
-    bool RegionManager::_is_boundary(int x, int y) const
-    {
-        if (x % region_size_ == 0 || y % region_size_ == 0)
-        {
-            return true;
-        }
-        return false;
-    }
-
-    std::string RegionManager::_get_region_id(int x, int y)
-    {
-        for (const auto &reg : regions_)
-        {
-            const auto& r = reg.second;
-            if (x < r.xh && y < r.yh && x >= r.xl && y >= r.yl)
-            {
-                return r.id;
-            }
-        }
-
-        return std::string{};
     }
 
     RegionManager::Region &RegionManager::addRegion(int x, int y)
@@ -48,6 +70,7 @@ namespace algorithm
         auto id = _gen_id_for_region(r);
         if (regions_.find(id) == regions_.end())
         {
+            FL_PRINT
             regions_[id] = r;
         }
 
@@ -59,31 +82,12 @@ namespace algorithm
         initialize(env, std::move(name));
     }
 
-    void RegionManager::initialize(environment::EnvironmentInterfacePtr &env, std::string name)
-    {
-        env_ptr_ = env;
-        name_ = name;
-        expander_.initialize(env, name + "Expander");
-        expander_.setShouldTerminate(boost::bind(&RegionManager::_is_boundary, this, _1, _2));
-
-        side_points_.emplace_back(boost::bind(&RegionManager::_get_right, this, _1, _2, _3, _4, _5, 1));
-        side_points_.emplace_back(boost::bind(&RegionManager::_get_higher_right, this, _1, _2, _3, _4, _5, 1));
-        side_points_.emplace_back(boost::bind(&RegionManager::_get_middle_higher, this, _1, _2, _3, _4, _5, 1));
-        side_points_.emplace_back(boost::bind(&RegionManager::_get_higher_left, this, _1, _2, _3, _4, _5, 1));
-        side_points_.emplace_back(boost::bind(&RegionManager::_get_left, this, _1, _2, _3, _4, _5, 1));
-        side_points_.emplace_back(boost::bind(&RegionManager::_get_lower_left, this, _1, _2, _3, _4, _5, 1));
-        side_points_.emplace_back(boost::bind(&RegionManager::_get_middle_lower, this, _1, _2, _3, _4, _5, 1));
-        side_points_.emplace_back(boost::bind(&RegionManager::_get_lower_right, this, _1, _2, _3, _4, _5, 1));
-
-        initialized_ = true;
-    }
-
     RegionManager::Region &RegionManager::getRegionById(int x, int y)
     {
         for (auto &reg : regions_)
         {
             auto& r = reg.second;
-            if (x < r.xh && y < r.yh && x >= r.xl && y >= r.yl)
+            if (_is_inside(x, y, &r))
             {
                 return r;
             }
@@ -98,20 +102,15 @@ namespace algorithm
         start_x_ = x;
         start_y_ = y;
 
-        setCurrentRegion(&addRegion(x, y));
+        setCurrentRegion(&getRegionById(x, y));
         showCurrentRegion();
         expander_.setStart(x, y);
+        cover_.setStart(x, y);
     }
 
     void RegionManager::showCurrentRegion()
     {
-        expander_.expand();
-        if (!expander_.getPath().empty())
-        {
-            env_ptr_->drawPath(expander_.getPath());
-        }
         showRegion(*getCurrentRegion());
-//        std::cout << "Start xy " << x << " " << y << std::endl;
     }
 
     void RegionManager::showRegion(const RegionManager::Region &r)
@@ -190,8 +189,59 @@ namespace algorithm
         return res;
     }
 
-    void RegionManager::setCurrentRegion(Region *r)
+    bool RegionManager::_is_inside(int x, int y, RegionManager::Region *r)
     {
-        current_region_ = r;
+        if (r == nullptr)
+        {
+            return false;
+        }
+        if (x < r->xh && y < r->yh && x >= r->xl && y >= r->yl)
+        {
+            return true;
+        }
+        return false;
     }
+
+    bool RegionManager::_is_boundary(int x, int y) const
+    {
+        if (x % region_size_ == 0 || y % region_size_ == 0)
+        {
+            return true;
+        }
+        return false;
+    }
+
+    std::string RegionManager::_get_region_id(int x, int y)
+    {
+        for (const auto &reg : regions_)
+        {
+            const auto& r = reg.second;
+            if (x < r.xh && y < r.yh && x >= r.xl && y >= r.yl)
+            {
+                return r.id;
+            }
+        }
+
+        return std::string{};
+    }
+
+    void RegionManager::getCurrentRegionEdge()
+    {
+        std::unordered_map<std::string, bool> feasible_point;
+        std::function<bool(int, int, unsigned char)> step_proc = [&](int x, int y, unsigned char cost)->bool
+        {
+            if (!_is_boundary(x, y))
+            {
+                return true;
+            }
+
+            auto pid = _gen_id_for_point(x, y);
+            feasible_point[pid] = true;
+            return true;
+        };
+        expander_.setStepProcess(boost::bind(step_proc, _1, _2, _3));
+        expander_.expand();
+        std::cout << "feasible_point " << feasible_point.size() << std::endl;
+    }
+
 }

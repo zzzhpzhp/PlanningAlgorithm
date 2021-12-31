@@ -14,6 +14,7 @@ file(GLOB SRC_FILES
         ./utility/*.cpp
         ./algorithms/*.cpp
         ./environment/*.cpp
+        ./cover_simulation/*.cpp
         ./*.cpp
         )
 include_directories(
@@ -22,6 +23,7 @@ include_directories(
         ./interface
         ./algorithms
         ./environment
+        ./cover_simulation
 )
 
 add_executable(${PROJECT_NAME} ${SRC_FILES})
