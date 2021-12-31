@@ -16,16 +16,16 @@ namespace algorithm
         }
 
         virtual void
-        setGoal(int x, int y) = 0;
+        setGoal(int x, int y) {};
 
         virtual void
-        setStart(int x, int y) = 0;
+        setStart(int x, int y) {};
 
         virtual bool
-        planning() = 0;
+        planning() {};
 
         virtual environment::Path&
-        getPath() = 0;
+        getPath() {};
 
         virtual void
         start()
@@ -38,7 +38,6 @@ namespace algorithm
         {
             is_running_.store(false);
         }
-
 
     protected:
 
