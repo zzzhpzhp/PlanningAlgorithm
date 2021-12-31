@@ -43,6 +43,9 @@ namespace algorithm
         int start_x_{0}, start_y_{0};
         int goal_x_{0}, goal_y_{0};
 
+        // 规划衔接路径时，地图代价的比重，越大规划的路径会越远离障碍物
+        float map_cost_scale_{0.0f};
+
         environment::EnvironmentInterfacePtr env_ptr_;
         std::vector<std::function<bool(environment::EnvironmentInterfacePtr&, int, int, int&, int&)>> side_points_, dijkstra_side_points_;
         environment::Path path_;
@@ -54,12 +57,12 @@ namespace algorithm
 
         struct Node
         {
-            int x, y;
-            int dist;
-            Node *parent_node;
+            int x{0}, y{0};
+            float dist{0.0f};
+            Node *parent_node{nullptr};
             bool in_open_list = false;
             bool in_close_list = false;
-            bool is_obstacle = false;
+//            bool is_obstacle = false;
 
         };
         struct NodeCmp

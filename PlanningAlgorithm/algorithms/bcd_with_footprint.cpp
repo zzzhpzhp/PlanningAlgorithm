@@ -213,6 +213,7 @@ namespace algorithm
 #endif
                 if (side_y != y)
                 {
+                    // 当前点到上、下点由于可能间隔了好几个点，因此需要对所有的间隔点进行可通行性检查
                     // 从高y开始检查
                     auto h = std::max(side_y, y);
                     if (!_position_validation(side_x, h))
@@ -264,8 +265,8 @@ namespace algorithm
         }
         pn.a = 50;
         bool find = false;
-        int side_to_cur_cost{0};
-        int through_cur_cost{0};
+        float side_to_cur_cost{0.0f};
+        float through_cur_cost{0.0f};
         int side_x, side_y;
         uint8_t side_val;
         Node *side;
@@ -304,6 +305,8 @@ namespace algorithm
                 auto id = side_y * size_x + side_x;
                 side = &nodes_[id];
 
+                side_val = env_ptr_->getGridValue(side_x, side_y);
+
                 if (side_x != cur->x && side_y != cur->y)
                 {
                     side_to_cur_cost = 14;
@@ -312,7 +315,7 @@ namespace algorithm
                 {
                     side_to_cur_cost = 10;
                 }
-                through_cur_cost = side_to_cur_cost + cur->dist;
+                through_cur_cost = side_to_cur_cost + cur->dist + (255 - side_val) * map_cost_scale_;
 
                 if (side->in_open_list)
                 {
@@ -328,23 +331,16 @@ namespace algorithm
                     continue;
                 }
 
-                if (side->is_obstacle)
-                {
-                    continue;
-                }
-
-                side_val = env_ptr_->getGridValue(side_x, side_y);
                 if (side_val <= environment::INSCRIBED_INFLATED_OBSTACLE)
                 {
                     // 如果此點是障礙物，則跳過
-                    side->is_obstacle = true;
                     continue;
                 }
 
                 side->x = side_x;
                 side->y = side_y;
                 side->parent_node = cur;
-                side->dist = cur->dist + side_to_cur_cost;
+                side->dist = cur->dist + side_to_cur_cost + (255 - side_val) * map_cost_scale_;
                 side->in_open_list = true;
 
                 nodes_queue.push(side);
