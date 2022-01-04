@@ -8,7 +8,6 @@ namespace algorithm
         name_ = name;
         expander_.initialize(env, name + "Expander");
 //        expander_.setShouldTerminate(boost::bind(&RegionManager::_is_boundary, this, _1, _2));
-        expander_.setPoseValidation(boost::bind(&RegionManager::isInsideCurrentRegion, this, _1, _2));
         cover_.initialize(env, name + "Cover");
         cover_.setPoseValidation(boost::bind(&RegionManager::isInsideCurrentRegion, this, _1, _2));
 
@@ -26,13 +25,33 @@ namespace algorithm
 
     bool RegionManager::planning()
     {
-//        expander_.expand();
-//        if (!expander_.getPath().empty())
-//        {
-//            env_ptr_->drawPath(expander_.getPath());
-//        }
+        std::function<bool(int, int, unsigned char, const Region&)> reach_bound = [&](int x, int y, unsigned char cost, const Region& r)->bool
+        {
+            return _is_boundary(x, y, r);
+        };
+
+        path_.clear();
+
+        expander_.reset();
+        expander_.setPoseValidation(boost::bind(&RegionManager::isInsideCurrentRegion, this, _1, _2));
+        expander_.setShouldTerminate(boost::bind(reach_bound, _1, _2, _3, *getCurrentRegion()));
+        expander_.expand();
+        auto start_to_bound_path = expander_.getPath();
+        path_.insert(path_.end(), start_to_bound_path.begin(), start_to_bound_path.end());
+
+//        env_ptr_->drawPath(start_to_bound_path);
+        auto bound_path = getCurrentRegionEdge();
+        path_.insert(path_.end(), bound_path.begin(), bound_path.end());
+
+        cover_.reset();
+        cover_.markPathCleaned(path_);
+        cover_.setStart(start_to_bound_path.back().x, start_to_bound_path.back().y);
         cover_.planning();
-        getCurrentRegionEdge();
+        auto cover_path = cover_.getPath();
+        path_.insert(path_.end(), cover_path.begin(), cover_path.end());
+
+//        env_ptr_->drawPath(cover_path);
+        return true;
     }
 
     void RegionManager::setCurrentRegion(Region *r)
@@ -42,6 +61,10 @@ namespace algorithm
 
     RegionManager::Region *RegionManager::getCurrentRegion()
     {
+        if (current_region_ == nullptr)
+        {
+            addRegion(start_x_, start_y_);
+        }
         return current_region_;
     }
 
@@ -103,7 +126,7 @@ namespace algorithm
         start_y_ = y;
 
         setCurrentRegion(&getRegionById(x, y));
-        showCurrentRegion();
+//        showCurrentRegion();
         expander_.setStart(x, y);
         cover_.setStart(x, y);
     }
@@ -182,7 +205,7 @@ namespace algorithm
         return res;
     }
 
-    std::string RegionManager::_gen_id_for_point(int x, int y)
+    std::string RegionManager::_gen_point_id(int x, int y)
     {
         std::string res;
         res = std::to_string(x) + ':' + std::to_string(y);
@@ -202,9 +225,9 @@ namespace algorithm
         return false;
     }
 
-    bool RegionManager::_is_boundary(int x, int y) const
+    bool RegionManager::_is_boundary(int x, int y, const Region &r) const
     {
-        if (x % region_size_ == 0 || y % region_size_ == 0)
+        if (x == r.xl || y == r.yl || x == (r.xh-1) || y == (r.yh-1))
         {
             return true;
         }
@@ -225,23 +248,196 @@ namespace algorithm
         return std::string{};
     }
 
-    void RegionManager::getCurrentRegionEdge()
+    environment::Path RegionManager::getCurrentRegionEdge()
     {
-        std::unordered_map<std::string, bool> feasible_point;
-        std::function<bool(int, int, unsigned char)> step_proc = [&](int x, int y, unsigned char cost)->bool
+        environment::Path res{0};
+        std::unordered_map<std::string, bool> feasible_point{0};
+        bool first_boundary_point = true;
+        environment::GridPoint first_point{0};
+        expander_.reset();
+        expander_.setPoseValidation(boost::bind(&RegionManager::isInsideCurrentRegion, this, _1, _2));
+        // 标记边界点
+        std::function<bool(int, int, unsigned char, const Region &)> mark_boundary = [&](int x, int y, unsigned char cost, const Region& r)->bool
         {
-            if (!_is_boundary(x, y))
+            if (!_is_boundary(x, y, r) || 255 - cost > 40)
             {
                 return true;
             }
 
-            auto pid = _gen_id_for_point(x, y);
+            if (first_boundary_point)
+            {
+                first_boundary_point = false;
+                first_point.x = x;
+                first_point.y = y;
+//                env_ptr_->setIntGridValByPlanXY(x, y, 255, 0, 0);
+            }
+            else
+            {
+                env_ptr_->setIntGridValByPlanXY(x, y, 100, 100, 100);
+            }
+
+            auto pid = _gen_point_id(x, y);
             feasible_point[pid] = true;
             return true;
         };
-        expander_.setStepProcess(boost::bind(step_proc, _1, _2, _3));
+
+        // 设置每步动作
+        expander_.setStepProcess(boost::bind(mark_boundary, _1, _2, _3, *getCurrentRegion()));
+        // 启动一次区域内点遍历
         expander_.expand();
-        std::cout << "feasible_point " << feasible_point.size() << std::endl;
+
+        std::vector<environment::Path> paths;
+        environment::Path path;
+        environment::PathNode pn{0};
+        int first_point_index{-1}, first_path_index{-1};
+        // 收集边界点并组成一段段路径
+        auto get_path = [&](int x, int y)
+        {
+            if (feasible_point[_gen_point_id(x, y)])
+            {
+                if (x == first_point.x && y == first_point.y)
+                {
+                    first_path_index = paths.size();
+                    first_point_index = path.size();
+                }
+                path.emplace_back(pn);
+            }
+            else
+            {
+                if (path.empty())
+                {
+                    return;
+                }
+
+                paths.emplace_back(path);
+                path.clear();
+            }
+        };
+        pn.r = 255;
+
+        // 按逆时针顺序提取可通行边界
+        path.clear();
+        for (int i = current_region_->xh - 1; i >= current_region_->xl; i--)
+        {
+            pn.x = i;
+            pn.y = current_region_->yl;
+            get_path(pn.x, pn.y);
+        }
+        if (!path.empty())
+        {
+            paths.emplace_back(path);
+            path.clear();
+        }
+
+        for (int i = current_region_->yl; i < current_region_->yh; i++)
+        {
+            pn.x = current_region_->xl;
+            pn.y = i;
+            get_path(pn.x, pn.y);
+        }
+        if (!path.empty())
+        {
+            paths.emplace_back(path);
+            path.clear();
+        }
+
+        for (int i = current_region_->xl; i < current_region_->xh; i++)
+        {
+            pn.x = i;
+            pn.y = current_region_->yh-1;
+            get_path(pn.x, pn.y);
+        }
+        if (!path.empty())
+        {
+            paths.emplace_back(path);
+            path.clear();
+        }
+
+        for (int i = current_region_->yh - 1; i >= current_region_->yl; i--)
+        {
+            pn.x = current_region_->xh-1;
+            pn.y = i;
+            get_path(pn.x, pn.y);
+        }
+        if (!path.empty())
+        {
+            paths.emplace_back(path);
+            path.clear();
+        }
+
+
+        // 将一段段路径按逆时针顺序进行拼接
+        environment::Path temp_path, bound_path;
+        int cut_index{-1};
+        for (int i = 0; i < paths.size(); i++)
+        {
+            if (i != first_path_index)
+            {
+                temp_path.insert(temp_path.end(), paths[i].begin(), paths[i].end());
+            }
+            else
+            {
+                // 找出第一个点的索引
+                for (auto p : paths[i])
+                {
+                    if (p.x == first_point.x && p.y == first_point.y)
+                    {
+                        cut_index = temp_path.size();
+                    }
+                    temp_path.emplace_back(p);
+                }
+            }
+        }
+
+        if (temp_path.empty())
+        {
+            return temp_path;
+        }
+        // 显示首先搜索到的边界点
+        env_ptr_->setIntGridValByPlanXY(temp_path[cut_index].x, temp_path[cut_index].y, 255, 0, 0);
+
+        // 调整顺序，得出一条以第一个搜索到的点为起点的路径
+        for (int i = cut_index; i < temp_path.size(); i++)
+        {
+            bound_path.emplace_back(temp_path[i]);
+        }
+        for (int i = 0; i < cut_index; i++)
+        {
+            bound_path.emplace_back(temp_path[i]);
+        }
+
+        std::function<bool(int,int,unsigned char,int,int)> goal_reach = [&](int x, int y, unsigned char cost, int goal_x, int goal_y)->bool
+        {
+            if (x == goal_x && y == goal_y)
+            {
+                return true;
+            }
+            return false;
+        };
+
+        temp_path = bound_path;
+        int temp_cnt = 0;
+        // 规划路径连接路径中的断点
+        for (int i = 0; i < temp_path.size() - 1; i++)
+        {
+            const auto &p1 = temp_path[i];
+            const auto &p2 = temp_path[i+1];
+            if (abs(p1.x - p2.x) > 1 || abs(p1.y - p2.y) > 1)
+            {
+                FL_PRINT
+                expander_.setStart(p1.x, p1.y);
+                expander_.setShouldTerminate(boost::bind(goal_reach, _1, _2, _3, p2.x, p2.y));
+                expander_.expand();
+                auto res = expander_.getPath();
+                bound_path.insert(bound_path.begin()+i+temp_cnt+1, res.begin(), res.end());
+                temp_cnt += res.size();
+            }
+        }
+
+        FL_PRINT
+//        path_.insert(path_.end(), bound_path.begin(), bound_path.end());
+//        env_ptr_->drawPath(bound_path);
+        return bound_path;
     }
 
 }

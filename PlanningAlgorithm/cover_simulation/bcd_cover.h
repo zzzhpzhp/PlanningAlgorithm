@@ -47,6 +47,33 @@ namespace algorithm
         environment::Path&
         getPath() override;
 
+        void
+        markPathCleaned(environment::Path &path)
+        {
+            auto footprint = env_ptr_->getFootprint();
+            for (const auto &p : path)
+            {
+                for (const auto& n : footprint)
+                {
+                    auto tx = p.x + n.x;
+                    auto ty = p.y + n.y;
+                    auto val = env_ptr_->getGridValue(tx, ty);
+                    if (val <= environment::INSCRIBED_INFLATED_OBSTACLE)
+                    {
+                        continue;
+                    }
+                    visited_[tx][ty] = true;
+                    env_ptr_->setIntGridValueByGridXY(tx, ty, environment::CLEANED_COST, environment::CLEANED_COST, environment::CLEANED_COST);
+                }
+            }
+        }
+
+        void
+        reset()
+        {
+            visited_.clear();
+        }
+
     private:
         bool initialized_{false};
 

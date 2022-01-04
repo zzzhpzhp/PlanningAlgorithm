@@ -1,8 +1,12 @@
 #include "bcd_cover.h"
 
+#include <utility>
+
 #define DISPLAY_COVER_PROCESS 0
 // 在遇到死区时是否使用Dijkstra算法找到新的起点
 #define USE_DIJKSTRA 1
+#define DISPLAY_DEAD_POINT 0
+#define DISPLAY_CLEAN_PATH 0
 
 #if USE_DIJKSTRA
     // 是否显示Dijkstra的搜索过程
@@ -69,20 +73,19 @@ namespace algorithm
         std::cout << "Set start to ["<< start_x_ << ", " << start_y_ << "]" << std::endl;
     }
 
-
     void BcdCover::setShouldTerminate(std::function<bool(int x, int y, unsigned char cost)> fun)
     {
-        should_terminate_ = fun;
+        should_terminate_ = std::move(fun);
     }
 
     void BcdCover::setStepProcess(std::function<bool(int, int, unsigned char)> fun)
     {
-        step_process_ = fun;
+        step_process_ = std::move(fun);
     }
 
     void BcdCover::setPoseValidation(std::function<bool(int, int, unsigned char)> fun)
     {
-        pose_validation_ = fun;
+        pose_validation_ = std::move(fun);
     }
 
     bool BcdCover::planning()
@@ -108,7 +111,6 @@ namespace algorithm
         pn.g = 255;
         pn.a = 255;
         path_.clear();
-        visited_.clear();
         cleaned_.clear();
         last_cover_path_.clear();
         last_bridge_path_.clear();
@@ -137,8 +139,9 @@ namespace algorithm
                     std::chrono::microseconds((int)(env_ptr_->getAlgorithmRunningDelayTime() * 1e6)));
             if (!valid)
             {
+#if DISPLAY_DEAD_POINT
                 env_ptr_->setIntGridValByPlanXY(x, y, 100, 0, 0);
-
+#endif
                 if (!last_bridge_path_.empty())
                 {
 #if LEAP_THRESHOLD_ENABLE & LEAP_SEARCH_ENABLE
@@ -185,7 +188,9 @@ namespace algorithm
                     break;
 #endif
                 }
+#if DISPLAY_CLEAN_PATH
                 env_ptr_->setIntGridValByPlanXY(x, y, 100, 100, 100);
+#endif
                 visited_[x][y] = true;
                 cleaned_[x][y] = true;
                 pn.x = x;
@@ -234,7 +239,9 @@ namespace algorithm
 
                 valid = true;
                 _mark_up_down_covered(side_x, side_y);
+#if DISPLAY_CLEAN_PATH
                 env_ptr_->setIntGridValByPlanXY(side_x, side_y, 100, 100, 100);
+#endif
                 node_queue.emplace_back(side_x, side_y);
                 visited_[side_x][side_y] = true;
                 cleaned_[side_x][side_y] = true;

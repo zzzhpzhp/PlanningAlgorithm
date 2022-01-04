@@ -66,7 +66,7 @@ namespace algorithm
 
         const Region& generateRightRegion(const Region& cur_region);
 
-        void getCurrentRegionEdge();
+        environment::Path getCurrentRegionEdge();
 
     private:
 
@@ -86,11 +86,11 @@ namespace algorithm
 
     private:
 
-        bool _is_boundary(int x, int y) const;
+        bool _is_boundary(int x, int y, const Region& r) const;
 
         std::string _get_region_id(int x, int y);
 
-        static std::string _gen_id_for_point(int x, int y);
+        static std::string _gen_point_id(int x, int y);
 
         static std::string _gen_id_for_region(const Region& reg);
 

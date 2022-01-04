@@ -1,7 +1,7 @@
 #include "main.h"
 
 // 交互窗口宽度（网格）
-int window_width = 330;
+int window_width = 430;
 // 交互窗口高度（网格）
 int window_length = 280;
 // 一个网格的宽度，单位：像素

@@ -37,11 +37,19 @@ namespace algorithm
 
         bool expand();
 
+        void reset()
+        {
+            setStepProcess(nullptr);
+            setPoseValidation(nullptr);
+            setShouldTerminate(nullptr);
+        }
+
     private:
         environment::Path path_;
         bool initialized_{false};
         int start_x_{0}, start_y_{0};
         std::atomic_bool is_running_{false};
+        float map_cost_scale_{0.0f};
         environment::EnvironmentInterfacePtr env_ptr_;
         std::function<bool(int x, int y, unsigned char cost)> step_process_{nullptr};
         std::function<bool(int x, int y, unsigned char cost)> pose_validation_{nullptr};

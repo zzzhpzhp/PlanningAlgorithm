@@ -66,47 +66,48 @@ namespace algorithm
 
         std::cout << "Start pose: [" << start_x_ << ", " << start_y_ << "]" << std::endl;
 
+        auto size_x = env_ptr_->getGridXSizeInCells(), size_y = env_ptr_->getGridYSizeInCells();
         std::priority_queue<Node*, std::vector<Node*>, NodeCmp> node_stack;
         int id_index = 0;
-        std::vector<Node> nodes(env_ptr_->getGridXSizeInCells() * env_ptr_->getGridYSizeInCells());
+        std::vector<Node> nodes(size_x * size_y);
         auto start_cost = env_ptr_->getGridValue(start_x_, start_y_);
-        Node *cur_ = &nodes[id_index];
-        cur_->x = start_x_;
-        cur_->y = start_y_;
-        cur_->cost = start_cost;
-        cur_->dist = 0;
-        cur_->id = id_index;
+        Node *cur = &nodes[start_y_ * size_x + start_x_];
+        cur->x = start_x_;
+        cur->y = start_y_;
+        cur->cost = start_cost;
+        cur->dist = 0;
+        cur->id = start_y_ * size_x + start_x_;
         id_index++;
-        node_stack.push(cur_);
-        std::unordered_map<int, std::unordered_map<int, bool>> visited;
+        node_stack.push(cur);
+        std::unordered_map<int, std::unordered_map<int, bool>> visited{0};
         environment::PathNode pn{};
         pn.g = 255;
         pn.a = 255;
         path_.clear();
 
-        visited[cur_->x][cur_->y] = true;
+        visited[cur->x][cur->y] = true;
 
         std::function<bool()> bfs = [&]()->bool
         {
             while (!node_stack.empty() && env_ptr_->isRunning())
             {
                 std::this_thread::sleep_for(std::chrono::microseconds((int)(env_ptr_->getAlgorithmRunningDelayTime() * 1e6)));
-                cur_ = node_stack.top();
+                cur = node_stack.top();
                 node_stack.pop();
 
-                if (cur_->x != start_x_ || cur_->y != start_y_)
+                if (cur->x != start_x_ || cur->y != start_y_)
                 {
-                    env_ptr_->setIntGridValByPlanXY(cur_->x, cur_->y, 100, 100, 100);
+//                    env_ptr_->setIntGridValByPlanXY(cur->x, cur->y, 100, 100, 100);
                 }
 
                 if (step_process_ != nullptr)
                 {
-                    step_process_(cur_->x, cur_->y, cur_->cost);
+                    step_process_(cur->x, cur->y, cur->cost);
                 }
 
                 if (should_terminate_ != nullptr)
                 {
-                    if (should_terminate_(cur_->x, cur_->y, cur_->cost))
+                    if (should_terminate_(cur->x, cur->y, cur->cost))
                     {
                         return true;
                     }
@@ -117,7 +118,7 @@ namespace algorithm
                 Node *side;
                 for (auto &side_node : side_points_)
                 {
-                    if (!side_node(env_ptr_, cur_->x, cur_->y, side_x, side_y))
+                    if (!side_node(env_ptr_, cur->x, cur->y, side_x, side_y))
                     {
                         continue;
                     }
@@ -130,10 +131,12 @@ namespace algorithm
                         continue;
                     }
 
+                    auto id = side_y * size_x + side_x;
+                    side = &nodes[id];
                     visited[side_x][side_y] = true;
 
                     float side_to_cur_cost;
-                    if (side_x != cur_->x && side_y != cur_->y)
+                    if (side_x != cur->x && side_y != cur->y)
                     {
                         side_to_cur_cost = 14;
                     }
@@ -142,12 +145,12 @@ namespace algorithm
                         side_to_cur_cost = 10;
                     }
 
-                    float through_cur_cost = side_to_cur_cost + cur_->dist + 255 - side_val;
+                    float through_cur_cost = side_to_cur_cost + cur->dist + (255 - side_val) * map_cost_scale_;
                     if (side->in_open_list)
                     {
                         if (through_cur_cost < side->dist)
                         {
-                            side->parent_node = cur_;
+                            side->parent_node = cur;
                             side->dist = through_cur_cost;
                         }
                         continue;
@@ -157,14 +160,12 @@ namespace algorithm
                         continue;
                     }
 
-                    auto id = id_index++;
-                    side = &nodes[id];
                     side->id = id;
                     side->x = side_x;
                     side->y = side_y;
                     side->cost = side_val;
-                    side->parent_node = cur_;
-                    side->dist =  cur_->dist + side_to_cur_cost + 255 - side_val;
+                    side->parent_node = cur;
+                    side->dist = cur->dist + side_to_cur_cost + (255 - side_val) * map_cost_scale_;
                     node_stack.push(side);
                 }
             }
@@ -176,13 +177,14 @@ namespace algorithm
 
         if (result)
         {
-            while (cur_)
+            while (cur)
             {
-                pn.x = cur_->x;
-                pn.y = cur_->y;
+                pn.x = cur->x;
+                pn.y = cur->y;
                 path_.emplace_back(pn);
-                cur_ = cur_->parent_node;
+                cur = cur->parent_node;
             }
+            std::reverse(path_.begin(), path_.end());
         }
 
         return result;
