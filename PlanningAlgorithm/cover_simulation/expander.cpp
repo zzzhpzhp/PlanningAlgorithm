@@ -66,6 +66,8 @@ namespace algorithm
 
         std::cout << "Start pose: [" << start_x_ << ", " << start_y_ << "]" << std::endl;
 
+        max_x_ = max_y_ = std::numeric_limits<int>::min();
+        min_x_ = min_y_ = std::numeric_limits<int>::max();
         auto size_x = env_ptr_->getGridXSizeInCells(), size_y = env_ptr_->getGridYSizeInCells();
         std::priority_queue<Node*, std::vector<Node*>, NodeCmp> node_stack;
         int id_index = 0;
@@ -94,6 +96,11 @@ namespace algorithm
                 std::this_thread::sleep_for(std::chrono::microseconds((int)(env_ptr_->getAlgorithmRunningDelayTime() * 1e6)));
                 cur = node_stack.top();
                 node_stack.pop();
+
+                max_x_ = std::max(max_x_, cur->x);
+                min_x_ = std::min(min_x_, cur->x);
+                max_y_ = std::max(max_y_, cur->y);
+                min_y_ = std::min(min_y_, cur->y);
 
                 if (cur->x != start_x_ || cur->y != start_y_)
                 {
@@ -169,7 +176,6 @@ namespace algorithm
                     node_stack.push(side);
                 }
             }
-
             return false;
         };
 

@@ -57,13 +57,17 @@ namespace algorithm
                 {
                     auto tx = p.x + n.x;
                     auto ty = p.y + n.y;
+                    if (!env_ptr_->insideGrid(tx, ty))
+                    {
+                        continue;
+                    }
                     auto val = env_ptr_->getGridValue(tx, ty);
                     if (val <= environment::INSCRIBED_INFLATED_OBSTACLE)
                     {
                         continue;
                     }
                     visited_[tx][ty] = true;
-                    env_ptr_->setIntGridValueByGridXY(tx, ty, environment::CLEANED_COST, environment::CLEANED_COST, environment::CLEANED_COST);
+//                    env_ptr_->setIntGridValueByGridXY(tx, ty, environment::CLEANED_COST, environment::CLEANED_COST, environment::CLEANED_COST);
                 }
             }
         }

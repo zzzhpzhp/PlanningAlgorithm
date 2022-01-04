@@ -44,10 +44,31 @@ namespace algorithm
             setShouldTerminate(nullptr);
         }
 
+        int getMaxX()
+        {
+            return max_x_;
+        }
+
+        int getMaxY()
+        {
+            return max_y_;
+        }
+
+        int getMinX()
+        {
+            return min_x_;
+        }
+
+        int getMinY()
+        {
+            return min_y_;
+        }
+
     private:
         environment::Path path_;
         bool initialized_{false};
         int start_x_{0}, start_y_{0};
+        int min_x_{0}, min_y_{0}, max_x_{0}, max_y_{0};
         std::atomic_bool is_running_{false};
         float map_cost_scale_{0.0f};
         environment::EnvironmentInterfacePtr env_ptr_;

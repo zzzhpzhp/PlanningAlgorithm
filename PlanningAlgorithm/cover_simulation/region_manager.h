@@ -81,7 +81,7 @@ namespace algorithm
         std::vector<std::function<bool(environment::EnvironmentInterfacePtr&, int, int, int&, int&)>> side_points_;
         environment::Path path_;
         Region empty_region_{0};
-        std::unordered_map<std::string, bool> is_reachable_boundary_;
+        std::unordered_map<std::string, bool> cleaned_region_;
         BcdCover cover_;
 
     private:
@@ -92,7 +92,7 @@ namespace algorithm
 
         static std::string _gen_point_id(int x, int y);
 
-        static std::string _gen_id_for_region(const Region& reg);
+        static std::string _gen_region_id(const Region& reg);
 
         static bool _is_inside(int x, int y, Region *r);
 

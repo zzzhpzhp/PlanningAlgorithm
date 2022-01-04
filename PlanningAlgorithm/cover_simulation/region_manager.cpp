@@ -25,32 +25,75 @@ namespace algorithm
 
     bool RegionManager::planning()
     {
-        std::function<bool(int, int, unsigned char, const Region&)> reach_bound = [&](int x, int y, unsigned char cost, const Region& r)->bool
+        std::function<bool(int, int, unsigned char)> reach_bound =
+                [&](int x, int y, unsigned char cost)->bool
         {
-            return _is_boundary(x, y, r);
+            return _is_boundary(x, y, *current_region_);
+        };
+
+        std::function<bool(int, int, unsigned char)> reach_new_region =
+                [&](int x, int y, unsigned char cost)->bool
+        {
+            if (!_is_inside(x, y, current_region_))
+            {
+                auto new_region = getRegionById(x, y);
+                if (!cleaned_region_[_gen_region_id(new_region)])
+                {
+                    return true;
+                }
+            }
+            return false;
         };
 
         path_.clear();
+        cleaned_region_.clear();
+        bool should_continue = true;
+        while(should_continue)
+        {
+            FL_PRINT
+            expander_.reset();
+            expander_.setPoseValidation(boost::bind(&RegionManager::isInsideCurrentRegion, this, _1, _2));
+            expander_.setShouldTerminate(boost::bind(reach_bound, _1, _2, _3));
+            expander_.expand();
+            auto start_to_bound_path = expander_.getPath();
+            path_.insert(path_.end(), start_to_bound_path.begin(), start_to_bound_path.end());
 
-        expander_.reset();
-        expander_.setPoseValidation(boost::bind(&RegionManager::isInsideCurrentRegion, this, _1, _2));
-        expander_.setShouldTerminate(boost::bind(reach_bound, _1, _2, _3, *getCurrentRegion()));
-        expander_.expand();
-        auto start_to_bound_path = expander_.getPath();
-        path_.insert(path_.end(), start_to_bound_path.begin(), start_to_bound_path.end());
+            FL_PRINT
+            auto bound_path = getCurrentRegionEdge();
+            path_.insert(path_.end(), bound_path.begin(), bound_path.end());
 
-//        env_ptr_->drawPath(start_to_bound_path);
-        auto bound_path = getCurrentRegionEdge();
-        path_.insert(path_.end(), bound_path.begin(), bound_path.end());
+            FL_PRINT
+            cover_.reset();
+            FL_PRINT
+            cover_.markPathCleaned(path_);
+            FL_PRINT
+            cover_.setStart(start_to_bound_path.back().x, start_to_bound_path.back().y);
+            FL_PRINT
+            cover_.planning();
+            FL_PRINT
+            auto cover_path = cover_.getPath();
+            path_.insert(path_.end(), cover_path.begin(), cover_path.end());
 
-        cover_.reset();
-        cover_.markPathCleaned(path_);
-        cover_.setStart(start_to_bound_path.back().x, start_to_bound_path.back().y);
-        cover_.planning();
-        auto cover_path = cover_.getPath();
-        path_.insert(path_.end(), cover_path.begin(), cover_path.end());
+            FL_PRINT
+            cleaned_region_[_gen_region_id(*current_region_)] = true;
+FL_PRINT
 
-//        env_ptr_->drawPath(cover_path);
+            expander_.reset();
+            expander_.setShouldTerminate(boost::bind(reach_new_region, _1, _2, _3));
+            // 将起点设置为上次覆盖结束的位置
+            expander_.setStart(path_.back().x, path_.back().y);
+            should_continue = expander_.expand();
+            auto to_region_path = expander_.getPath();
+            path_.insert(path_.end(), to_region_path.begin(), to_region_path.end());
+
+            if (should_continue)
+            {
+                setCurrentRegion(&getRegionById(to_region_path.back().x, to_region_path.back().y));
+                env_ptr_->drawPath(expander_.getPath());
+                expander_.setStart(to_region_path.back().x, to_region_path.back().y);
+            }
+        }
+
         return true;
     }
 
@@ -90,7 +133,7 @@ namespace algorithm
         r.yh = y_normalize * region_size_ + region_size_;
         r.yl = y_normalize * region_size_;
 
-        auto id = _gen_id_for_region(r);
+        auto id = _gen_region_id(r);
         if (regions_.find(id) == regions_.end())
         {
             FL_PRINT
@@ -151,7 +194,7 @@ namespace algorithm
         res.xl = cur_region.xl;
         res.yh = cur_region.yl;
         res.yl = cur_region.yl - region_size_;
-        _gen_id_for_region(res);
+        _gen_region_id(res);
         regions_[res.id] = res;
         return regions_[res.id];
     }
@@ -163,7 +206,7 @@ namespace algorithm
         res.xl = cur_region.xl;
         res.yh = cur_region.yh + region_size_;
         res.yl = cur_region.yl;
-        _gen_id_for_region(res);
+        _gen_region_id(res);
         regions_[res.id] = res;
         return regions_[res.id];
     }
@@ -175,7 +218,7 @@ namespace algorithm
         res.xl = cur_region.xl - region_size_;
         res.yh = cur_region.yh;
         res.yl = cur_region.yl;
-        _gen_id_for_region(res);
+        _gen_region_id(res);
         regions_[res.id] = res;
         return regions_[res.id];
     }
@@ -187,7 +230,7 @@ namespace algorithm
         res.xl = cur_region.xh;
         res.yh = cur_region.yh;
         res.yl = cur_region.yl;
-        _gen_id_for_region(res);
+        _gen_region_id(res);
         regions_[res.id] = res;
         return regions_[res.id];
     }
@@ -197,7 +240,7 @@ namespace algorithm
 
     }
 
-    std::string RegionManager::_gen_id_for_region(const RegionManager::Region& reg)
+    std::string RegionManager::_gen_region_id(const RegionManager::Region& reg)
     {
         std::string res;
         res = std::to_string(reg.xl) + ':' + std::to_string(reg.xh) + ':' +
@@ -227,7 +270,8 @@ namespace algorithm
 
     bool RegionManager::_is_boundary(int x, int y, const Region &r) const
     {
-        if (x == r.xl || y == r.yl || x == (r.xh-1) || y == (r.yh-1))
+        if (x == r.xl || y == r.yl || x == (r.xh-1) || y == (r.yh-1) ||
+            x == env_ptr_->getGridXSizeInCells()-1 || y == env_ptr_->getGridYSizeInCells()-1)
         {
             return true;
         }
@@ -273,7 +317,7 @@ namespace algorithm
             }
             else
             {
-                env_ptr_->setIntGridValByPlanXY(x, y, 100, 100, 100);
+//                env_ptr_->setIntGridValByPlanXY(x, y, 100, 100, 100);
             }
 
             auto pid = _gen_point_id(x, y);
@@ -313,14 +357,16 @@ namespace algorithm
                 path.clear();
             }
         };
-        pn.r = 255;
+        pn.r = 128;
+        pn.g = 0;
+        pn.b = 128;
 
         // 按逆时针顺序提取可通行边界
         path.clear();
-        for (int i = current_region_->xh - 1; i >= current_region_->xl; i--)
+        for (int i = expander_.getMaxX(); i >= expander_.getMinX(); i--)
         {
             pn.x = i;
-            pn.y = current_region_->yl;
+            pn.y = expander_.getMinY();
             get_path(pn.x, pn.y);
         }
         if (!path.empty())
@@ -329,9 +375,9 @@ namespace algorithm
             path.clear();
         }
 
-        for (int i = current_region_->yl; i < current_region_->yh; i++)
+        for (int i = expander_.getMinY(); i < expander_.getMaxY(); i++)
         {
-            pn.x = current_region_->xl;
+            pn.x = expander_.getMinX();
             pn.y = i;
             get_path(pn.x, pn.y);
         }
@@ -341,10 +387,10 @@ namespace algorithm
             path.clear();
         }
 
-        for (int i = current_region_->xl; i < current_region_->xh; i++)
+        for (int i = expander_.getMinX(); i < expander_.getMaxX(); i++)
         {
             pn.x = i;
-            pn.y = current_region_->yh-1;
+            pn.y = expander_.getMaxY();
             get_path(pn.x, pn.y);
         }
         if (!path.empty())
@@ -353,9 +399,9 @@ namespace algorithm
             path.clear();
         }
 
-        for (int i = current_region_->yh - 1; i >= current_region_->yl; i--)
+        for (int i = expander_.getMaxY(); i >= expander_.getMinY(); i--)
         {
-            pn.x = current_region_->xh-1;
+            pn.x = expander_.getMaxX();
             pn.y = i;
             get_path(pn.x, pn.y);
         }
