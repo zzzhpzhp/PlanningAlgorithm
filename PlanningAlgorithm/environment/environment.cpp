@@ -107,6 +107,23 @@ namespace environment
         return true;
     }
 
+    bool Environment::setIntGridValueByGridXY(int x, int y, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
+    {
+        x *= rect_size_;
+        y *= rect_size_;
+
+        if (x >= img_width_ || x < 0 || y >= img_length_ || y < 0)
+        {
+            std::cerr << "Out of bound." << std::endl;
+            return false;
+        }
+
+        std::lock_guard<std::mutex> lg(display_img_mtx_);
+        rectangle(display_img_, cv::Rect(x, y, rect_size_, rect_size_),
+                  cv::Scalar(b, g, r, a), -1);
+
+        return true;
+    }
     void Environment::drawPath(const Path &path)
     {
         int x1, y1, x2, y2;
@@ -1087,5 +1104,14 @@ namespace environment
     {
         outx = x * rect_size_;
         outy = y * rect_size_;
+    }
+
+    void Environment::setFootprintCost(int x, int y, unsigned char cost)
+    {
+        for (const auto& p : footprint_)
+        {
+            setGridValue(p.x + x, p.y + y, cost);
+            setIntGridValueByGridXY(p.x, p.y, cost);
+        }
     }
 }

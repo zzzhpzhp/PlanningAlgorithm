@@ -23,6 +23,7 @@ namespace environment
     const int INSCRIBED_INFLATED_OBSTACLE = 50;
     const int PENALTY_COST = 100;
     const int FREE_SPACE = 255;
+    const int CLEANED_COST = 200;
     enum MarkMode {MARK_OBSTACLE, MARK_FREE_SPACE};
     class EnvironmentInterface
     {
@@ -98,6 +99,9 @@ namespace environment
 
         virtual bool
         setIntGridValByPlanXY(int x, int y, uint8_t r = 0, uint8_t g = 0, uint8_t b = 0, uint8_t a = 70) = 0;
+
+        virtual bool
+        setIntGridValueByGridXY(int x, int y, uint8_t r = 0, uint8_t g = 0, uint8_t b = 0, uint8_t a = 255) = 0;
 
         virtual void
         drawPath(const Path &path) = 0;
@@ -176,6 +180,9 @@ namespace environment
 
         virtual void
         setFootprint(Footprint footprint) = 0;
+
+        virtual void
+        setFootprintCost(int x, int y, unsigned char cost) = 0;
 
         virtual const Footprint&
         getFootprint() = 0;

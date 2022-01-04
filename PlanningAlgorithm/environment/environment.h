@@ -56,6 +56,9 @@ namespace environment
         setInteractiveGridValue(int x, int y, uint8_t r = 0, uint8_t g = 0, uint8_t b = 0, uint8_t a = 255) override;
 
         bool
+        setIntGridValueByGridXY(int x, int y, uint8_t r = 0, uint8_t g = 0, uint8_t b = 0, uint8_t a = 255) override;
+
+        bool
         setIntGridValByPlanXY(int x, int y, uint8_t r, uint8_t g, uint8_t b, uint8_t a) override;
 
         void
@@ -126,6 +129,9 @@ namespace environment
 
         void
         setFootprint(Footprint footprint) override;
+
+        void
+        setFootprintCost(int x, int y, unsigned char cost) override;
 
         void
         setRobotRadius(int robot_radius) override;
