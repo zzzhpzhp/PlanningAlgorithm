@@ -22,7 +22,6 @@ namespace algorithm
     class RegionManager : public AlgorithmInterface
     {
     public:
-        Expander expander_;
         using Region = struct
         {
             int xl, xh, yl, yh;
@@ -83,6 +82,7 @@ namespace algorithm
         Region empty_region_{0};
         std::unordered_map<std::string, bool> cleaned_region_;
         BcdCover cover_;
+        Expander expander_, helper_expander_;
 
     private:
 

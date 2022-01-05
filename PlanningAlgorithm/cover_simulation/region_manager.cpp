@@ -36,11 +36,34 @@ namespace algorithm
         {
             if (!_is_inside(x, y, current_region_))
             {
+                // 如果是没有覆盖过的区域
                 auto new_region = getRegionById(x, y);
                 if (!cleaned_region_[_gen_region_id(new_region)])
                 {
                     return true;
                 }
+            }
+            else
+            {
+//                // 如果是覆盖过的区域，则检查此区域是否还有未覆盖区域
+//                helper_expander_.reset();
+//                auto r_ptr = &getRegionById(x, y);
+//                int need_cover{0};
+//                std::function<bool(int, int, unsigned cost)> need_cover_count = [&](int tx, int ty, unsigned char cost)->bool
+//                {
+//                    need_cover++;
+//                };
+//                std::function<bool(int, int, unsigned cost)> inside_new_region = [&](int tx, int ty, unsigned char cost)->bool
+//                {
+//                    return _is_inside(tx, ty, r_ptr);
+//                };
+//                helper_expander_.setPoseValidation(inside_new_region);
+//                helper_expander_.setStepProcess(need_cover_count);
+//                helper_expander_.expand();
+//                if (need_cover > 10)
+//                {
+//
+//                }
             }
             return false;
         };
@@ -65,7 +88,7 @@ namespace algorithm
             FL_PRINT
             cover_.reset();
             FL_PRINT
-            cover_.markPathCleaned(path_);
+            cover_.markPathCleaned(bound_path);
             FL_PRINT
             cover_.setStart(start_to_bound_path.back().x, start_to_bound_path.back().y);
             FL_PRINT
@@ -73,6 +96,8 @@ namespace algorithm
             FL_PRINT
             auto cover_path = cover_.getPath();
             path_.insert(path_.end(), cover_path.begin(), cover_path.end());
+            FL_PRINT
+            cover_.markPathCleaned(cover_path);
 
             FL_PRINT
             cleaned_region_[_gen_region_id(*current_region_)] = true;
@@ -85,6 +110,8 @@ FL_PRINT
             should_continue = expander_.expand();
             auto to_region_path = expander_.getPath();
             path_.insert(path_.end(), to_region_path.begin(), to_region_path.end());
+            FL_PRINT
+            cover_.markPathCleaned(to_region_path);
 
             if (should_continue)
             {

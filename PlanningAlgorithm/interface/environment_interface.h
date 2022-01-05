@@ -23,7 +23,7 @@ namespace environment
     const int INSCRIBED_INFLATED_OBSTACLE = 50;
     const int PENALTY_COST = 100;
     const int FREE_SPACE = 255;
-    const int CLEANED_COST = 200;
+    const int CLEANED_COST = 230;
     enum MarkMode {MARK_OBSTACLE, MARK_FREE_SPACE};
     class EnvironmentInterface
     {

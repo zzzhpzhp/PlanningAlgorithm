@@ -67,7 +67,7 @@ namespace algorithm
                         continue;
                     }
                     visited_[tx][ty] = true;
-//                    env_ptr_->setIntGridValueByGridXY(tx, ty, environment::CLEANED_COST, environment::CLEANED_COST, environment::CLEANED_COST);
+                    env_ptr_->setIntGridValueByGridXY(tx, ty, environment::CLEANED_COST, environment::CLEANED_COST, environment::CLEANED_COST);
                 }
             }
         }

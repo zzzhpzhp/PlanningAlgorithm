@@ -14,6 +14,7 @@
 #include "algorithm_interface.h"
 #include "environment_interface.h"
 
+using namespace cv;
 namespace algorithm
 {
     class Expander : public AlgorithmInterface
