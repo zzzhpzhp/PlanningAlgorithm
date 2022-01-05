@@ -126,6 +126,10 @@ namespace environment
     }
     void Environment::drawPath(const Path &path)
     {
+        if (path.empty())
+        {
+            return;
+        }
         int x1, y1, x2, y2;
         int half_rect_ = rect_size_ / 2;
         for (int i = 0; i < path.size() - 1; i++)

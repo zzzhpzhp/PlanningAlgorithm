@@ -26,7 +26,6 @@ namespace algorithm
     bool RegionManager::planning()
     {
         cover_.resetGlobalCleaned();
-        bool recover_region{false};
         std::function<bool(int, int, unsigned char)> reach_bound =
                 [&](int x, int y, unsigned char cost)->bool
         {
@@ -78,7 +77,6 @@ namespace algorithm
                     if (need_cover > 10)
                     {
                         std::cout << ">>>>>>>>>>>>>>>>> Find ReCover Region, Size " << need_cover << " ID " << _gen_region_id(new_region) << " <<<<<<<<<<<<<<<<<" <<std::endl;
-                        recover_region = true;
                         return true;
                     }
                 }
@@ -104,15 +102,12 @@ namespace algorithm
 
             FL_PRINT
             environment::Path bound_path{0};
-            if (!recover_region)
-            {
-                FL_PRINT
-                bound_path = getCurrentRegionEdge();
-                path_.insert(path_.end(), bound_path.begin(), bound_path.end());
+            FL_PRINT
+            bound_path = getCurrentRegionEdge();
+            path_.insert(path_.end(), bound_path.begin(), bound_path.end());
 
-                FL_PRINT
-                cover_.markPathCleaned(bound_path);
-            }
+            FL_PRINT
+            cover_.markPathCleaned(bound_path);
             FL_PRINT
             cover_.setStart(start_to_bound_path.back().x, start_to_bound_path.back().y);
             FL_PRINT
@@ -122,6 +117,7 @@ namespace algorithm
             path_.insert(path_.end(), cover_path.begin(), cover_path.end());
             FL_PRINT
             cover_.markPathCleaned(cover_path);
+            FL_PRINT
             env_ptr_->drawPath(bound_path);
             env_ptr_->drawPath(cover_path);
 
@@ -135,7 +131,6 @@ FL_PRINT
             expander_.setStart(path_.back().x, path_.back().y);
             should_continue = expander_.expand();
 
-            recover_region = false;
             if (should_continue)
             {
                 auto to_region_path = expander_.getPath();
@@ -515,13 +510,9 @@ FL_PRINT
             return false;
         };
 
-        temp_path = bound_path;
-        int temp_cnt = 0;
-        // 规划路径连接路径中的断点
-        for (int i = 0; i < temp_path.size() - 1; i++)
+
+        auto connect_to_point = [&](environment::PathNode p1, environment::PathNode p2)
         {
-            const auto &p1 = temp_path[i];
-            const auto &p2 = temp_path[i+1];
             if (abs(p1.x - p2.x) > 1 || abs(p1.y - p2.y) > 1)
             {
                 FL_PRINT
@@ -529,10 +520,26 @@ FL_PRINT
                 expander_.setShouldTerminate(boost::bind(goal_reach, _1, _2, _3, p2.x, p2.y));
                 expander_.expand();
                 auto res = expander_.getPath();
-                bound_path.insert(bound_path.begin()+i+temp_cnt+1, res.begin(), res.end());
-                temp_cnt += res.size();
+                bound_path.insert(bound_path.end(), res.begin(), res.end());
             }
+            else
+            {
+                bound_path.emplace_back(p1);
+            }
+        };
+
+        temp_path = bound_path;
+        bound_path.clear();
+        // 规划路径连接路径中的断点
+        for (int i = 0; i < temp_path.size() - 1; i++)
+        {
+            const auto &p1 = temp_path[i];
+            const auto &p2 = temp_path[i+1];
+            connect_to_point(p1, p2);
         }
+        const auto &p1 = temp_path.back();
+        const auto &p2 = temp_path.front();
+        connect_to_point(p1, p2);
 
         FL_PRINT
 //        path_.insert(path_.end(), bound_path.begin(), bound_path.end());

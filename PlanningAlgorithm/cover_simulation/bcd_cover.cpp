@@ -23,7 +23,7 @@
 
         #if LEAP_THRESHOLD_ENABLE
         // 漏覆盖区域面积尺寸阈值
-        const int leap_threshold = 5;
+        const int leap_threshold = 0;
         #endif
     #endif
 #endif
