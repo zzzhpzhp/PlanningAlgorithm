@@ -7,7 +7,7 @@ namespace algorithm
         env_ptr_ = env;
         name_ = name;
         expander_.initialize(env, name + "Expander");
-//        expander_.setShouldTerminate(boost::bind(&RegionManager::_is_boundary, this, _1, _2));
+        helper_expander_.initialize(env, name + "HelperExpander");
         cover_.initialize(env, name + "Cover");
         cover_.setPoseValidation(boost::bind(&RegionManager::isInsideCurrentRegion, this, _1, _2));
 
@@ -25,6 +25,8 @@ namespace algorithm
 
     bool RegionManager::planning()
     {
+        cover_.resetGlobalCleaned();
+        bool recover_region{false};
         std::function<bool(int, int, unsigned char)> reach_bound =
                 [&](int x, int y, unsigned char cost)->bool
         {
@@ -42,28 +44,44 @@ namespace algorithm
                 {
                     return true;
                 }
-            }
-            else
-            {
-//                // 如果是覆盖过的区域，则检查此区域是否还有未覆盖区域
-//                helper_expander_.reset();
-//                auto r_ptr = &getRegionById(x, y);
-//                int need_cover{0};
-//                std::function<bool(int, int, unsigned cost)> need_cover_count = [&](int tx, int ty, unsigned char cost)->bool
-//                {
-//                    need_cover++;
-//                };
-//                std::function<bool(int, int, unsigned cost)> inside_new_region = [&](int tx, int ty, unsigned char cost)->bool
-//                {
-//                    return _is_inside(tx, ty, r_ptr);
-//                };
-//                helper_expander_.setPoseValidation(inside_new_region);
-//                helper_expander_.setStepProcess(need_cover_count);
-//                helper_expander_.expand();
-//                if (need_cover > 10)
-//                {
-//
-//                }
+                else
+                {
+                    if (cover_.isGlobalCleaned(x, y))
+                    {
+                        return false;
+                    }
+                    // 如果是覆盖过的区域，则检查此区域是否还有未覆盖区域
+                    int need_cover{0};
+                    std::function<bool(int, int, unsigned char)> need_cover_count = [&](int tx, int ty, unsigned char cost)->bool
+                    {
+                        need_cover++;
+                        return true;
+                    };
+                    std::function<bool(int, int, unsigned char)> inside_new_region = [&](int tx, int ty, unsigned char cost)->bool
+                    {
+                        if (!_is_inside(tx, ty, &new_region))
+                        {
+                            return false;
+                        }
+
+                        if (cover_.isGlobalCleaned(tx, ty))
+                        {
+                            return false;
+                        }
+                        return true;
+                    };
+                    helper_expander_.reset();
+                    helper_expander_.setStart(x, y);
+                    helper_expander_.setStepProcess(need_cover_count);
+                    helper_expander_.setPoseValidation(inside_new_region);
+                    helper_expander_.expand();
+                    if (need_cover > 10)
+                    {
+                        std::cout << ">>>>>>>>>>>>>>>>> Find ReCover Region, Size " << need_cover << " ID " << _gen_region_id(new_region) << " <<<<<<<<<<<<<<<<<" <<std::endl;
+                        recover_region = true;
+                        return true;
+                    }
+                }
             }
             return false;
         };
@@ -75,20 +93,26 @@ namespace algorithm
         {
             FL_PRINT
             expander_.reset();
+            cover_.reset();
+
             expander_.setPoseValidation(boost::bind(&RegionManager::isInsideCurrentRegion, this, _1, _2));
             expander_.setShouldTerminate(boost::bind(reach_bound, _1, _2, _3));
             expander_.expand();
             auto start_to_bound_path = expander_.getPath();
             path_.insert(path_.end(), start_to_bound_path.begin(), start_to_bound_path.end());
+            env_ptr_->drawPath(start_to_bound_path);
 
             FL_PRINT
-            auto bound_path = getCurrentRegionEdge();
-            path_.insert(path_.end(), bound_path.begin(), bound_path.end());
+            environment::Path bound_path{0};
+            if (!recover_region)
+            {
+                FL_PRINT
+                bound_path = getCurrentRegionEdge();
+                path_.insert(path_.end(), bound_path.begin(), bound_path.end());
 
-            FL_PRINT
-            cover_.reset();
-            FL_PRINT
-            cover_.markPathCleaned(bound_path);
+                FL_PRINT
+                cover_.markPathCleaned(bound_path);
+            }
             FL_PRINT
             cover_.setStart(start_to_bound_path.back().x, start_to_bound_path.back().y);
             FL_PRINT
@@ -98,6 +122,8 @@ namespace algorithm
             path_.insert(path_.end(), cover_path.begin(), cover_path.end());
             FL_PRINT
             cover_.markPathCleaned(cover_path);
+            env_ptr_->drawPath(bound_path);
+            env_ptr_->drawPath(cover_path);
 
             FL_PRINT
             cleaned_region_[_gen_region_id(*current_region_)] = true;
@@ -108,15 +134,16 @@ FL_PRINT
             // 将起点设置为上次覆盖结束的位置
             expander_.setStart(path_.back().x, path_.back().y);
             should_continue = expander_.expand();
-            auto to_region_path = expander_.getPath();
-            path_.insert(path_.end(), to_region_path.begin(), to_region_path.end());
-            FL_PRINT
-            cover_.markPathCleaned(to_region_path);
 
+            recover_region = false;
             if (should_continue)
             {
+                auto to_region_path = expander_.getPath();
+                path_.insert(path_.end(), to_region_path.begin(), to_region_path.end());
+                FL_PRINT
+                cover_.markPathCleaned(to_region_path);
                 setCurrentRegion(&getRegionById(to_region_path.back().x, to_region_path.back().y));
-                env_ptr_->drawPath(expander_.getPath());
+                env_ptr_->drawPath(to_region_path);
                 expander_.setStart(to_region_path.back().x, to_region_path.back().y);
             }
         }

@@ -67,9 +67,23 @@ namespace algorithm
                         continue;
                     }
                     visited_[tx][ty] = true;
+//                    env_ptr_->setGridValue(tx, ty, environment::CLEANED_COST);
+                    global_cleaned_[tx][ty] = true;
                     env_ptr_->setIntGridValueByGridXY(tx, ty, environment::CLEANED_COST, environment::CLEANED_COST, environment::CLEANED_COST);
                 }
             }
+        }
+
+        bool
+        isGlobalCleaned(int x, int y)
+        {
+            return global_cleaned_[x][y];
+        }
+
+        void
+        resetGlobalCleaned()
+        {
+            global_cleaned_.clear();
         }
 
         void
@@ -99,7 +113,7 @@ namespace algorithm
         std::function<bool(int x, int y, unsigned char cost)> should_terminate_{nullptr};
 
         using VisitedTable = std::unordered_map<int, std::unordered_map<int, bool>>;
-        std::unordered_map<int, std::unordered_map<int, bool>> visited_, cleaned_;
+        std::unordered_map<int, std::unordered_map<int, bool>> visited_{0}, cleaned_{0}, global_cleaned_{0};
 
         struct Node
         {
