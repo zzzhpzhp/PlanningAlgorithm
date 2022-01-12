@@ -140,5 +140,6 @@ namespace algorithm
     protected:
         std::string name_{};
         std::atomic_bool is_running_{true};
+        using SIDE_POINT_ARCHIVE = std::function<bool(environment::EnvironmentInterfacePtr&, int, int, int&, int&, int)>;
     };
 }

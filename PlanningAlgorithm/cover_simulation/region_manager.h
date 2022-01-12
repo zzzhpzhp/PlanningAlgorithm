@@ -95,7 +95,5 @@ namespace algorithm
         static std::string _gen_region_id(const Region& reg);
 
         static bool _is_inside(int x, int y, Region *r);
-
-        int _update_boundary_reachability() {}
     };
 }

@@ -14,7 +14,7 @@
 
 #include "environment_interface.h"
 #include <jsoncpp/json/json.h>
-
+#define cvMoveWindow cv::moveWindow
 namespace environment
 {
     class Environment : public EnvironmentInterface

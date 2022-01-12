@@ -9,136 +9,174 @@ namespace algorithm
         expander_.initialize(env, name + "Expander");
         helper_expander_.initialize(env, name + "HelperExpander");
         cover_.initialize(env, name + "Cover");
-        cover_.setPoseValidation(boost::bind(&RegionManager::isInsideCurrentRegion, this, _1, _2));
-
-        side_points_.emplace_back(boost::bind(&RegionManager::_get_right, this, _1, _2, _3, _4, _5, 1));
-        side_points_.emplace_back(boost::bind(&RegionManager::_get_higher_right, this, _1, _2, _3, _4, _5, 1));
-        side_points_.emplace_back(boost::bind(&RegionManager::_get_middle_higher, this, _1, _2, _3, _4, _5, 1));
-        side_points_.emplace_back(boost::bind(&RegionManager::_get_higher_left, this, _1, _2, _3, _4, _5, 1));
-        side_points_.emplace_back(boost::bind(&RegionManager::_get_left, this, _1, _2, _3, _4, _5, 1));
-        side_points_.emplace_back(boost::bind(&RegionManager::_get_lower_left, this, _1, _2, _3, _4, _5, 1));
-        side_points_.emplace_back(boost::bind(&RegionManager::_get_middle_lower, this, _1, _2, _3, _4, _5, 1));
-        side_points_.emplace_back(boost::bind(&RegionManager::_get_lower_right, this, _1, _2, _3, _4, _5, 1));
 
         initialized_ = true;
     }
 
     bool RegionManager::planning()
     {
+        // 复位全局已覆盖标记
         cover_.resetGlobalCleaned();
+        cover_.setPoseValidation(boost::bind(&RegionManager::isInsideCurrentRegion, this, _1, _2));
+
+        // 边界判定函数
         std::function<bool(int, int, unsigned char)> reach_bound =
                 [&](int x, int y, unsigned char cost)->bool
-        {
-            return _is_boundary(x, y, *current_region_);
-        };
+                {
+                    return _is_boundary(x, y, *current_region_);
+                };
 
+        // 新区域到达判定函数
         std::function<bool(int, int, unsigned char)> reach_new_region =
                 [&](int x, int y, unsigned char cost)->bool
-        {
-            if (!_is_inside(x, y, current_region_))
-            {
-                // 如果是没有覆盖过的区域
-                auto new_region = getRegionById(x, y);
-                if (!cleaned_region_[_gen_region_id(new_region)])
                 {
-                    return true;
-                }
-                else
-                {
-                    if (cover_.isGlobalCleaned(x, y))
+                    // 点是否在指定区域内
+                    if (!_is_inside(x, y, current_region_))
                     {
-                        return false;
-                    }
-                    // 如果是覆盖过的区域，则检查此区域是否还有未覆盖区域
-                    int need_cover{0};
-                    std::function<bool(int, int, unsigned char)> need_cover_count = [&](int tx, int ty, unsigned char cost)->bool
-                    {
-                        need_cover++;
-                        return true;
-                    };
-                    std::function<bool(int, int, unsigned char)> inside_new_region = [&](int tx, int ty, unsigned char cost)->bool
-                    {
-                        if (!_is_inside(tx, ty, &new_region))
-                        {
-                            return false;
-                        }
+                        // 点不在当前区域内，说明搜索到了当前区域外的其他区域
 
-                        if (cover_.isGlobalCleaned(tx, ty))
+                        auto new_region = getRegionById(x, y);
+                        // 判断点是否在覆盖过的区域
+                        if (!cleaned_region_[_gen_region_id(new_region)])
                         {
-                            return false;
+                            // 点所在的区域没有被覆盖过
+                            return true;
                         }
-                        return true;
-                    };
-                    helper_expander_.reset();
-                    helper_expander_.setStart(x, y);
-                    helper_expander_.setStepProcess(need_cover_count);
-                    helper_expander_.setPoseValidation(inside_new_region);
-                    helper_expander_.expand();
-                    if (need_cover > 10)
-                    {
-                        std::cout << ">>>>>>>>>>>>>>>>> Find ReCover Region, Size " << need_cover << " ID " << _gen_region_id(new_region) << " <<<<<<<<<<<<<<<<<" <<std::endl;
-                        return true;
+                        else
+                        {
+                            // 点所在的区域被覆盖过, 则检查此区域是否还有未覆盖区域
+
+                            if (cover_.isGlobalCleaned(x, y))
+                            {
+                                // 当前点已经被覆盖过
+                                return false;
+                            }
+
+                            // 当前点未被覆盖,以此点为起点，广度优先搜索此区域，检查未被覆盖的点的数量，看看未被覆盖的点的数量是否达到标准
+
+                            int need_cover{0};
+                            // 可清扫点记数
+                            std::function<bool(int, int, unsigned char)> need_cover_count = [&](int tx, int ty, unsigned char cost)->bool
+                            {
+                                need_cover++;
+                                return true;
+                            };
+                            // 新区域点判断
+                            std::function<bool(int, int, unsigned char)> inside_new_region = [&](int tx, int ty, unsigned char cost)->bool
+                            {
+                                // 判断点是否在新区域内
+                                if (!_is_inside(tx, ty, &new_region))
+                                {
+                                    return false;
+                                }
+
+                                // 判断新区域内的点是否已经被覆盖
+                                if (cover_.isGlobalCleaned(tx, ty))
+                                {
+                                    return false;
+                                }
+
+                                // 是新区域内的未被覆盖的点
+                                return true;
+                            };
+                            // 复位各个条件函数为nullptr
+                            helper_expander_.reset();
+                            helper_expander_.setStart(x, y);
+                            // 设置每对每个加入过open_list中的点的操作为计数
+                            helper_expander_.setStepProcess(need_cover_count);
+                            // 设置可行性附加判断条件为新区域中的未清扫点
+                            helper_expander_.setPoseValidation(inside_new_region);
+                            // 由于未设置额外的结束条件，会执行搜索直到不存在满足条件的点为止
+                            helper_expander_.expand();
+                            // 判断满足条件的点的数量
+                            if (need_cover > 10)
+                            {
+                                // 数量条件满足，认为找到了新的可覆盖区域
+                                std::cout << ">>>>>>>>>>>>>>>>> Find ReCover Region, Size " << need_cover << " ID " << _gen_region_id(new_region) << " <<<<<<<<<<<<<<<<<" <<std::endl;
+                                return true;
+                            }
+                        }
                     }
-                }
-            }
-            return false;
-        };
+                    return false;
+                };
 
         path_.clear();
+        // 复位已覆盖区域标记
         cleaned_region_.clear();
         bool should_continue = true;
         while(should_continue)
         {
-            FL_PRINT
+            // 复位结束条件、每个点的处理函数、可行性附加判断函数为nullptr
             expander_.reset();
             cover_.reset();
 
-            expander_.setPoseValidation(boost::bind(&RegionManager::isInsideCurrentRegion, this, _1, _2));
-            expander_.setShouldTerminate(boost::bind(reach_bound, _1, _2, _3));
-            expander_.expand();
-            auto start_to_bound_path = expander_.getPath();
-            path_.insert(path_.end(), start_to_bound_path.begin(), start_to_bound_path.end());
-            env_ptr_->drawPath(start_to_bound_path);
+            // 找到从当前位置到区域边界的路径
 
-            FL_PRINT
+            // 设置点可行性判断条件为当前区域内的点
+            expander_.setPoseValidation(boost::bind(&RegionManager::isInsideCurrentRegion, this, _1, _2));
+            // 设置结束条件为到达当前区域的边界
+            expander_.setShouldTerminate(boost::bind(reach_bound, _1, _2, _3));
+            // 开始以机器人当前位置为起点的广度优先搜索
+            auto res = expander_.expand();
+            if (res)
+            {
+                // 如果能到达边界，获取去往边界的路径
+                auto start_to_bound_path = expander_.getPath();
+                path_.insert(path_.end(), start_to_bound_path.begin(), start_to_bound_path.end());
+                env_ptr_->drawPath(start_to_bound_path);
+            }
+            else
+            {
+                // 如果不能到达边界，将起点加入
+                environment::PathNode pn{0};
+                pn.b = 255;
+                pn.x = start_x_;
+                pn.y = start_y_;
+                path_.emplace_back(pn);
+            }
+
+            // 找到当前区域的可达边界，并整理为以前面搜得的最近点为起点的沿边路径，被障碍物隔断的边界通过搜索得到的路径连接
             environment::Path bound_path{0};
-            FL_PRINT
             bound_path = getCurrentRegionEdge();
             path_.insert(path_.end(), bound_path.begin(), bound_path.end());
 
-            FL_PRINT
+            // 标记已经沿着边界清扫过的位置
             cover_.markPathCleaned(bound_path);
-            FL_PRINT
-            cover_.setStart(start_to_bound_path.back().x, start_to_bound_path.back().y);
-            FL_PRINT
+            // 更新规划起点为前面路径的末尾点
+            cover_.setStart(path_.back().x, path_.back().y);
+            // 规划覆盖路径
             cover_.planning();
-            FL_PRINT
             auto cover_path = cover_.getPath();
             path_.insert(path_.end(), cover_path.begin(), cover_path.end());
-            FL_PRINT
+            // 标记覆盖区域
             cover_.markPathCleaned(cover_path);
-            FL_PRINT
+            // 在这里显示边界路径，避免在标记已清扫区域时被覆盖
             env_ptr_->drawPath(bound_path);
+            // 显示覆盖路径
             env_ptr_->drawPath(cover_path);
 
-            FL_PRINT
+            // 标记当前区域已被覆盖
             cleaned_region_[_gen_region_id(*current_region_)] = true;
-FL_PRINT
 
             expander_.reset();
+            // 设置新的结束条件为发现覆盖条件的新区域
             expander_.setShouldTerminate(boost::bind(reach_new_region, _1, _2, _3));
             // 将起点设置为上次覆盖结束的位置
             expander_.setStart(path_.back().x, path_.back().y);
             should_continue = expander_.expand();
 
+            // 如果找到了新区域
             if (should_continue)
             {
+                // 获取到达新区域的路径
                 auto to_region_path = expander_.getPath();
                 path_.insert(path_.end(), to_region_path.begin(), to_region_path.end());
-                FL_PRINT
+                // 标记沿着此路径的区域已经被清扫
                 cover_.markPathCleaned(to_region_path);
+                // 设置当前区域为新区域
                 setCurrentRegion(&getRegionById(to_region_path.back().x, to_region_path.back().y));
                 env_ptr_->drawPath(to_region_path);
+                // 更新起点为新区域中的点
                 expander_.setStart(to_region_path.back().x, to_region_path.back().y);
             }
         }
@@ -185,7 +223,6 @@ FL_PRINT
         auto id = _gen_region_id(r);
         if (regions_.find(id) == regions_.end())
         {
-            FL_PRINT
             regions_[id] = r;
         }
 
@@ -218,7 +255,6 @@ FL_PRINT
         start_y_ = y;
 
         setCurrentRegion(&getRegionById(x, y));
-//        showCurrentRegion();
         expander_.setStart(x, y);
         cover_.setStart(x, y);
     }
@@ -352,7 +388,7 @@ FL_PRINT
         // 标记边界点
         std::function<bool(int, int, unsigned char, const Region &)> mark_boundary = [&](int x, int y, unsigned char cost, const Region& r)->bool
         {
-            if (!_is_boundary(x, y, r) || 255 - cost > 40)
+            if (!_is_boundary(x, y, r) )
             {
                 return true;
             }
@@ -515,7 +551,6 @@ FL_PRINT
         {
             if (abs(p1.x - p2.x) > 1 || abs(p1.y - p2.y) > 1)
             {
-                FL_PRINT
                 expander_.setStart(p1.x, p1.y);
                 expander_.setShouldTerminate(boost::bind(goal_reach, _1, _2, _3, p2.x, p2.y));
                 expander_.expand();
@@ -541,10 +576,6 @@ FL_PRINT
         const auto &p2 = temp_path.front();
         connect_to_point(p1, p2);
 
-        FL_PRINT
-//        path_.insert(path_.end(), bound_path.begin(), bound_path.end());
-//        env_ptr_->drawPath(bound_path);
         return bound_path;
     }
-
 }

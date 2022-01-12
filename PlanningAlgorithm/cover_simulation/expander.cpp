@@ -68,18 +68,19 @@ namespace algorithm
 
         max_x_ = max_y_ = std::numeric_limits<int>::min();
         min_x_ = min_y_ = std::numeric_limits<int>::max();
+
         auto size_x = env_ptr_->getGridXSizeInCells(), size_y = env_ptr_->getGridYSizeInCells();
+
         std::priority_queue<Node*, std::vector<Node*>, NodeCmp> node_stack;
-        int id_index = 0;
         std::vector<Node> nodes(size_x * size_y);
         auto start_cost = env_ptr_->getGridValue(start_x_, start_y_);
         Node *cur = &nodes[start_y_ * size_x + start_x_];
+        // 初始化第一个点
         cur->x = start_x_;
         cur->y = start_y_;
         cur->cost = start_cost;
         cur->dist = 0;
         cur->id = start_y_ * size_x + start_x_;
-        id_index++;
         node_stack.push(cur);
         std::unordered_map<int, std::unordered_map<int, bool>> visited{0};
         environment::PathNode pn{};

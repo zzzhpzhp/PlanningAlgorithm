@@ -17,4 +17,5 @@
 #include "astar.h"
 #include "bcd_with_dijkstra.h"
 #include "bcd_with_footprint.h"
+#include "jps.h"
 #include "cover_simulation/region_manager.h"

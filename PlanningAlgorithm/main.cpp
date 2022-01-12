@@ -162,6 +162,7 @@ main(int argc, char* argv[])
     algorithms_ptr.emplace_back(std::make_shared<algorithm::Bcd>(env_ptr, "Bcd"));
     algorithms_ptr.emplace_back(std::make_shared<algorithm::AStar>(env_ptr, "AStar"));
     algorithms_ptr.emplace_back(std::make_shared<algorithm::Dijkstra>(env_ptr, "Dijkstra"));
+    algorithms_ptr.emplace_back(std::make_shared<algorithm::JPS>(env_ptr, "JPS"));
 //    algorithms_ptr.emplace_back(std::make_shared<algorithm::BcdWidthDijkstra>(env_ptr, "BcdWithDijkstra"));
     algorithms_ptr.emplace_back(std::make_shared<algorithm::BcdWithFootprint>(env_ptr, "BcdWithFootprint"));
     algorithms_ptr.emplace_back(std::make_shared<algorithm::RegionManager>(env_ptr, "RegionManager"));
