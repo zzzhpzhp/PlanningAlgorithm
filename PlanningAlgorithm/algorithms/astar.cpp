@@ -64,7 +64,7 @@ namespace algorithm
         std::cout << "Start pose: [" << start_x_ << ", " << start_y_ << "]" << std::endl;
         std::cout << "Goal pose: [" << goal_x_ << ", " << goal_y_ << "]" << std::endl;
 
-
+        node_cnt_ = 0;
         std::priority_queue<Node*, std::vector<Node*>, NodeCmp> node_stack;
         auto size_x = env_ptr_->getGridXSizeInCells(), size_y = env_ptr_->getGridYSizeInCells();
         int id_index = start_y_ * size_x + start_x_;
@@ -163,6 +163,7 @@ namespace algorithm
                     side->in_open_list = true;
 
                     node_stack.push(side);
+                    node_cnt_++;
                 }
             }
 
@@ -182,6 +183,7 @@ namespace algorithm
             }
         }
         std::reverse(path_.begin(), path_.end());
+        std::cout << "OpenList catched node " << node_cnt_ << std::endl;
 
         return result;
     }

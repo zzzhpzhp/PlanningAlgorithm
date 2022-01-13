@@ -43,6 +43,7 @@ namespace algorithm
         int start_x_{0}, start_y_{0};
         int goal_x_{0}, goal_y_{0};
         int reference_length_{0};
+        int node_cnt_{0};
 
         environment::EnvironmentInterfacePtr env_ptr_;
         std::vector<std::function<bool(environment::EnvironmentInterfacePtr&, int, int, int&, int&)>> side_points_;
