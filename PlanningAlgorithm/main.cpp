@@ -1,25 +1,25 @@
 #include "main.h"
 
 // 交互窗口宽度（网格）
-int window_width = 530;
+int window_width = 130;
 // 交互窗口高度（网格）
-int window_length = 320;
+int window_length = 120;
 // 一个网格的宽度，单位：像素
-int width = 3;
+int width = 6;
 // 算法步骤执行延时（秒）
-float running_delay_time = 0.0;
+float running_delay_time = 0.001;
 // 算法执行结果演示时的步骤延时（秒）
 float display_delay_time = 0.001;
 // 算法执行成功后，是否显示算法给出的路径
 bool show_path = true;
 // 机器人半径
-int robot_radius = 6;
+int robot_radius = 1;
 // 障碍物标记的宽度，以给定坐标为中心
 int obstacle_radius = robot_radius;
 // 障碍物清除刷的尺寸
-int free_radius = 5;
+int free_radius = 1;
 // 当前运行的算法的索引
-int selected_algorithm = 3;
+int selected_algorithm = 4;
 // 当前运行算法的指针
 std::shared_ptr<algorithm::AlgorithmInterface> alg_ptr;
 // 当前环境的指针
@@ -127,7 +127,7 @@ bool switch_algorithm(int index)
     }
 
     alg_ptr = algorithms_ptr[index];
-    std::cout << "Selected algorithm is " << alg_ptr->getName() << std::endl;
+    std::cout << "********************** Selected algorithm is " << alg_ptr->getName() << " **********************"<< std::endl;
     return true;
 }
 
@@ -162,10 +162,10 @@ main(int argc, char* argv[])
     algorithms_ptr.emplace_back(std::make_shared<algorithm::Bcd>(env_ptr, "Bcd"));
     algorithms_ptr.emplace_back(std::make_shared<algorithm::AStar>(env_ptr, "AStar"));
     algorithms_ptr.emplace_back(std::make_shared<algorithm::Dijkstra>(env_ptr, "Dijkstra"));
-    algorithms_ptr.emplace_back(std::make_shared<algorithm::JPS>(env_ptr, "JPS"));
 //    algorithms_ptr.emplace_back(std::make_shared<algorithm::BcdWidthDijkstra>(env_ptr, "BcdWithDijkstra"));
     algorithms_ptr.emplace_back(std::make_shared<algorithm::BcdWithFootprint>(env_ptr, "BcdWithFootprint"));
     algorithms_ptr.emplace_back(std::make_shared<algorithm::RegionManager>(env_ptr, "RegionManager"));
+    algorithms_ptr.emplace_back(std::make_shared<algorithm::JPS>(env_ptr, "JPS"));
 //    std::shared_ptr<algorithm::RegionManager> rm_;
 //    rm_ = std::make_shared<algorithm::RegionManager>(env_ptr, "RegionManager");
 //    rm_->showCurrentRegion(149 * 3, 149 * 3);
