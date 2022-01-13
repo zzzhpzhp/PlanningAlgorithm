@@ -324,11 +324,11 @@ namespace environment
             std::lock_guard<std::mutex> lg(display_img_mtx_);
             display_img_ = cv::Mat(img_length_, img_width_, CV_8UC4, cv::Scalar(255, 255, 255, 255));
         }
-        showStartGoalPose();
         for (auto &o : obstacles_)
         {
             setInteractiveGridValue(std::get<0>(o), std::get<1>(o), std::get<2>(o), std::get<2>(o), std::get<2>(o));
         }
+        showStartGoalPose();
     }
 
     void Environment::reset()
