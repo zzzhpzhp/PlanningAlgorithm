@@ -177,6 +177,7 @@ namespace algorithm
                 cur_ = cur_->parent_node;
             }
         }
+        std::reverse(path_.begin(), path_.end());
 
         return result;
     }
