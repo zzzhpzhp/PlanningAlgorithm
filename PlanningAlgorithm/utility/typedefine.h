@@ -9,40 +9,95 @@
 
 namespace environment
 {
+    /**
+     * @brief 路径航点定义
+     * 
+     */
     struct PathNode
     {
+        // 航点坐标（规划界面坐标）
         int x, y;
+        // 航点的颜色
         uint8_t r, g, b, a;
     };
 
+    /**
+     * @brief 路径定义
+     * 
+     */
     using Path = std::vector<PathNode>;
 
+    /**
+     * @brief 物理点定义
+     * 
+     */
     struct Point
     {
+        // 点坐标（物理坐标）
         float x, y;
     };
 
+    /**
+     * @brief 栅格点定义（交互界面点）
+     * 
+     */
     struct GridPoint
     {
+        // 点坐标（交互界面坐标）
         int x, y;
+        // 点的值
         unsigned char cost;
     };
 
+    /**
+     * @brief 物理位姿定义
+     * 
+     */
     struct Pose
     {
-        float x, y, theta;
+        // 位姿坐标（物理坐标）
+        float x, y;
+        // 位姿航向（单位为弧度）
+        float theta;
     };
 
+    /**
+     * @brief 物理多边形定义
+     * 
+     */
     using Polygon = std::vector<Point>;
+
+    /**
+     * @brief 网格（交互界面）多边形
+     * 
+     */
     using GridPolygon = std::vector<GridPoint>;
+    
+    /**
+     * @brief 网格（交互界面）点集定义
+     * 
+     */
     using Grids = std::vector<GridPoint>;
+
+    /**
+     * @brief 机器人轮廓定义
+     * 
+     */
     using Footprint = std::vector<GridPoint>;
 
-
+    /**
+     * @brief 多边形边定义
+     * 
+     */
     struct Edge
     {
-        float ymax{}, x{};
+        // 最大y坐标
+        float ymax{};
+        // x坐标
+        float x{};
+        // 1/k的值
         float inv_k{};
+        // 与之相连的下一条边
         std::shared_ptr<Edge> next;
 
         bool operator()(const std::shared_ptr<Edge> &a, const std::shared_ptr<Edge> &b) const

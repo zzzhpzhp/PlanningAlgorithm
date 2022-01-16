@@ -73,8 +73,20 @@ namespace algorithm
         std::atomic_bool is_running_{false};
         float map_cost_scale_{0.0f};
         environment::EnvironmentInterfacePtr env_ptr_;
+        /**
+         * @brief 对每个加入OpenList的点进行的操作
+         * 
+         */
         std::function<bool(int x, int y, unsigned char cost)> step_process_{nullptr};
+        /**
+         * @brief 对每个点是否能放进OpenList的附加判断
+         * 
+         */
         std::function<bool(int x, int y, unsigned char cost)> pose_validation_{nullptr};
+        /**
+         * @brief 算法执行成功与否的附加判断
+         * 
+         */
         std::function<bool(int x, int y, unsigned char cost)> should_terminate_{nullptr};
         std::vector<std::function<bool(environment::EnvironmentInterfacePtr&, int, int, int&, int&)>> side_points_;
 

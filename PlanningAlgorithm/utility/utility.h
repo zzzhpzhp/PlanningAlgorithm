@@ -12,6 +12,13 @@
 
 namespace environment
 {
+    /**
+     * @brief 对路径进行插值
+     * 
+     * @param global_plan_in 待插值的路径
+     * @param global_plan_out 插值完成的路径
+     * @param resolution 目标插值分辨率
+     */
     inline void adjustPlanResolution(const std::vector<PathNode> &global_plan_in,
                               std::vector<PathNode> &global_plan_out, float resolution)
     {
