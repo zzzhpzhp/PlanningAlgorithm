@@ -53,7 +53,7 @@ namespace algorithm
     void BcdWithFootprint::setGoal(int x, int y)
     {
         int tx, ty;
-        if (!env_ptr_->displayXY2PlanningXY(x, y, tx, ty))
+        if (!env_ptr_->toGridAndInsideGrid(x, y, tx, ty))
         {
             throw std::runtime_error("Coordinate transform failed.");
         }
@@ -65,7 +65,7 @@ namespace algorithm
     void BcdWithFootprint::setStart(int x, int y)
     {
         int tx, ty;
-        if (!env_ptr_->displayXY2PlanningXY(x, y, tx, ty))
+        if (!env_ptr_->toGridAndInsideGrid(x, y, tx, ty))
         {
             throw std::runtime_error("Coordinate transform failed.");
         }
@@ -128,7 +128,7 @@ namespace algorithm
                     std::chrono::microseconds((int)(env_ptr_->getAlgorithmRunningDelayTime() * 1e6)));
             if (!valid)
             {
-                env_ptr_->setIntGridValByPlanXY(x, y, 100, 0, 0);
+                env_ptr_->setIntGridValueByGridXY(x, y, 100, 0, 0);
 
                 if (!last_bridge_path_.empty())
                 {
@@ -176,7 +176,7 @@ namespace algorithm
                     break;
 #endif
                 }
-                env_ptr_->setIntGridValByPlanXY(x, y, 100, 100, 100);
+                env_ptr_->setIntGridValueByGridXY(x, y, 100, 100, 100);
                 visited_[x][y] = true;
                 cleaned_[x][y] = true;
                 pn.x = x;
@@ -224,7 +224,7 @@ namespace algorithm
 
                 valid = true;
                 _mark_up_down_covered(side_x, side_y);
-                env_ptr_->setIntGridValByPlanXY(side_x, side_y, 100, 100, 100);
+                env_ptr_->setIntGridValueByGridXY(side_x, side_y, 100, 100, 100);
                 node_queue.emplace_back(side_x, side_y);
                 visited_[side_x][side_y] = true;
                 cleaned_[side_x][side_y] = true;
@@ -504,7 +504,7 @@ namespace algorithm
                 {
                     continue;
                 }
-                env_ptr_->setIntGridValByPlanXY(p.x, p.y, 255, 255, 0);
+                env_ptr_->setIntGridValueByGridXY(p.x, p.y, 255, 255, 0);
             }
             cleaned_[p.x][p.y] = true;
         }

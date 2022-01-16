@@ -23,7 +23,7 @@ namespace algorithm
     void JPS::setGoal(int x, int y)
     {
         int tx, ty;
-        if (!env_ptr_->displayXY2PlanningXY(x, y, tx, ty))
+        if (!env_ptr_->toGridAndInsideGrid(x, y, tx, ty))
         {
             throw std::runtime_error("Coordinate transform failed.");
         }
@@ -35,7 +35,7 @@ namespace algorithm
     void JPS::setStart(int x, int y)
     {
         int tx, ty;
-        if (!env_ptr_->displayXY2PlanningXY(x, y, tx, ty))
+        if (!env_ptr_->toGridAndInsideGrid(x, y, tx, ty))
         {
             throw std::runtime_error("Coordinate transform failed.");
         }
@@ -107,7 +107,7 @@ namespace algorithm
 
                 if (cur->x != start_x_ || cur->y != start_y_)
                 {
-                    env_ptr_->setIntGridValByPlanXY(cur->x, cur->y, 100, 100, 100);
+                    env_ptr_->setIntGridValueByGridXY(cur->x, cur->y, 100, 100, 100);
                 }
 
                 std::this_thread::sleep_for(
@@ -132,21 +132,21 @@ namespace algorithm
                         }
 
 
-                        if (side->in_open_list)
-                        {
-                            auto new_cost = cur->dist + side_to_cur_cost;
-                            if (new_cost < side->dist)
-                            {
-                                side->parent_node = t_cur;
-                            }
-                            break;
-                        }
-                        else if (side->in_close_list)
-                        {
-                            break;
-                        }
-                        else
-                        {
+//                        if (side->in_open_list)
+//                        {
+//                            auto new_cost = cur->dist + side_to_cur_cost;
+//                            if (new_cost < side->dist)
+//                            {
+//                                side->parent_node = t_cur;
+//                            }
+//                            break;
+//                        }
+//                        else if (side->in_close_list)
+//                        {
+//                            break;
+//                        }
+//                        else
+//                        {
                             if (side->visited)
                             {
                                 break;
@@ -155,7 +155,7 @@ namespace algorithm
                             side->x = side_x;
                             side->y = side_y;
                             side->dist = cur->dist + side_to_cur_cost;
-                        }
+//                        }
 
                         auto cost = env_ptr_->getGridValue(side->x, side->y);
                         if (cost <= environment::INSCRIBED_INFLATED_OBSTACLE)
@@ -170,7 +170,7 @@ namespace algorithm
                             cur = side;
                             return true;
                         }
-                        env_ptr_->setIntGridValByPlanXY(side->x, side->y, 100, 100, 100);
+                        env_ptr_->setIntGridValueByGridXY(side->x, side->y, 100, 100, 100);
 
 
                         auto dir = _get_pose(side->x, side->y, cur->x, cur->y);
@@ -180,7 +180,7 @@ namespace algorithm
                             side->in_open_list = true;
                             side->h = calc_h_(side);
                             side->parent_node = t_cur;
-                            env_ptr_->setIntGridValByPlanXY(side->x, side->y, 0, 255, 100);
+                            env_ptr_->setIntGridValueByGridXY(side->x, side->y, 0, 255, 100);
 
                             node_stack.push(side);
                             node_cnt_++;

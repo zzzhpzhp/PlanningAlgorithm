@@ -58,9 +58,6 @@ namespace environment
         bool
         setIntGridValueByGridXY(int x, int y, uint8_t r = 0, uint8_t g = 0, uint8_t b = 0, uint8_t a = 255) override;
 
-        bool
-        setIntGridValByPlanXY(int x, int y, uint8_t r, uint8_t g, uint8_t b, uint8_t a) override;
-
         void
         drawPath(const Path &path) override;
 
@@ -86,10 +83,7 @@ namespace environment
         getScale() override;
 
         bool
-        displayXY2PlanningXY(int raw_x, int raw_y, int &x, int &y) override;
-
-        bool
-        planningXY2InteractiveXY(int ix, int iy, int &ox, int &oy) override;
+        toGridAndInsideGrid(int raw_x, int raw_y, int &x, int &y) override;
 
         void
         clear() override;

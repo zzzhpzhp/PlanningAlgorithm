@@ -107,23 +107,6 @@ namespace environment
         return true;
     }
 
-    bool Environment::setIntGridValueByGridXY(int x, int y, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
-    {
-        x *= rect_size_;
-        y *= rect_size_;
-
-        if (x >= img_width_ || x < 0 || y >= img_length_ || y < 0)
-        {
-            std::cerr << "Out of bound." << std::endl;
-            return false;
-        }
-
-        std::lock_guard<std::mutex> lg(display_img_mtx_);
-        rectangle(display_img_, cv::Rect(x, y, rect_size_, rect_size_),
-                  cv::Scalar(b, g, r, a), -1);
-
-        return true;
-    }
     void Environment::drawPath(const Path &path)
     {
         if (path.empty())
@@ -188,7 +171,7 @@ namespace environment
         return rect_size_;
     }
 
-    bool Environment::displayXY2PlanningXY(int raw_x, int raw_y, int &x, int &y)
+    bool Environment::toGridAndInsideGrid(int raw_x, int raw_y, int &x, int &y)
     {
         x = (raw_x / rect_size_), y = (raw_y / rect_size_);
         if (!insideGrid(x, y))
@@ -302,15 +285,7 @@ namespace environment
         }
     }
 
-    bool Environment::planningXY2InteractiveXY(int ix, int iy, int &ox, int &oy)
-    {
-        ox = ix * rect_size_;
-        oy = iy * rect_size_;
-
-        return true;
-    }
-
-    bool Environment::setIntGridValByPlanXY(int x, int y, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
+    bool Environment::setIntGridValueByGridXY(int x, int y, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
     {
         auto ix = x * rect_size_;
         auto iy = y * rect_size_;

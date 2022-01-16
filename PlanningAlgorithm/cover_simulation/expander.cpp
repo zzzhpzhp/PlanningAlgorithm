@@ -105,7 +105,7 @@ namespace algorithm
 
                 if (cur->x != start_x_ || cur->y != start_y_)
                 {
-//                    env_ptr_->setIntGridValByPlanXY(cur->x, cur->y, 100, 100, 100);
+//                    env_ptr_->setIntGridValueByGridXY(cur->x, cur->y, 100, 100, 100);
                 }
 
                 if (step_process_ != nullptr)

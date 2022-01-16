@@ -35,7 +35,7 @@ namespace algorithm
     void BcdWidthDijkstra::setGoal(int x, int y)
     {
         int tx, ty;
-        if (!env_ptr_->displayXY2PlanningXY(x, y, tx, ty))
+        if (!env_ptr_->toGridAndInsideGrid(x, y, tx, ty))
         {
             throw std::runtime_error("Coordinate transform failed.");
         }
@@ -47,7 +47,7 @@ namespace algorithm
     void BcdWidthDijkstra::setStart(int x, int y)
     {
         int tx, ty;
-        if (!env_ptr_->displayXY2PlanningXY(x, y, tx, ty))
+        if (!env_ptr_->toGridAndInsideGrid(x, y, tx, ty))
         {
             throw std::runtime_error("Coordinate transform failed.");
         }
@@ -103,7 +103,7 @@ namespace algorithm
 //            }
             if (x != start_x_ || y != start_y_)
             {
-                env_ptr_->setIntGridValByPlanXY(x, y, 100, 100, 100);
+                env_ptr_->setIntGridValueByGridXY(x, y, 100, 100, 100);
             }
 
             visited[x][y] = true;
@@ -133,7 +133,7 @@ namespace algorithm
             if (!find)
             {
                 // Dead point
-                env_ptr_->setIntGridValByPlanXY(x, y, 100, 0, 0);
+                env_ptr_->setIntGridValueByGridXY(x, y, 100, 0, 0);
                 if (!_dijkstra(x, y, x, y, visited, path_))
                 {
                     return false;
@@ -181,7 +181,7 @@ namespace algorithm
             // 避免覆盖起始位置标志
             if (cur_->x != start_x || cur_->y != start_y)
             {
-                env_ptr_->setIntGridValByPlanXY(cur_->x, cur_->y, 150, 150, 150);
+                env_ptr_->setIntGridValueByGridXY(cur_->x, cur_->y, 150, 150, 150);
             }
 
             if (!visited[cur_->x][cur_->y])

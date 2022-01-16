@@ -23,7 +23,7 @@ namespace algorithm
     void Dfs::setGoal(int x, int y)
     {
         int tx, ty;
-        if (!env_ptr_->displayXY2PlanningXY(x, y, tx, ty))
+        if (!env_ptr_->toGridAndInsideGrid(x, y, tx, ty))
         {
             throw std::runtime_error("Coordinate transform failed.");
         }
@@ -35,7 +35,7 @@ namespace algorithm
     void Dfs::setStart(int x, int y)
     {
         int tx, ty;
-        if (!env_ptr_->displayXY2PlanningXY(x, y, tx, ty))
+        if (!env_ptr_->toGridAndInsideGrid(x, y, tx, ty))
         {
             throw std::runtime_error("Coordinate transform failed.");
         }
@@ -86,7 +86,7 @@ namespace algorithm
 //            }
             if (x != start_x_ || y != start_y_)
             {
-                env_ptr_->setIntGridValByPlanXY(x, y, 100, 100, 100);
+                env_ptr_->setIntGridValueByGridXY(x, y, 100, 100, 100);
             }
 
             visited[x][y] = true;

@@ -23,7 +23,7 @@ namespace algorithm
     void HybirdAstar::setGoal(int x, int y)
     {
         int tx, ty;
-        if (!env_ptr_->displayXY2PlanningXY(x, y, tx, ty))
+        if (!env_ptr_->toGridAndInsideGrid(x, y, tx, ty))
         {
             throw std::runtime_error("Coordinate transform failed.");
         }
@@ -35,7 +35,7 @@ namespace algorithm
     void HybirdAstar::setStart(int x, int y)
     {
         int tx, ty;
-        if (!env_ptr_->displayXY2PlanningXY(x, y, tx, ty))
+        if (!env_ptr_->toGridAndInsideGrid(x, y, tx, ty))
         {
             throw std::runtime_error("Coordinate transform failed.");
         }
@@ -101,7 +101,7 @@ namespace algorithm
 
                 if (cur_->x != start_x_ || cur_->y != start_y_)
                 {
-                    env_ptr_->setIntGridValByPlanXY(cur_->x, cur_->y, 100, 100, 100);
+                    env_ptr_->setIntGridValueByGridXY(cur_->x, cur_->y, 100, 100, 100);
                 }
 
                 for (auto &side_node : side_points_)

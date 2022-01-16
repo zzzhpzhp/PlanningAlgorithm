@@ -13,7 +13,7 @@ namespace algorithm
     void Bcd::setGoal(int x, int y)
     {
         int tx, ty;
-        if (!env_ptr_->displayXY2PlanningXY(x, y, tx, ty))
+        if (!env_ptr_->toGridAndInsideGrid(x, y, tx, ty))
         {
             throw std::runtime_error("Coordinate transform failed.");
         }
@@ -25,7 +25,7 @@ namespace algorithm
     void Bcd::setStart(int x, int y)
     {
         int tx, ty;
-        if (!env_ptr_->displayXY2PlanningXY(x, y, tx, ty))
+        if (!env_ptr_->toGridAndInsideGrid(x, y, tx, ty))
         {
             throw std::runtime_error("Coordinate transform failed.");
         }
@@ -99,7 +99,7 @@ namespace algorithm
                 // 標記已訪問區域
                 if (cur_x != start_x_ || cur_y != start_y_)
                 {
-                    env_ptr_->setIntGridValByPlanXY(cur_x, cur_y, 100, 100, 100);
+                    env_ptr_->setIntGridValueByGridXY(cur_x, cur_y, 100, 100, 100);
                 }
                 // 存儲路徑
                 save_path(cur_x, cur_y);

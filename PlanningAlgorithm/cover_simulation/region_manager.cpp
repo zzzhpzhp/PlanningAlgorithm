@@ -21,84 +21,84 @@ namespace algorithm
 
         // 边界判定函数
         std::function<bool(int, int, unsigned char)> reach_bound =
-                [&](int x, int y, unsigned char cost)->bool
-                {
-                    return _is_boundary(x, y, *current_region_);
-                };
+        [&](int x, int y, unsigned char cost)->bool
+        {
+            return _is_boundary(x, y, *current_region_);
+        };
 
         // 新区域到达判定函数
         std::function<bool(int, int, unsigned char)> reach_new_region =
-                [&](int x, int y, unsigned char cost)->bool
+        [&](int x, int y, unsigned char cost)->bool
+        {
+            // 点是否在指定区域内
+            if (!_is_inside(x, y, current_region_))
+            {
+                // 点不在当前区域内，说明搜索到了当前区域外的其他区域
+
+                auto new_region = getRegionById(x, y);
+                // 判断点是否在覆盖过的区域
+                if (!cleaned_region_[_gen_region_id(new_region)])
                 {
-                    // 点是否在指定区域内
-                    if (!_is_inside(x, y, current_region_))
+                    // 点所在的区域没有被覆盖过
+                    return true;
+                }
+                else
+                {
+                    // 点所在的区域被覆盖过, 则检查此区域是否还有未覆盖区域
+
+                    if (cover_.isGlobalCleaned(x, y))
                     {
-                        // 点不在当前区域内，说明搜索到了当前区域外的其他区域
-
-                        auto new_region = getRegionById(x, y);
-                        // 判断点是否在覆盖过的区域
-                        if (!cleaned_region_[_gen_region_id(new_region)])
-                        {
-                            // 点所在的区域没有被覆盖过
-                            return true;
-                        }
-                        else
-                        {
-                            // 点所在的区域被覆盖过, 则检查此区域是否还有未覆盖区域
-
-                            if (cover_.isGlobalCleaned(x, y))
-                            {
-                                // 当前点已经被覆盖过
-                                return false;
-                            }
-
-                            // 当前点未被覆盖,以此点为起点，广度优先搜索此区域，检查未被覆盖的点的数量，看看未被覆盖的点的数量是否达到标准
-
-                            int need_cover{0};
-                            // 可清扫点记数
-                            std::function<bool(int, int, unsigned char)> need_cover_count = [&](int tx, int ty, unsigned char cost)->bool
-                            {
-                                need_cover++;
-                                return true;
-                            };
-                            // 新区域点判断
-                            std::function<bool(int, int, unsigned char)> inside_new_region = [&](int tx, int ty, unsigned char cost)->bool
-                            {
-                                // 判断点是否在新区域内
-                                if (!_is_inside(tx, ty, &new_region))
-                                {
-                                    return false;
-                                }
-
-                                // 判断新区域内的点是否已经被覆盖
-                                if (cover_.isGlobalCleaned(tx, ty))
-                                {
-                                    return false;
-                                }
-
-                                // 是新区域内的未被覆盖的点
-                                return true;
-                            };
-                            // 复位各个条件函数为nullptr
-                            helper_expander_.reset();
-                            helper_expander_.setStart(x, y);
-                            // 设置每对每个加入过open_list中的点的操作为计数
-                            helper_expander_.setStepProcess(need_cover_count);
-                            // 设置可行性附加判断条件为新区域中的未清扫点
-                            helper_expander_.setPoseValidation(inside_new_region);
-                            // 由于未设置额外的结束条件，会执行搜索直到不存在满足条件的点为止
-                            helper_expander_.expand();
-                            // 判断满足条件的点的数量
-                            if (need_cover > 10)
-                            {
-                                // 数量条件满足，认为找到了新的可覆盖区域
-                                std::cout << ">>>>>>>>>>>>>>>>> Find ReCover Region, Size " << need_cover << " ID " << _gen_region_id(new_region) << " <<<<<<<<<<<<<<<<<" <<std::endl;
-                                return true;
-                            }
-                        }
+                        // 当前点已经被覆盖过
+                        return false;
                     }
-                    return false;
-                };
+
+                    // 当前点未被覆盖,以此点为起点，广度优先搜索此区域，检查未被覆盖的点的数量，看看未被覆盖的点的数量是否达到标准
+
+                    int need_cover{0};
+                    // 可清扫点记数
+                    std::function<bool(int, int, unsigned char)> need_cover_count = [&](int tx, int ty, unsigned char cost)->bool
+                    {
+                        need_cover++;
+                        return true;
+                    };
+                    // 新区域点判断
+                    std::function<bool(int, int, unsigned char)> inside_new_region = [&](int tx, int ty, unsigned char cost)->bool
+                    {
+                        // 判断点是否在新区域内
+                        if (!_is_inside(tx, ty, &new_region))
+                        {
+                            return false;
+                        }
+
+                        // 判断新区域内的点是否已经被覆盖
+                        if (cover_.isGlobalCleaned(tx, ty))
+                        {
+                            return false;
+                        }
+
+                        // 是新区域内的未被覆盖的点
+                        return true;
+                    };
+                    // 复位各个条件函数为nullptr
+                    helper_expander_.reset();
+                    helper_expander_.setStart(x, y);
+                    // 设置每对每个加入过open_list中的点的操作为计数
+                    helper_expander_.setStepProcess(need_cover_count);
+                    // 设置可行性附加判断条件为新区域中的未清扫点
+                    helper_expander_.setPoseValidation(inside_new_region);
+                    // 由于未设置额外的结束条件，会执行搜索直到不存在满足条件的点为止
+                    helper_expander_.expand();
+                    // 判断满足条件的点的数量
+                    if (need_cover > 10)
+                    {
+                        // 数量条件满足，认为找到了新的可覆盖区域
+                        std::cout << ">>>>>>>>>>>>>>>>> Find ReCover Region, Size " << need_cover << " ID " << _gen_region_id(new_region) << " <<<<<<<<<<<<<<<<<" <<std::endl;
+                        return true;
+                    }
+                }
+            }
+            return false;
+        };
 
         path_.clear();
         // 复位已覆盖区域标记
@@ -250,7 +250,7 @@ namespace algorithm
 
     void RegionManager::setStart(int x, int y)
     {
-        env_ptr_->displayXY2PlanningXY(x, y, x, y);
+        env_ptr_->toGridAndInsideGrid(x, y, x, y);
         start_x_ = x;
         start_y_ = y;
 
@@ -398,11 +398,11 @@ namespace algorithm
                 first_boundary_point = false;
                 first_point.x = x;
                 first_point.y = y;
-//                env_ptr_->setIntGridValByPlanXY(x, y, 255, 0, 0);
+//                env_ptr_->setIntGridValueByGridXY(x, y, 255, 0, 0);
             }
             else
             {
-//                env_ptr_->setIntGridValByPlanXY(x, y, 100, 100, 100);
+//                env_ptr_->setIntGridValueByGridXY(x, y, 100, 100, 100);
             }
 
             auto pid = _gen_point_id(x, y);
@@ -525,7 +525,7 @@ namespace algorithm
             return temp_path;
         }
         // 显示首先搜索到的边界点
-        env_ptr_->setIntGridValByPlanXY(temp_path[cut_index].x, temp_path[cut_index].y, 255, 0, 0);
+        env_ptr_->setIntGridValueByGridXY(temp_path[cut_index].x, temp_path[cut_index].y, 255, 0, 0);
 
         // 调整顺序，得出一条以第一个搜索到的点为起点的路径
         for (int i = cut_index; i < temp_path.size(); i++)

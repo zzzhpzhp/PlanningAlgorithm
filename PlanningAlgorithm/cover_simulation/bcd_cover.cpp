@@ -57,7 +57,7 @@ namespace algorithm
     void BcdCover::setGoal(int x, int y)
     {
         int tx, ty;
-        if (!env_ptr_->displayXY2PlanningXY(x, y, tx, ty))
+        if (!env_ptr_->toGridAndInsideGrid(x, y, tx, ty))
         {
             throw std::runtime_error("Coordinate transform failed.");
         }
@@ -521,7 +521,7 @@ namespace algorithm
                 {
                     continue;
                 }
-                env_ptr_->setIntGridValByPlanXY(p.x, p.y, 255, 255, 0);
+                env_ptr_->setIntGridValueByGridXY(p.x, p.y, 255, 255, 0);
             }
             cleaned_[p.x][p.y] = true;
         }

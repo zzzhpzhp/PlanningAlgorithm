@@ -72,7 +72,7 @@ namespace algorithm
         bool initialized_{false};
         environment::EnvironmentInterfacePtr env_ptr_;
         environment::GridPoint region_origin_{};
-        int region_size_{100};
+        int region_size_{90};
         int start_x_{0}, start_y_{0};
         std::unordered_map<std::string, Region> regions_;
         Region *current_region_{nullptr};
