@@ -7,7 +7,7 @@ int window_length = 240;
 // 一个网格的宽度，单位：像素
 int width = 4;
 // 算法步骤执行延时（秒）
-float running_delay_time = 0.000;
+float running_delay_time = 0.00;
 // 算法执行结果演示时的步骤延时（秒）
 float display_delay_time = 0.001;
 // 算法执行成功后，是否显示算法给出的路径
@@ -164,8 +164,8 @@ main(int argc, char* argv[])
     algorithms_ptr.emplace_back(std::make_shared<algorithm::Dijkstra>(env_ptr, "Dijkstra"));
 //    algorithms_ptr.emplace_back(std::make_shared<algorithm::BcdWidthDijkstra>(env_ptr, "BcdWithDijkstra"));
     algorithms_ptr.emplace_back(std::make_shared<algorithm::BcdWithFootprint>(env_ptr, "BcdWithFootprint"));
-    algorithms_ptr.emplace_back(std::make_shared<algorithm::RegionManager>(env_ptr, "RegionManager"));
     algorithms_ptr.emplace_back(std::make_shared<algorithm::JPS>(env_ptr, "JPS"));
+    algorithms_ptr.emplace_back(std::make_shared<algorithm::RegionManager>(env_ptr, "RegionManager"));
 //    std::shared_ptr<algorithm::RegionManager> rm_;
 //    rm_ = std::make_shared<algorithm::RegionManager>(env_ptr, "RegionManager");
 //    rm_->showCurrentRegion(149 * 3, 149 * 3);

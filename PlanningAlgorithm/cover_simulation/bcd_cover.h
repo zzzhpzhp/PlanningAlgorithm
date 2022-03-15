@@ -103,7 +103,7 @@ namespace algorithm
         float map_cost_scale_{0.0f};
 
         environment::EnvironmentInterfacePtr env_ptr_;
-        std::vector<std::function<bool(environment::EnvironmentInterfacePtr&, int, int, int&, int&)>> side_points_, dijkstra_side_points_;
+        std::vector<std::function<bool(environment::EnvironmentInterfacePtr&, int, int, int&, int&)>> rl_points_, mhl_points_, side_points_, dijkstra_side_points_;
         environment::Path path_;
         environment::Path last_cover_path_;
         environment::Path last_bridge_path_;

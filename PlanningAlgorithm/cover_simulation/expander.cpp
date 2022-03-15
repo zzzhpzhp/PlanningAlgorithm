@@ -1,8 +1,7 @@
 #include "expander.h"
-
+#define DISPLAY_PROCESS 0
 namespace algorithm
 {
-
     Expander::Expander()
     {
         side_points_.emplace_back(boost::bind(&Expander::_get_right, this, _1, _2, _3, _4, _5, 1));
@@ -105,7 +104,9 @@ namespace algorithm
 
                 if (cur->x != start_x_ || cur->y != start_y_)
                 {
-//                    env_ptr_->setIntGridValueByGridXY(cur->x, cur->y, 100, 100, 100);
+#if DISPLAY_PROCESS
+                    env_ptr_->setIntGridValueByGridXY(cur->x, cur->y, 100, 100, 100);
+#endif
                 }
 
                 if (step_process_ != nullptr)

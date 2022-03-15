@@ -339,7 +339,7 @@ namespace environment
     void Environment::play(Path &path)
     {
         Path tpath;
-        adjustPlanResolution(path, tpath, 0.5);
+        adjustPlanResolution(path, tpath, 1.0);
         std::cout << path.size() << " " << tpath.size() <<std::endl;
         int x, y;
         cv::Mat display_copy;

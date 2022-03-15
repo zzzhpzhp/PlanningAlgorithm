@@ -41,6 +41,9 @@ namespace algorithm
         side_points_.emplace_back(boost::bind(&BcdCover::_get_middle_higher, this, _1, _2, _3, _4, _5, robot_radius_));
         side_points_.emplace_back(boost::bind(&BcdCover::_get_middle_lower, this, _1, _2, _3, _4, _5, robot_radius_));
 
+        mhl_points_.emplace_back(boost::bind(&BcdCover::_get_middle_higher, this, _1, _2, _3, _4, _5, robot_radius_));
+        mhl_points_.emplace_back(boost::bind(&BcdCover::_get_middle_lower, this, _1, _2, _3, _4, _5, robot_radius_));
+
         dijkstra_side_points_.emplace_back(boost::bind(&BcdCover::_get_right, this, _1, _2, _3, _4, _5, 1));
         dijkstra_side_points_.emplace_back(boost::bind(&BcdCover::_get_middle_higher, this, _1, _2, _3, _4, _5, 1));
         dijkstra_side_points_.emplace_back(boost::bind(&BcdCover::_get_left, this, _1, _2, _3, _4, _5, 1));
@@ -122,6 +125,21 @@ namespace algorithm
         {
             return false;
         }
+
+        environment::Path to_suitable_start_;
+        if ((abs(start_y_) % robot_radius_) != 0)
+        {
+            if (!_dijkstra(start_x_, start_y_, start_x_, start_y_, visited_, to_suitable_start_))
+            {
+//                pr_warn("Failed to get to suitable start path.");
+            }
+            else
+            {
+                path_.insert(path_.end(), to_suitable_start_.begin(), to_suitable_start_.end());
+//                pr_info("Get to suitable start path succeed.");
+            }
+        }
+
         _mark_up_down_covered(start_x_, start_y_);
 
         std::deque<std::tuple<int, int>> node_queue;
@@ -140,7 +158,7 @@ namespace algorithm
             if (!valid)
             {
 #if DISPLAY_DEAD_POINT
-                env_ptr_->setIntGridValByPlanXY(x, y, 100, 0, 0);
+                env_ptr_->setIntGridValueByGridXY(x, y, 100, 0, 0);
 #endif
                 if (!last_bridge_path_.empty())
                 {
@@ -189,7 +207,7 @@ namespace algorithm
 #endif
                 }
 #if DISPLAY_CLEAN_PATH
-                env_ptr_->setIntGridValByPlanXY(x, y, 100, 100, 100);
+                env_ptr_->setIntGridValueByGridXY(x, y, 100, 100, 100);
 #endif
                 visited_[x][y] = true;
                 cleaned_[x][y] = true;
@@ -207,23 +225,19 @@ namespace algorithm
             }
             valid = false;
 
-            for (auto &side_node : side_points_)
+            auto point_proc = [&](environment::Path &res)->bool
             {
-                if (!side_node(env_ptr_, x, y, side_x, side_y))
-                {
-                    continue;
-                }
                 side_val = env_ptr_->getGridValue(side_x, side_y);
                 if (side_val <= environment::INSCRIBED_INFLATED_OBSTACLE || visited_[side_x][side_y] ||
                     (pose_validation_ && !pose_validation_(side_x, side_y, side_val)))
                 {
-                    continue;
+                    return false;
                 }
 #if LEAP_SEARCH_ENABLE
                 // 在漏覆盖检查时，需要检测是否已经清扫
                 if (search_leap_ && cleaned_[side_x][side_y])
                 {
-                    continue;
+                    return false;
                 }
 #endif
                 if (side_y != y)
@@ -233,14 +247,14 @@ namespace algorithm
                     auto h = std::max(side_y, y);
                     if (!_position_validation(side_x, h))
                     {
-                        continue;
+                        return false;
                     }
                 }
 
                 valid = true;
                 _mark_up_down_covered(side_x, side_y);
 #if DISPLAY_CLEAN_PATH
-                env_ptr_->setIntGridValByPlanXY(side_x, side_y, 100, 100, 100);
+                env_ptr_->setIntGridValueByGridXY(side_x, side_y, 100, 100, 100);
 #endif
                 node_queue.emplace_back(side_x, side_y);
                 visited_[side_x][side_y] = true;
@@ -251,7 +265,78 @@ namespace algorithm
 
                 pn.x = x;
                 pn.y = y;
-                last_cover_path_.emplace_back(pn);
+                res.emplace_back(pn);
+                return true;
+            };
+
+            auto tx = x, ty = y;
+
+            environment::Path right_path, left_path;
+            while(_get_right(env_ptr_, x, y, side_x, side_y) && is_running_.load())
+            {
+                if (point_proc(right_path))
+                {
+                    continue;
+                }
+                break;
+            }
+
+            x = tx;
+            y = ty;
+            while(_get_left(env_ptr_, x, y, side_x, side_y) && is_running_.load())
+            {
+                if (point_proc(left_path))
+                {
+                    continue;
+                }
+                break;
+            }
+
+            if (right_path.size() <= left_path.size())
+            {
+                if (!right_path.empty())
+                {
+                    last_cover_path_.insert(last_cover_path_.end(), right_path.begin(), right_path.end());
+                }
+                if (!left_path.empty())
+                {
+                    last_cover_path_.insert(last_cover_path_.end(), left_path.begin(), left_path.end());
+                }
+            }
+            else
+            {
+                if (!left_path.empty())
+                {
+                    last_cover_path_.insert(last_cover_path_.end(), left_path.begin(), left_path.end());
+                }
+                if (!right_path.empty())
+                {
+                    last_cover_path_.insert(last_cover_path_.end(), right_path.begin(), right_path.end());
+                }
+
+            }
+            if (!last_cover_path_.empty())
+            {
+                x = last_cover_path_.back().x;
+                y = last_cover_path_.back().y;
+            }
+
+            for (auto &side_node : mhl_points_)
+            {
+                if (!is_running_.load())
+                {
+                    break;
+                }
+
+                if (!side_node(env_ptr_, x, y, side_x, side_y))
+                {
+                    continue;
+                }
+
+                if (!point_proc(last_cover_path_))
+                {
+                    continue;
+                }
                 break;
             }
         }
@@ -300,7 +385,7 @@ namespace algorithm
             // 避免覆盖起始位置标志
             if (cur->x != start_x || cur->y != start_y)
             {
-                env_ptr_->setIntGridValByPlanXY(cur->x, cur->y, 100, 100, 100, 50);
+                env_ptr_->setIntGridValueByGridXY(cur->x, cur->y, 100, 100, 100, 50);
             }
 #endif
             if (reach_judge_(cur->x, cur->y))
@@ -451,7 +536,7 @@ namespace algorithm
                     break;
                 }
 #if DISPLAY_COVER_PROCESS
-                env_ptr_->setIntGridValByPlanXY(tx, ty, 150, 150, 150);
+                env_ptr_->setIntGridValueByGridXY(tx, ty, 150, 150, 150);
 #endif
             }
             cleaned_[tx][ty] = true;
@@ -473,7 +558,7 @@ namespace algorithm
                     break;
                 }
 #if DISPLAY_COVER_PROCESS
-                env_ptr_->setIntGridValByPlanXY(tx, ty, 150, 150, 150);
+                env_ptr_->setIntGridValueByGridXY(tx, ty, 150, 150, 150);
 #endif
             }
             cleaned_[tx][ty] = true;
@@ -490,7 +575,7 @@ namespace algorithm
 
         if (!search_leap_)
         {
-            return (!visited_[x][y] && !cleaned_[x][y] && abs(y - start_y_) % robot_radius_ == 0);
+            return (!visited_[x][y] && !cleaned_[x][y] && abs(y) % robot_radius_ == 0);
         }
         else
         {

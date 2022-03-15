@@ -9,6 +9,7 @@ namespace algorithm
         expander_.initialize(env, name + "Expander");
         helper_expander_.initialize(env, name + "HelperExpander");
         cover_.initialize(env, name + "Cover");
+        cover_.setPoseValidation(boost::bind(&RegionManager::isInsideCurrentRegion, this, _1, _2));
 
         initialized_ = true;
     }
@@ -95,6 +96,13 @@ namespace algorithm
                         std::cout << ">>>>>>>>>>>>>>>>> Find ReCover Region, Size " << need_cover << " ID " << _gen_region_id(new_region) << " <<<<<<<<<<<<<<<<<" <<std::endl;
                         return true;
                     }
+                }
+            }
+            else
+            {
+                if (!cover_.isGlobalCleaned(x, y))
+                {
+                    return true;
                 }
             }
             return false;
@@ -398,11 +406,11 @@ namespace algorithm
                 first_boundary_point = false;
                 first_point.x = x;
                 first_point.y = y;
-//                env_ptr_->setIntGridValueByGridXY(x, y, 255, 0, 0);
+                env_ptr_->setIntGridValueByGridXY(x, y, 255, 0, 0);
             }
             else
             {
-//                env_ptr_->setIntGridValueByGridXY(x, y, 100, 100, 100);
+                env_ptr_->setIntGridValueByGridXY(x, y, 100, 100, 100);
             }
 
             auto pid = _gen_point_id(x, y);
@@ -572,9 +580,9 @@ namespace algorithm
             const auto &p2 = temp_path[i+1];
             connect_to_point(p1, p2);
         }
-        const auto &p1 = temp_path.back();
-        const auto &p2 = temp_path.front();
-        connect_to_point(p1, p2);
+//        const auto &p1 = temp_path.back();
+//        const auto &p2 = temp_path.front();
+//        connect_to_point(p1, p2);
 
         return bound_path;
     }
