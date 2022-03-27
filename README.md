@@ -17,4 +17,4 @@ Ubuntu 20.04
 运行后会弹出一个InteractWindow窗口，点击鼠标左键标记搜索起点，点击鼠标右键标记搜索目标，鼠标中键按下后标记障碍物。在键盘按下s键启动搜索，c键清除上次的搜索痕迹。
  
 ### 效果 
-！[avatar AStar algorithm](./AStar.gif)
+![easonjim](https://github.com/zzzhpzhp/PlanningAlgorithm/blob/ubuntu16.04/Dijkstra.gif)
