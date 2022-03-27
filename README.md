@@ -36,4 +36,4 @@ Ubuntu 20.04
 #### JPS  
 ![JPS](https://github.com/zzzhpzhp/PlanningAlgorithm/blob/ubuntu16.04/JPS.gif)  
 #### Complete Coverage  
-![JPS](https://github.com/zzzhpzhp/PlanningAlgorithm/blob/ubuntu16.04/Coverage.gif)  
+![Coverage](https://github.com/zzzhpzhp/PlanningAlgorithm/blob/ubuntu16.04/Coverage.gif)  
