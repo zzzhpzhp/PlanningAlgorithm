@@ -1,6 +1,6 @@
 ### 依赖安装：
 ```shell
-sudo apt-get install libopencv-dev libbost-dev
+sudo apt-get install libopencv-dev libboost-dev
 ```
 (编译时若是出现opencv相关的错误，可能需要调整头文件的包含路径。)
 
